@@ -63,6 +63,7 @@ group :test do
 end
 
 # App-specific gems
+gem "pdftoimage"
 gem "prawn-rails"
 gem "prawn-svg"
 gem "tailwindcss-ruby", "~> 4.1"
