@@ -1,14 +1,13 @@
-require "prawn/measurement_extensions"
-
 class DocumentsController < ApplicationController
-  ASSET_DIR = "app/assets"
-  FONT_DIR = "#{ASSET_DIR}/fonts"
-  IMG_DIR = "#{ASSET_DIR}/images"
+  include Printable
 
   def index
+    @params = default_params # .merge!(honoree_name: "foo")
+
     respond_to do |format|
       format.html
       format.pdf
+      format.png
     end
   end
 end
