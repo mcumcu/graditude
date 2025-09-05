@@ -15,6 +15,19 @@ module Printable
 
   # Methods defined directly in the module become instance methods
   # of the including controller
+  def default_params
+    {
+      graduate_name: nil,
+      degree: nil,
+      major: nil,
+      nouns: [],
+      honoree_name: nil,
+      message: [],
+      presented_on: nil,
+      signature_path: nil
+    }
+  end
+
   def new_prawn_doc
     background = "#{IMG_DIR}/paper.jpg"
     document_font = "#{FONT_DIR}/OPTIEngraversOldEnglish.otf"
@@ -28,7 +41,7 @@ module Printable
         pdf.image background, width: pdf.margin_box.width, height: pdf.margin_box.height, position: :center
       end
 
-      pdf.move_down(20.mm)
+      pdf.move_down(25.mm)
 
       pdf.float do
         pdf.svg File.read(banner_path), width: 220.mm, position: :center
@@ -53,22 +66,26 @@ module Printable
     degree = params[:degree]
     honoree_name = params[:honoree_name]
     major = params[:major]
-    nouns = params[:nouns]
-    message = params[:message]
+    nouns = params[:nouns].compact
+    message = params[:message].compact
     presented_on = params[:presented_on]
     signature_path = params[:signature_path]
 
     pdf = new_prawn_doc
 
-    pdf.text graduate_name, align: :center, size: 8.mm
+    pdf.text graduate_name.to_s, align: :center, size: 8.mm
 
     pdf.move_down(10.mm)
 
-    pdf.text "has successfully completed the requirements for #{degree} with the #{nouns.join(' and ')} of", align: :center, size: 5.mm
+    pdf.text [
+      "has successfully completed the requirements for",
+      degree || "their degree",
+      nouns.any? ? "with the #{nouns.compact.join(' and ')} of" : nil
+    ].compact.join(" "), align: :center, size: 5.mm
 
     pdf.move_down(10.mm)
 
-    pdf.text honoree_name, align: :center, size: 8.mm
+    pdf.text honoree_name.to_s, align: :center, size: 8.mm
 
     pdf.move_down(10.mm)
 
@@ -77,11 +94,13 @@ module Printable
     pdf.move_down(14.mm)
 
     # left column
-    pdf.image "#{DocumentsController::IMG_DIR}/#{signature_path}", width: signature_width, at: [ (half_width / 2) - (signature_width / 2), pdf.cursor ]
+    container_width = message.size == 0 ? width : half_width
 
-    pdf.text_box graduate_name, align: :center, size: 4.mm, width: half_width, at: [ 0, pdf.cursor - 13.mm ]
+    pdf.image "#{DocumentsController::IMG_DIR}/#{signature_path}", width: signature_width, at: [ (container_width / 2) - (signature_width / 2), pdf.cursor ] if signature_path
 
-    pdf.text_box [ degree, major ].join(", "), align: :center, size: 4.mm, width: half_width, at: [ 0, pdf.cursor - 19.mm ]
+    pdf.text_box graduate_name.to_s, align: :center, size: 4.mm, width: container_width, at: [ 0, pdf.cursor - 13.mm ]
+
+    pdf.text_box [ degree, major ].compact.join(", "), align: :center, size: 4.mm, width: container_width, at: [ 0, pdf.cursor - 19.mm ]
 
     # right column
     if message.size == 2
@@ -93,25 +112,6 @@ module Printable
     end
 
     pdf
-  end
-
-  def default_params
-    {
-      graduate_name: "Meili Blaine Elizabeth Unger",
-      degree: "Bachelor of Science",
-      honoree_name: "Michael Christopher Unger",
-      major: "Organic Chemistry",
-      nouns: [
-        "mentorship",
-        "support"
-      ],
-      message: [
-        "Gratias tibi ago pro amore et auxilio tuo",
-        "Thank you for your love and support"
-      ],
-      presented_on: "May 2026",
-      signature_path: "givers_signature.png"
-    }
   end
 
   def rerender_png_path
@@ -143,8 +143,12 @@ module Printable
     @temp_png_path ||= Rails.root.join(temp_png_dir, "#{filename}.png")
   end
 
+  def width
+    @width ||= @new_prawn_doc.bounds.width
+  end
+
   def half_width
-    @half_width ||= @new_prawn_doc.bounds.width / 2
+    @half_width ||= width / 2
   end
 
   def margin_horizontal
