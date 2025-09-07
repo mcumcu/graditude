@@ -22,7 +22,7 @@ module Printable
       major: nil,
       nouns: [],
       honoree_name: nil,
-      message: [],
+      message: nil,
       presented_on: nil,
       signature_path: nil
     }
@@ -60,16 +60,14 @@ module Printable
   end
 
   def make_document(params = {})
-    params = default_params.merge!(params)
-
-    graduate_name = params[:graduate_name]
-    degree = params[:degree]
-    honoree_name = params[:honoree_name]
-    major = params[:major]
-    nouns = params[:nouns].compact
-    message = params[:message].compact
-    presented_on = params[:presented_on]
-    signature_path = params[:signature_path]
+    graduate_name = params["graduate_name"]
+    degree = params["degree"]
+    honoree_name = params["honoree_name"]
+    major = params["major"]
+    nouns = params["nouns"]&.reject { |n| n.empty? } || []
+    message = params["message"] || ""
+    presented_on = params["presented_on"]
+    signature_path = params["signature_path"]
 
     pdf = new_prawn_doc
 
@@ -80,7 +78,7 @@ module Printable
     pdf.text [
       "has successfully completed the requirements for",
       degree || "their degree",
-      nouns.any? ? "with the #{nouns.compact.join(' and ')} of" : nil
+      nouns.any? ? "with the #{nouns.join(' and ')} of" : nil
     ].compact.join(" "), align: :center, size: 5.mm
 
     pdf.move_down(10.mm)
@@ -103,28 +101,30 @@ module Printable
     pdf.text_box [ degree, major ].compact.join(", "), align: :center, size: 4.mm, width: container_width, at: [ 0, pdf.cursor - 19.mm ]
 
     # right column
-    if message.size == 2
-      pdf.text_box message.first, align: :center, size: 6.mm, width: (half_width) - margin_horizontal, height: 30.mm, at: [ (half_width) + 10.mm, pdf.cursor - 10.mm ]
+    # if message.size == 2
+    #   pdf.text_box message.first, align: :center, size: 6.mm, width: (half_width) - margin_horizontal, height: 30.mm, at: [ (half_width) + 10.mm, pdf.cursor - 10.mm ]
 
-      pdf.text_box message.last, align: :center, size: 4.mm, width: (half_width) - margin_horizontal, height: 30.mm, at: [ (half_width) + 10.mm, pdf.cursor - 19.mm ]
-    elsif message.size == 1
-      pdf.text_box message.first, align: :center, size: 6.mm, width: (half_width) - margin_horizontal, height: 30.mm, at: [ (half_width) + 10.mm, pdf.cursor - 13.mm ]
-    end
+    #   pdf.text_box message.last, align: :center, size: 4.mm, width: (half_width) - margin_horizontal, height: 30.mm, at: [ (half_width) + 10.mm, pdf.cursor - 19.mm ]
+    # elsif message.size == 1
+    #   pdf.text_box message.first, align: :center, size: 6.mm, width: (half_width) - margin_horizontal, height: 30.mm, at: [ (half_width) + 10.mm, pdf.cursor - 13.mm ]
+    # end
+
+    pdf.text_box message, align: :center, size: 6.mm, width: (half_width) - margin_horizontal, height: 30.mm, at: [ (half_width) + 10.mm, pdf.cursor - 13.mm ]
 
     pdf
   end
 
   def rerender_png_path
-    doc = make_document(@params)
-    doc.render_file(temp_pdf_path)
+    doc = make_document(@certificate&.data || default_params)
+    doc.render_file(temp_pdf_path(@certificate&.id || "_blank"))
 
-    page = PDFToImage.open(temp_pdf_path).first
+    page = PDFToImage.open(temp_pdf_path(@certificate&.id || "_blank")).first
 
     if page
-      page.resize("960").save(temp_png_path)
+      page.resize("1024").save(temp_png_path(@certificate&.id || "_blank"))
     end
 
-    temp_png_path
+    temp_png_path(@certificate&.id || "_blank")
   end
 
   def temp_pdf_dir
@@ -135,11 +135,11 @@ module Printable
     @temp_png_path ||= Rails.root.join("tmp", "preview", "png")
   end
 
-  def temp_pdf_path(filename = "index")
+  def temp_pdf_path(filename)
     @temp_pdf_path ||= Rails.root.join(temp_pdf_dir, "#{filename}.pdf")
   end
 
-  def temp_png_path(filename = "index")
+  def temp_png_path(filename)
     @temp_png_path ||= Rails.root.join(temp_png_dir, "#{filename}.png")
   end
 

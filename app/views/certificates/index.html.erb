@@ -1,0 +1,29 @@
+<% content_for :title, "Certificates" %>
+
+<div class="mt-8 mb-16 mx-auto md:w-2/3 w-full flex flex-col gap-8">
+  <div class="flex justify-between items-center">
+    <h1 class="font-bold text-4xl">Certificates</h1>
+
+    <%= link_to "New certificate", new_certificate_path, class: "w-max-36 text-white sm:w-auto text-center rounded-md px-3 py-2 bg-blue-500/70 hover:bg-blue-500 inline-block font-medium" %>
+  </div>
+
+  <% if notice.present? %>
+    <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-md inline-block" id="notice"><%= notice %></p>
+  <% end %>
+
+  <div id="certificates" class="min-w-full flex flex-col gap-16">
+    <% if @certificates.any? %>
+      <% @certificates.each do |certificate| %>
+        <div class="flex flex-col gap-4">
+          <a href="<%= certificate_path(certificate) %>">
+            <%= render certificate %>
+          </a>
+
+          <%= render partial: "action_buttons", locals: {certificate: certificate} %>
+        </div>
+      <% end %>
+    <% else %>
+      <p class="text-center my-10">No certificates found.</p>
+    <% end %>
+  </div>
+</div>
