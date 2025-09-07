@@ -11,6 +11,10 @@ export default class extends Controller {
   ]
 
   connect() {
+    this.load_image()
+  }
+  
+  load_image() {
     this.imgTarget.src = this.srcValue
   }
 }

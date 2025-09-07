@@ -1,4 +1,4 @@
-<%= form_with(model: certificate, class: "contents", data: { turbo: true }) do |form| %>
+<%= form_with(model: certificate, class: "contents flex flex-col gap-4", data: { turbo: true }) do |form| %>
   <% if certificate.errors.any? %>
     <div id="error_explanation" class="bg-red-50 text-red-500 px-3 py-2 font-medium rounded-md mt-3">
       <h2><%= pluralize(certificate.errors.count, "error") %> prohibited this certificate from being saved:</h2>
@@ -12,43 +12,43 @@
   <% end %>
 
   <div class="flex flex-col lg:flex-row gap-4">
-    <div class="w-full">
-      <%= form.label :graduate_name %>
-      <%= form.text_field :graduate_name, class: ["block shadow-sm rounded-md border px-3 py-2 w-full", {"border-gray-400 focus:outline-blue-600": certificate.errors[:graduate_name].none?, "border-red-400 focus:outline-red-600": certificate.errors[:graduate_name].any?}] %>
+    <div class="flex flex-col w-full">
+      <%= form.label :graduate_name, class: form_label_classes %>
+      <%= form.text_field :graduate_name, class: form_input_classes(certificate), type: :search %>
     </div>
 
-    <div class="w-full">
-      <%= form.label :honoree_name %>
-      <%= form.text_field :honoree_name, class: ["block shadow-sm rounded-md border px-3 py-2 w-full", {"border-gray-400 focus:outline-blue-600": certificate.errors[:honoree_name].none?, "border-red-400 focus:outline-red-600": certificate.errors[:honoree_name].any?}], type: :search %>
-    </div>
-  </div>
-
-  <div class="flex flex-col lg:flex-row gap-4">
-    <div class="w-full">
-      <%= form.label :major %>
-      <%= form.text_field :major, class: ["block shadow-sm rounded-md border px-3 py-2 w-full", {"border-gray-400 focus:outline-blue-600": certificate.errors[:major].none?, "border-red-400 focus:outline-red-600": certificate.errors[:major].any?}] %>
-    </div>
-
-    <div class="w-full">
-      <%= form.label :degree %>
-      <%= form.text_field :degree, class: ["block shadow-sm rounded-md border px-3 py-2 w-full", {"border-gray-400 focus:outline-blue-600": certificate.errors[:degree].none?, "border-red-400 focus:outline-red-600": certificate.errors[:degree].any?}] %>
-    </div>
-
-    <div class="w-full">
-      <%= form.label "Graduation date" %>
-      <%= form.text_field :presented_on, class: ["block shadow-sm rounded-md border px-3 py-2 w-full", {"border-gray-400 focus:outline-blue-600": certificate.errors[:presented_on].none?, "border-red-400 focus:outline-red-600": certificate.errors[:presented_on].any?}] %>
+    <div class="flex flex-col w-full">
+      <%= form.label :honoree_name, class: form_label_classes %>
+      <%= form.text_field :honoree_name, class: form_input_classes(certificate), type: :search %>
     </div>
   </div>
 
   <div class="flex flex-col lg:flex-row gap-4">
     <div class="flex flex-col w-full">
-      <%= form.label "Why" %>
-      <%= form.select :nouns, options_for_select(@options_for_nouns, certificate.nouns), { include_blank: false }, {multiple: true, class: "block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-30"} %>
+      <%= form.label :major, class: form_label_classes %>
+      <%= form.text_field :major, class: form_input_classes(certificate), type: :search %>
     </div>
 
     <div class="flex flex-col w-full">
-      <%= form.label :message %>
-      <%= form.text_area :message, class: ["block shadow-sm rounded-md border px-3 py-2 w-full h-30", {"border-gray-400 focus:outline-blue-600": certificate.errors[:message].none?, "border-red-400 focus:outline-red-600": certificate.errors[:message].any?}] %>
+      <%= form.label :degree, class: form_label_classes %>
+      <%= form.text_field :degree, class: form_input_classes(certificate), type: :search %>
+    </div>
+
+    <div class="flex flex-col w-full">
+      <%= form.label "Graduation date", class: form_label_classes %>
+      <%= form.text_field :presented_on, class: form_input_classes(certificate), type: :search %>
+    </div>
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-4">
+    <div class="flex flex-col w-full">
+      <%= form.label "Why", class: form_label_classes %>
+      <%= form.select :nouns, options_for_select(@options_for_nouns, certificate.nouns), { include_blank: false }, {multiple: true, class: "h-30 #{form_input_classes(certificate)}"} %>
+    </div>
+
+    <div class="flex flex-col w-full">
+      <%= form.label :message, class: form_label_classes %>
+      <%= form.text_area :message, class: "h-30 #{form_input_classes(certificate)}" %>
     </div>
   </div>
 
@@ -58,8 +58,8 @@
   <div class="flex justify-between gap-4">
     <%= form.submit "Save", class: "w-full text-white sm:w-auto text-center rounded-md px-3 py-2 grow bg-blue-500/70 hover:bg-blue-500 inline-block font-medium cursor-pointer" %>
 
-    <a href="<%= certificates_path %>" class="w-full text-white sm:w-auto text-center rounded-md px-3 py-2 min-w-30 bg-red-500/70 hover:bg-red-500 inline-block font-medium">
+    <div data-action="click->visibility#toggleTargets" class="w-full text-white sm:w-auto text-center rounded-md px-3 py-2 min-w-30 bg-red-500/70 hover:bg-red-500 inline-block font-medium">
       Cancel
-    </a>
+    </div>
   </div>
 <% end %>

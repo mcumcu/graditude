@@ -14,12 +14,10 @@
   <div id="certificates" class="min-w-full flex flex-col gap-16">
     <% if @certificates.any? %>
       <% @certificates.each do |certificate| %>
-        <div class="flex flex-col gap-4">
-          <a href="<%= certificate_path(certificate) %>">
-            <%= render certificate %>
-          </a>
+        <div class="flex flex-col gap-8">
+          <%= render certificate %>
 
-          <%= render partial: "action_buttons", locals: {certificate: certificate} %>
+          <%= render partial: "action_buttons", locals: {certificate: certificate, show_edit: true} %>
         </div>
       <% end %>
     <% else %>
