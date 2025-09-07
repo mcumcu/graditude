@@ -2,7 +2,7 @@ class CertificatesController < ApplicationController
   include Printable
 
   before_action :set_certificate, only: %i[ show edit update destroy preview ]
-  before_action :options_for_nouns, only: %i[ edit new create ]
+  before_action :options_for_nouns, only: %i[ index edit new create show ]
 
   # GET /certificates or /certificates.json
   def index
