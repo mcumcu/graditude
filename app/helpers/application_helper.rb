@@ -1,6 +1,6 @@
 module ApplicationHelper
   def form_label_classes
-    "text-gray-400 text-sm uppercase my-2"
+    "text-gray-400 text-sm uppercase mb-2"
   end
 
   def form_input_classes(certificate)

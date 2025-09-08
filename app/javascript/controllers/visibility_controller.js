@@ -9,9 +9,10 @@ export default class extends Controller {
   }
 
   showTargets() {
-    console.log(this.hideableTargets)
     this.hideableTargets.forEach(el => {
       el.hidden = false
+
+      el.scrollIntoView(false)
     });
   }
 
@@ -24,6 +25,10 @@ export default class extends Controller {
   toggleTargets() {
     this.hideableTargets.forEach((el) => {
       el.hidden = !el.hidden
+
+      if (!el.hidden) {
+        el.scrollIntoView(false)
+      }
     });
   }
 }
