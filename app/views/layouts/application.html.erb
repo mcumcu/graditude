@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html class="-dark bg-white dark:bg-gray-950 scheme-light dark:scheme-dark">
   <head>
     <title><%= [content_for(:title), "thegraditude.com"].join(' | ') %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -21,11 +21,132 @@
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
   </head>
 
-  <body>
-    <main class="container mx-auto flex p-4 md:p-0">
+  <body class="text-content dark:text-content-dark flex flex-col gap-8">
+    <!-- Header -->
+    <header class="mx-auto md:w-2/3 w-full my-6 text-content-muted dark:text-content-muted-dark">
+      <nav aria-label="Global" class="flex items-center justify-between">
+        <div class="flex lg:flex-1">
+          <a href="/" class="">
+            <%= image_tag "graditude_logo.png", alt: "Graditude", class: "w-48 dark:hidden inline" %>
+            <%= image_tag "graditude_logo_dark.png", alt: "Graditude", class: "w-48 hidden dark:inline" %>
+          </a>
+        </div>
+
+        <!--
+        <div class="flex lg:hidden">
+          <button type="button" command="show-modal" commandfor="mobile-menu" class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5">
+            <span class="sr-only">Open main menu</span>
+
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6">
+              <path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="hidden lg:flex lg:gap-x-12">
+          <a href="#" class="text-sm/6 font-semibold">Product</a>
+          <a href="#" class="text-sm/6 font-semibold">Features</a>
+          <a href="#" class="text-sm/6 font-semibold">Marketplace</a>
+          <a href="#" class="text-sm/6 font-semibold">Company</a>
+        </div>
+
+        <div class="hidden lg:flex lg:flex-1 lg:justify-end">
+          <a href="#" class="text-sm/6 font-semibold"><%= Current.user.email_address %> <span aria-hidden="true">&rarr;</span></a>
+        </div>
+        -->
+      </nav>
+    </header>
+
+    <main>
       <%= yield %>
     </main>
+
+    <!-- Footer -->
+    <!--
+    <footer class="mt-32 sm:mt-56">
+      <div class="mx-auto max-w-7xl border-t border-gray-200 px-6 py-16 sm:py-24 lg:px-8 lg:py-32 dark:border-white/10">
+        <div class="xl:grid xl:grid-cols-3 xl:gap-8">
+          <img src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600" alt="Company name" class="h-9 dark:hidden" />
+          <img src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500" alt="Company name" class="h-9 not-dark:hidden" />
+          <div class="mt-16 grid grid-cols-2 gap-8 xl:col-span-2 xl:mt-0">
+            <div class="md:grid md:grid-cols-2 md:gap-8">
+              <div>
+                <h3 class="text-sm/6 font-semibold text-gray-900 dark:text-white">Solutions</h3>
+                <ul role="list" class="mt-6 space-y-4">
+                  <li>
+                    <a href="#" class="text-sm/6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Marketing</a>
+                  </li>
+                  <li>
+                    <a href="#" class="text-sm/6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Analytics</a>
+                  </li>
+                  <li>
+                    <a href="#" class="text-sm/6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Automation</a>
+                  </li>
+                  <li>
+                    <a href="#" class="text-sm/6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Commerce</a>
+                  </li>
+                  <li>
+                    <a href="#" class="text-sm/6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Insights</a>
+                  </li>
+                </ul>
+              </div>
+              <div class="mt-10 md:mt-0">
+                <h3 class="text-sm/6 font-semibold text-gray-900 dark:text-white">Support</h3>
+                <ul role="list" class="mt-6 space-y-4">
+                  <li>
+                    <a href="#" class="text-sm/6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Submit ticket</a>
+                  </li>
+                  <li>
+                    <a href="#" class="text-sm/6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Documentation</a>
+                  </li>
+                  <li>
+                    <a href="#" class="text-sm/6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Guides</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="md:grid md:grid-cols-2 md:gap-8">
+              <div>
+                <h3 class="text-sm/6 font-semibold text-gray-900 dark:text-white">Company</h3>
+                <ul role="list" class="mt-6 space-y-4">
+                  <li>
+                    <a href="#" class="text-sm/6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">About</a>
+                  </li>
+                  <li>
+                    <a href="#" class="text-sm/6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Blog</a>
+                  </li>
+                  <li>
+                    <a href="#" class="text-sm/6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Jobs</a>
+                  </li>
+                  <li>
+                    <a href="#" class="text-sm/6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Press</a>
+                  </li>
+                </ul>
+              </div>
+              <div class="mt-10 md:mt-0">
+                <h3 class="text-sm/6 font-semibold text-gray-900 dark:text-white">Legal</h3>
+                <ul role="list" class="mt-6 space-y-4">
+                  <li>
+                    <a href="#" class="text-sm/6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Terms of service</a>
+                  </li>
+                  <li>
+                    <a href="#" class="text-sm/6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Privacy policy</a>
+                  </li>
+                  <li>
+                    <a href="#" class="text-sm/6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">License</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+    -->
   </body>
 </html>

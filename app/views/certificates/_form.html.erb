@@ -58,8 +58,6 @@
   <div class="flex justify-between gap-4">
     <%= form.submit "Save", class: "w-full text-white sm:w-auto text-center rounded-md px-3 py-2 grow bg-blue-500/70 hover:bg-blue-500 inline-block font-medium cursor-pointer" %>
 
-    <div data-action="click->visibility#toggleTargets" class="w-full text-white sm:w-auto text-center rounded-md px-3 py-2 min-w-30 bg-red-500/70 hover:bg-red-500 inline-block font-medium">
-      Cancel
-    </div>
+    <button command="close" commandfor="certificate-form" type="button" class="w-full text-white sm:w-auto text-center rounded-md px-3 py-2 min-w-30 bg-gray-500/70 hover:bg-gray-500 inline-block font-medium">Close</button>
   </div>
 <% end %>
