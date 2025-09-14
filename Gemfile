@@ -49,6 +49,8 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  gem "dotenv"
 end
 
 group :development do
@@ -66,5 +68,6 @@ end
 gem "pdftoimage"
 gem "prawn-rails"
 gem "prawn-svg"
+gem "stripe"
 gem "tailwindcss-ruby", "~> 4.1"
 gem "tailwindcss-rails", "~> 4.3"
