@@ -9,11 +9,11 @@ e.g.: UI element to invoke this modal:
   <dialog id="certificate-form" class="backdrop:bg-black/50 transition duration-200 data-closed:opacity-0" command="close" commandfor="certificate-form" >
     <el-dialog-panel class="fixed transition duration-200 data-closed:scale-70 data-closed:opacity-0">
       <div class="min-h-screen min-w-screen flex justify-center items-center">
-        <div class="p-8 bg-white rounded-sm">
+        <div class="p-8 bg-background/90  dark:bg-background-dark/90 rounded-xl shadow-lg">
           <h2 class="mb-10 flex justify-between items-center">
             <span class="font-bold text-3xl">Edit certificate</span>
             
-            <button command="close" commandfor="certificate-form" type="button" class="text-2xl text-gray-500/70 hover:cursor-pointer hover:text-gray-500">✖︎</button>
+            <button command="close" commandfor="certificate-form" type="button" class="text-2xl hover:cursor-pointer text-content-muted/70 hover:text-content-muted dark:text-content-muted-dark/70 dark:hover:text-content-muted-dark">✖︎</button>
           </h2>
 
           <%= render "form", certificate: certificate %>

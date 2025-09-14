@@ -3,19 +3,21 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: InterVariable, sans-serif;
+  --font-sans: "Epunda Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+  --font-headline: "Asimovian", sans-serif;
   --color-background: oklch(1 0 0); /* white */
   --color-background-dark: oklch(0.2 0 0); /* very dark gray appx. #161616 */
   --color-primary: oklch(0.452 0.313214 264.052);
   --color-secondary: oklch(0.6794 0.1677 264.052);
   --color-tertiary: oklch(0.5305 0.2931 293.94);
-  --color-primary-dark: oklch(0.752 0.313214 264.052);
+  --color-primary-dark: oklch(0.752 0.1232 264.052);
   --color-secondary-dark: oklch(0.9152 0.2108 256.1);
   --color-tertiary-dark: oklch(0.8305 0.2931 293.94);
-  --color-content: oklch(0.2 0 264.052);
-  --color-content-muted: oklch(0.49 0 264.052);
-  --color-content-dark: oklch(0.9 0.04 264.052);
-  --color-content-muted-dark: oklch(0.8 0.04 264.052);
+  --color-content: oklch(0.2 0 264.052 / 70%);
+  --color-content-muted: oklch(0.49 0 264.052 / 70%);
+  --color-content-dark: oklch(0.9 0.04 264.052 / 80%);
+  --color-content-muted-dark: oklch(0.8 0.04 264.052 / 80%);
   --color-error: oklch(0.6453 0.2603 2.47 / 80%);
   --color-success: oklch(0.8751 0.23444 151.1848 / 80%);
 }

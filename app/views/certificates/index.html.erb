@@ -2,13 +2,13 @@
 
 <div class="mx-auto md:w-2/3 w-full flex flex-col gap-8">
   <div class="flex justify-between items-center">
-    <h1 class="font-light text-3xl">My Certificates</h1>
+    <h1 class="font-headline text-3xl">My Certificates</h1>
 
-    <%= link_to "New Certificate", new_certificate_path, class: "w-full min-w-48 text-background dark:text-background-dark sm:w-auto text-center rounded-md px-3 py-2 bg-tertiary/80 hover:bg-tertiary inline-block font-medium" %>
+    <%= link_to "New Certificate", new_certificate_path, class: "w-full min-w-48 text-background dark:text-background-dark sm:w-auto text-center rounded-md px-3 py-2 bg-primary/80 dark:bg-primary-dark/80 hover:bg-primary dark:hov inline-block font-medium" %>
   </div>
 
   <% if notice.present? %>
-    <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-md inline-block" id="notice"><%= notice %></p>
+    <%= render partial: "notice", locals: {certificate: @certificate} %>
   <% end %>
 
   <div id="certificates" class="min-w-full flex flex-col gap-16">
