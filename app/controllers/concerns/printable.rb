@@ -60,14 +60,15 @@ module Printable
   end
 
   def make_document(params = {})
-    graduate_name = params["graduate_name"]
+    graduate_name = params["graduate_name"] || " "
     degree = params["degree"]
-    honoree_name = params["honoree_name"]
+    honoree_name = params["honoree_name"] || " "
     major = params["major"]
     nouns = params["nouns"]&.reject { |n| n.empty? } || []
     message = params["message"] || ""
     presented_on = params["presented_on"]
-    signature_path = params["signature_path"]
+    # signature_font = "#{FONT_DIR}/MySoul-Regular.ttf"
+    signature_font = "#{FONT_DIR}/HomemadeApple-Regular.ttf"
 
     pdf = new_prawn_doc
 
@@ -94,11 +95,13 @@ module Printable
     # left column
     container_width = message.size == 0 ? width : half_width
 
-    pdf.image "#{DocumentsController::IMG_DIR}/#{signature_path}", width: signature_width, at: [ (container_width / 2) - (signature_width / 2), pdf.cursor ] if signature_path
+    # pdf.image "#{DocumentsController::IMG_DIR}/#{signature_path}", width: signature_width, at: [ (container_width / 2) - (signature_width / 2), pdf.cursor ] if signature_path
 
-    pdf.text_box graduate_name.to_s, align: :center, size: 4.mm, width: container_width, at: [ 0, pdf.cursor - 13.mm ]
+    pdf.font(signature_font) do
+      pdf.text_box graduate_name.to_s, align: :center, size: 6.mm, width: container_width, at: [ 0, pdf.cursor - 1.5.mm ]
+    end
 
-    pdf.text_box [ degree, major ].compact.join(", "), align: :center, size: 4.mm, width: container_width, at: [ 0, pdf.cursor - 19.mm ]
+    pdf.text_box [ degree, major ].compact.join(", "), align: :center, size: 4.mm, width: container_width, at: [ 0, pdf.cursor - 12.mm ]
 
     # right column
     # if message.size == 2
@@ -109,7 +112,7 @@ module Printable
     #   pdf.text_box message.first, align: :center, size: 6.mm, width: (half_width) - margin_horizontal, height: 30.mm, at: [ (half_width) + 10.mm, pdf.cursor - 13.mm ]
     # end
 
-    pdf.text_box message, align: :center, size: 6.mm, width: (half_width) - margin_horizontal, height: 30.mm, at: [ (half_width) + 10.mm, pdf.cursor - 8.mm ], leading: 3.mm
+    pdf.text_box message, align: :center, size: 6.mm, width: (half_width) - margin_horizontal, at: [ (half_width) + 10.mm, pdf.cursor - 10.5.mm ]
 
     pdf
   end

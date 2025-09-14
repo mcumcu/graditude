@@ -1,6 +1,6 @@
-<%= form_with(model: certificate, class: "contents flex flex-col gap-6", data: { turbo: true }) do |form| %>
+<%= form_with(model: certificate, class: "contents flex flex-col gap-6", data: { turbo: false }) do |form| %>
   <% if certificate.errors.any? %>
-    <div id="error_explanation" class="bg-red-50 text-red-500 px-3 py-2 font-medium rounded-md mt-3">
+    <div id="error_explanation" class="bg-error/20 text-error px-3 py-2 font-medium rounded-md mt-3">
       <h2><%= pluralize(certificate.errors.count, "error") %> prohibited this certificate from being saved:</h2>
 
       <ul class="list-disc ml-6">
@@ -55,9 +55,9 @@
   <%= form.hidden_field :signature_path, value: "givers_signature.png" %>
   <%= form.hidden_field :user_id, value: Current.user.id %>
 
-  <div class="flex justify-between gap-4">
-    <%= form.submit "Save", class: "w-full text-white sm:w-auto text-center rounded-md px-3 py-2 grow bg-blue-500/70 hover:bg-blue-500 inline-block font-medium cursor-pointer" %>
+  <div class="flex flex-col md:flex-row justify-center gap-8 my-8 text-background dark:text-background-dark">
+    <%= form.submit "Save", class: "w-full min-w-48 sm:w-auto text-center rounded-md px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium cursor-pointer" %>
 
-    <button command="close" commandfor="certificate-form" type="button" class="w-full text-white sm:w-auto text-center rounded-md px-3 py-2 min-w-30 bg-gray-500/70 hover:bg-gray-500 inline-block font-medium">Close</button>
+    <button command="close" commandfor="certificate-form" type="button" class="w-full min-w-48 text-background dark:text-background-dark sm:w-auto text-center rounded-md px-3 py-2 bg-error/80 hover:bg-error inline-block font-medium">Close</button>
   </div>
 <% end %>
