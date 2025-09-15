@@ -2,7 +2,9 @@
   <%= render "form_modal", certificate: certificate %>
 
   <div class="flex flex-col md:flex-row justify-center gap-8" data-visibility-target="hideable">
-    <button class="w-full min-w-48 text-background dark:text-background-dark sm:w-auto text-center rounded-md px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium">Add to cart</button>
+    <%= form_with(url: new_checkout_path, data: { turbo: false }, method: :get) do |f| %>
+      <%= f.submit "Checkout", class: "w-full min-w-48 text-background dark:text-background-dark sm:w-auto text-center rounded-md px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium" %>
+    <% end %>
 
     <% if show_edit %>
       <button command="show-modal" commandfor="certificate-form" class="w-full min-w-48 text-background dark:text-background-dark sm:w-auto text-center rounded-md px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium">Edit</button>
