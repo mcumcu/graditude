@@ -14,6 +14,8 @@ class CheckoutSessionsController < ApplicationController
   end
 
   def create
+    return_url = "#{request.protocol}#{request.host}:#{request.port}/checkout/{CHECKOUT_SESSION_ID}"
+
     params = {
       ui_mode: "embedded",
       line_items: [ {
@@ -21,7 +23,7 @@ class CheckoutSessionsController < ApplicationController
         quantity: 1
       } ],
       mode: "payment",
-      return_url: checkout_url(session_id: "{CHECKOUT_SESSION_ID}")
+      return_url: return_url
     }
 
     session = Stripe::Checkout::Session.create(params)
