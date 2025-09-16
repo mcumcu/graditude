@@ -1,5 +1,8 @@
-<div data-controller="checkout" data-checkout-publishable-key-value="<%= ENV["STRIPE_KEY_PUB"] %>">
-  <!-- Display a payment form -->
+<div 
+  data-controller="checkout" 
+  data-checkout-publishable-key-value="<%= ENV["STRIPE_KEY_PUB"] %>" 
+  data-checkout-price-id-value="<%= @price_id %>"
+>
   <div id="checkout">
     <!-- Checkout will insert the payment form here -->
   </div>

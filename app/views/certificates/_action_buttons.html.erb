@@ -3,6 +3,7 @@
 
   <div class="flex flex-col md:flex-row justify-center gap-8" data-visibility-target="hideable">
     <%= form_with(url: new_checkout_path, data: { turbo: false }, method: :get) do |f| %>
+      <input type="hidden" id="price_id" name="price_id" value="price_1S7JZoBKCB1NBOVa2U4OXmFy" />
       <%= f.submit "Checkout", class: "w-full min-w-48 text-background dark:text-background-dark sm:w-auto text-center rounded-md px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium" %>
     <% end %>
 
