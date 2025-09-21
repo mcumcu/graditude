@@ -116,6 +116,7 @@ GEM
       raabro (~> 1.4)
     globalid (1.2.1)
       activesupport (>= 6.1)
+    humanize (3.1.0)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     iconv (1.1.0)
@@ -405,6 +406,7 @@ DEPENDENCIES
   capybara
   debug
   dotenv
+  humanize
   importmap-rails
   jbuilder
   kamal
