@@ -127,7 +127,7 @@ module Printable
   end
 
   def new_westtown_doc
-    background = "#{IMG_DIR}/westtown_paper.jpg"
+    # background = "#{IMG_DIR}/westtown_paper.png"
     document_font = "#{FONT_DIR}/Jost-VariableFont_wght.ttf"
     banner_path = "#{IMG_DIR}/westtown.svg"
     seal_path = "#{IMG_DIR}/westtown_seal.svg"
@@ -146,7 +146,13 @@ module Printable
       pdf.font(document_font)
 
       pdf.float do
-        pdf.image background, width: pdf.margin_box.width, height: pdf.margin_box.height, position: :center
+        pdf.bounding_box([ 5.mm, pdf.margin_box.height - 5.mm ], width: pdf.margin_box.width - 10.mm, height: pdf.margin_box.height - 10.mm) do
+          pdf.transparent(0.5.pt) { pdf.stroke_bounds }
+        end
+
+        pdf.bounding_box([ 6.mm, pdf.margin_box.height - 6.mm ], width: pdf.margin_box.width - 12.mm, height: pdf.margin_box.height - 12.mm) do
+          pdf.transparent(1.pt) { pdf.stroke_bounds }
+        end
       end
 
       pdf.move_down(20.mm)
@@ -154,6 +160,10 @@ module Printable
       pdf.svg File.read(banner_path), width: 170.mm, position: :center
 
       pdf.move_down(9.mm)
+
+      pdf.text_box "WEST CHESTER", align: :left, size: 4.5.mm, at: [ 54.mm, pdf.cursor - 9.7.mm ], kerning: true, character_spacing: 0.8
+
+      pdf.text_box "PENNSYLVANIA", align: :left, size: 4.5.mm, at: [ 138.mm, pdf.cursor - 9.7.mm ], kerning: true, character_spacing: 0.8
 
       pdf.svg File.read(seal_path), width: 25.4.mm, position: :center
 
@@ -167,9 +177,9 @@ module Printable
 
   def make_westtown_document(params = {})
     graduate_name = params["graduate_name"] || " "
-    degree = params["degree"]
+    # degree = params["degree"]
     honoree_name = params["honoree_name"] || " "
-    major = params["major"]
+    # major = params["major"]
     nouns = params["nouns"]&.reject { |n| n.empty? } || []
     message = params["message"] || ""
     presented_on = params["presented_on"]
@@ -187,7 +197,7 @@ module Printable
 
     pdf.text "has successfully completed the requirements for graduation", align: :center, size: 3.5.mm
     # pdf.text "and in recognition thereof is awarded this diploma", align: :center, size: 3.5.mm
-    pdf.text nouns.any? ? "and hereby recognizes the #{nouns.join(' and ')} of" : nil, align: :center, size: 3.5.mm
+    pdf.text nouns.any? ? "and hereby recognizes the #{nouns.join(' and ').downcase} of" : nil, align: :center, size: 3.5.mm
 
     pdf.move_down(3.mm)
 
@@ -197,7 +207,7 @@ module Printable
 
     pdf.move_down(3.mm)
 
-    pdf.text "given at Westtown School, this #{presented_on.split(' ').slice(0...-1).join(' ')}, #{presented_on.split(' ').last.to_i.humanize}.", align: :center, size: 3.5.mm
+    pdf.text "on this #{presented_on.split(' ').slice(0...-1).join(' ')}, #{presented_on.split(' ').last.to_i.humanize}.", align: :center, size: 3.5.mm
 
     pdf.move_down(3.mm)
 
@@ -208,9 +218,9 @@ module Printable
       pdf.text_box graduate_name.to_s, align: :center, size: 4.mm, width: container_width, at: [ 0, pdf.cursor - 8.mm ]
     end
 
-    pdf.text_box "Diplomate, #{presented_on.split(' ').last.to_i.humanize}", align: :center, size: 3.5.mm, width: container_width, at: [ 0, pdf.cursor - 14.mm ]
+    pdf.text_box "Westtown School, #{presented_on.split(' ').last}", align: :center, size: 3.5.mm, width: container_width, at: [ 0, pdf.cursor - 14.mm ]
 
-    pdf.text_box message, align: :center, size: 7.mm, width: (half_width) - margin_horizontal, at: [ (half_width) + 10.mm, pdf.cursor - 5.mm ]
+    pdf.text_box message, align: :center, size: 6.mm, width: (half_width) - margin_horizontal, at: [ (half_width) + 10.mm, pdf.cursor - 5.mm ]
 
     pdf
   end

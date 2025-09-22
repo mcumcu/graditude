@@ -6,8 +6,8 @@
   --font-sans: "Epunda Sans", sans-serif;
   --font-mono: "IBM Plex Mono", monospace;
   --font-headline: "Asimovian", sans-serif;
-  --color-background: oklch(1 0 0); /* white */
-  --color-background-dark: oklch(0.2 0 0); /* very dark gray appx. #161616 */
+  --color-background: oklch(0.9491 0 0); /* light gray appx. #eeeeee */
+  --color-background-dark: oklch(0.2 0 0); /* dark gray appx. #161616 */
   --color-primary: oklch(0.452 0.313214 264.052);
   --color-secondary: oklch(0.6794 0.1677 264.052);
   --color-tertiary: oklch(0.5305 0.2931 293.94);

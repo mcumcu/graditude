@@ -1,10 +1,10 @@
 <% content_for :title, "My Certificates" %>
 
 <div class="mx-auto md:w-2/3 w-full flex flex-col gap-8">
-  <div class="flex justify-between items-center">
-    <h1 class="font-headline text-3xl">My Certificates</h1>
+  <div class="flex justify-center items-center">
+    <%# <h1 class="font-headline text-3xl">My Certificates</h1> %>
 
-    <%= link_to "New Certificate", new_certificate_path, class: "w-full min-w-48 text-background dark:text-background-dark sm:w-auto text-center rounded-md px-3 py-2 bg-primary/80 dark:bg-primary-dark/80 hover:bg-primary dark:hov inline-block font-medium" %>
+    <%== link_to "✚ New", new_certificate_path, class: "w-full min-w-48 text-background dark:text-background-dark sm:w-auto text-center rounded-md px-3 py-2 bg-primary/80 dark:bg-primary-dark/80 hover:bg-primary dark:hov inline-block font-medium" %>
   </div>
 
   <% if notice.present? %>
