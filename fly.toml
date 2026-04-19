@@ -1,0 +1,36 @@
+# fly.toml app configuration file generated using 'fly launch'
+# See 'fly help' for more information about how to use this file.
+
+app = "graditude"
+primary_region = "ewr"
+
+[build]
+  image = "christopherunger/graditude:latest"
+
+[build.args]
+  RAILS_ENV = "production"
+  BUNDLE_WITHOUT = "development:test"
+
+[env]
+  RAILS_ENV = "production"
+  RAILS_LOG_TO_STDOUT = "true"
+  RAILS_SERVE_STATIC_FILES = "true"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 1024
+  processes = ["app"]
+
+[console]
+  command = "/rails/bin/rails console"
+
+[processes]
+  app = "bin/rails server -b 0.0.0.0"
