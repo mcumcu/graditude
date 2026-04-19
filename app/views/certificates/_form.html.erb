@@ -55,9 +55,9 @@
   <%= form.hidden_field :signature_path, value: "givers_signature.png" %>
   <%= form.hidden_field :user_id, value: Current.user.id %>
 
-  <div class="flex flex-col md:flex-row justify-center gap-8 my-8 text-background dark:text-background-dark">
+  <div class="flex flex-col md:flex-row justify-center gap-8 my-8 text-background dark:text-background">
     <%= form.submit "Save", class: "w-full min-w-48 sm:w-auto text-center rounded-md px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium cursor-pointer" %>
 
-    <button command="close" commandfor="certificate-form" type="button" class="w-full min-w-48 text-background dark:text-background-dark sm:w-auto text-center rounded-md px-3 py-2 bg-error/80 hover:bg-error inline-block font-medium">Close</button>
+    <button command="close" commandfor="certificate-form" type="button" class="w-full min-w-48 text-background dark:text-background sm:w-auto text-center rounded-md px-3 py-2 bg-secondary/80 hover:bg-secondary inline-block font-medium">Close</button>
   </div>
 <% end %>
