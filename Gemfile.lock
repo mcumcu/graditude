@@ -1,5 +1,5 @@
 PATH
-  remote: ../graditude_factory
+  remote: engines/graditude_factory
   specs:
     graditude_factory (0.1.0)
       pdftoimage (>= 0.2.1)
