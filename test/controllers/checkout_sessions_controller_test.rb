@@ -1,13 +1,13 @@
 require "test_helper"
 
 class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
-  test "should get show" do
-    get checkout_sessions_show_url
-    assert_response :success
+  setup do
+    @checkout_session = checkout_sessions(:one)
   end
 
-  test "should get create" do
-    get checkout_sessions_create_url
+  test "should get new" do
+    sign_in
+    get new_checkout_url
     assert_response :success
   end
 end

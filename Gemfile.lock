@@ -1,3 +1,12 @@
+PATH
+  remote: ../graditude_factory
+  specs:
+    graditude_factory (0.1.0)
+      pdftoimage (>= 0.2.1)
+      prawn-rails (>= 0.0.11)
+      prawn-svg (>= 0.32.0)
+      railties (>= 6.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -411,14 +420,12 @@ DEPENDENCIES
   debug
   dockerfile-rails (>= 1.7)
   dotenv
+  graditude_factory!
   humanize
   importmap-rails
   jbuilder
   kamal
-  pdftoimage
   pg (~> 1.1)
-  prawn-rails
-  prawn-svg
   propshaft
   puma (>= 5.0)
   rails (~> 8.0.2, >= 8.0.2.1)
