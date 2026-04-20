@@ -20,7 +20,7 @@ module Printable
     pdf
   end
 
-  # Legacy method: generates Westtown certificate and converts to PNG
+  # Legacy method: generates Westtown certificate PDF
   def make_westtown_document(params = {})
     pdf = generate_certificate_pdf(GraditudeFactory::Certificates::WesttownTemplate, params)
     pdf
