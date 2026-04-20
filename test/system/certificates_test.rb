@@ -34,7 +34,7 @@ class CertificatesTest < ApplicationSystemTestCase
 
   test "should destroy Certificate" do
     visit certificate_url(@certificate)
-    accept_confirm { click_on "Destroy this certificate", match: :first }
+    accept_confirm { click_on "✖︎ Delete", match: :first }
 
     assert_text "Certificate was successfully destroyed"
   end
