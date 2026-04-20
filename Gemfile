@@ -67,7 +67,7 @@ group :test do
 end
 
 # App-specific gems
-gem "graditude_factory", path: "../graditude_factory"
+gem "graditude_factory", path: "./engines/graditude_factory"
 gem "stripe"
 gem "tailwindcss-ruby", "~> 4.1"
 gem "tailwindcss-rails", "~> 4.3"
