@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Install system packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential libpoppler-cpp-dev libpoppler-utils
+
       - name: Checkout code
         uses: actions/checkout@v5
 
@@ -26,6 +29,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Install system packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential libpoppler-cpp-dev libpoppler-utils
+
       - name: Checkout code
         uses: actions/checkout@v5
 
@@ -41,6 +47,9 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
+      - name: Install system packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential libpoppler-cpp-dev libpoppler-utils
+
       - name: Checkout code
         uses: actions/checkout@v5
 
@@ -74,7 +83,7 @@ jobs:
 
     steps:
       - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libpq-dev libyaml-dev pkg-config google-chrome-stable
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libpq-dev libyaml-dev pkg-config google-chrome-stable libpoppler-cpp-dev libpoppler-utils
 
       - name: Checkout code
         uses: actions/checkout@v5
