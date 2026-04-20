@@ -7,7 +7,7 @@ module GraditudeFactory
         {
           page_size: "LETTER",
           page_layout: :landscape,
-          margin: [0, 0, 0, 0]
+          margin: [ 0, 0, 0, 0 ]
         }
       end
 
@@ -88,13 +88,13 @@ module GraditudeFactory
         container_width = message.size == 0 ? width : half_width
 
         pdf.font(signature_font) do
-          pdf.text_box graduate_name.to_s, align: :center, size: 6.mm, width: container_width, at: [0, pdf.cursor - 1.5.mm]
+          pdf.text_box graduate_name.to_s, align: :center, size: 6.mm, width: container_width, at: [ 0, pdf.cursor - 1.5.mm ]
         end
 
-        pdf.text_box [degree, major].compact.join(", "), align: :center, size: 3.5.mm, width: container_width, at: [0, pdf.cursor - 12.mm]
+        pdf.text_box [ degree, major ].compact.join(", "), align: :center, size: 3.5.mm, width: container_width, at: [ 0, pdf.cursor - 12.mm ]
 
         # right column
-        pdf.text_box message, align: :center, size: 6.mm, width: (half_width) - margin_horizontal, at: [(half_width) + 10.mm, pdf.cursor - 10.5.mm]
+        pdf.text_box message, align: :center, size: 6.mm, width: (half_width) - margin_horizontal, at: [ (half_width) + 10.mm, pdf.cursor - 10.5.mm ]
       end
     end
   end

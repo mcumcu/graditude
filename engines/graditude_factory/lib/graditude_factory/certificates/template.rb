@@ -30,7 +30,7 @@ module GraditudeFactory
         {
           page_size: "LETTER",
           page_layout: :landscape,
-          margin: [0, 0, 0, 0]
+          margin: [ 0, 0, 0, 0 ]
         }
       end
 

@@ -5,9 +5,9 @@ module GraditudeFactory
     class WesttownTemplate < Template
       def page_config
         {
-          page_size: [175.mm, 227.mm],
+          page_size: [ 175.mm, 227.mm ],
           page_layout: :landscape,
-          margin: [0, 0, 0, 0]
+          margin: [ 0, 0, 0, 0 ]
         }
       end
 
@@ -35,11 +35,11 @@ module GraditudeFactory
         seal_path = template_assets[:seal]
 
         pdf.float do
-          pdf.bounding_box([5.mm, pdf.margin_box.height - 5.mm], width: pdf.margin_box.width - 10.mm, height: pdf.margin_box.height - 10.mm) do
+          pdf.bounding_box([ 5.mm, pdf.margin_box.height - 5.mm ], width: pdf.margin_box.width - 10.mm, height: pdf.margin_box.height - 10.mm) do
             pdf.transparent(0.5.pt) { pdf.stroke_bounds }
           end
 
-          pdf.bounding_box([6.mm, pdf.margin_box.height - 6.mm], width: pdf.margin_box.width - 12.mm, height: pdf.margin_box.height - 12.mm) do
+          pdf.bounding_box([ 6.mm, pdf.margin_box.height - 6.mm ], width: pdf.margin_box.width - 12.mm, height: pdf.margin_box.height - 12.mm) do
             pdf.transparent(1.pt) { pdf.stroke_bounds }
           end
         end
@@ -50,9 +50,9 @@ module GraditudeFactory
 
         pdf.move_down(9.mm)
 
-        pdf.text_box "WEST CHESTER", align: :left, size: 4.5.mm, at: [54.mm, pdf.cursor - 9.7.mm], kerning: true, character_spacing: 0.8
+        pdf.text_box "WEST CHESTER", align: :left, size: 4.5.mm, at: [ 54.mm, pdf.cursor - 9.7.mm ], kerning: true, character_spacing: 0.8
 
-        pdf.text_box "PENNSYLVANIA", align: :left, size: 4.5.mm, at: [138.mm, pdf.cursor - 9.7.mm], kerning: true, character_spacing: 0.8
+        pdf.text_box "PENNSYLVANIA", align: :left, size: 4.5.mm, at: [ 138.mm, pdf.cursor - 9.7.mm ], kerning: true, character_spacing: 0.8
 
         pdf.svg File.read(seal_path), width: 25.4.mm, position: :center
 
@@ -101,13 +101,13 @@ module GraditudeFactory
         container_width = message.size == 0 ? width : half_width
 
         pdf.font(signature_font) do
-          pdf.text_box graduate_name.to_s, align: :center, size: 4.mm, width: container_width, at: [0, pdf.cursor - 8.mm]
+          pdf.text_box graduate_name.to_s, align: :center, size: 4.mm, width: container_width, at: [ 0, pdf.cursor - 8.mm ]
         end
 
         year = presented_on.present? ? presented_on.split(' ').last : ""
-        pdf.text_box "Westtown School, #{year}", align: :center, size: 3.5.mm, width: container_width, at: [0, pdf.cursor - 14.mm]
+        pdf.text_box "Westtown School, #{year}", align: :center, size: 3.5.mm, width: container_width, at: [ 0, pdf.cursor - 14.mm ]
 
-        pdf.text_box message, align: :center, size: 6.mm, width: (half_width) - margin_horizontal, at: [(half_width) + 10.mm, pdf.cursor - 5.mm]
+        pdf.text_box message, align: :center, size: 6.mm, width: (half_width) - margin_horizontal, at: [ (half_width) + 10.mm, pdf.cursor - 5.mm ]
       end
     end
   end

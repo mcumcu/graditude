@@ -10,7 +10,7 @@ RSpec.describe GraditudeFactory::Certificates::PennTemplate do
       config = template.page_config
       expect(config[:page_size]).to eq("LETTER")
       expect(config[:page_layout]).to eq(:landscape)
-      expect(config[:margin]).to eq([0, 0, 0, 0])
+      expect(config[:margin]).to eq([ 0, 0, 0, 0 ])
     end
   end
 

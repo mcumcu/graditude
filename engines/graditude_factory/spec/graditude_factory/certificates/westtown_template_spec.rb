@@ -8,9 +8,9 @@ RSpec.describe GraditudeFactory::Certificates::WesttownTemplate do
   describe "#page_config" do
     it "returns custom westtown page size" do
       config = template.page_config
-      expect(config[:page_size]).to eq([175.mm, 227.mm])
+      expect(config[:page_size]).to eq([ 175.mm, 227.mm ])
       expect(config[:page_layout]).to eq(:landscape)
-      expect(config[:margin]).to eq([0, 0, 0, 0])
+      expect(config[:margin]).to eq([ 0, 0, 0, 0 ])
     end
   end
 
