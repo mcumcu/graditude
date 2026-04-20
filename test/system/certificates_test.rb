@@ -3,6 +3,7 @@ require "application_system_test_case"
 class CertificatesTest < ApplicationSystemTestCase
   setup do
     @certificate = certificates(:one)
+    sign_in users(:one)
   end
 
   test "visiting the index" do
