@@ -80,7 +80,11 @@ jobs:
 
     steps:
       - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libpq-dev libyaml-dev pkg-config poppler-utils imagemagick google-chrome-stable chromium-chromedriver fonts-liberation libappindicator3-1 libatk-bridge2.0-0 libatk1.0-0 libcups2 libgbm1 libgtk-3-0 libnss3 libx11-xcb1 libxcomposite1 libxdamage1 libxrandr2 libxss1 xdg-utils
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y build-essential git libpq-dev libyaml-dev pkg-config poppler-utils imagemagick chromium chromium-chromedriver fonts-liberation libappindicator3-1 libatk-bridge2.0-0 libatk1.0-0 libcups2 libgbm1 libgtk-3-0 libnss3 libx11-xcb1 libxcomposite1 libxdamage1 libxrandr2 libxss1 xdg-utils
+          sudo ln -sf /usr/bin/chromium /usr/bin/google-chrome || true
+          sudo ln -sf /usr/bin/chromium-browser /usr/bin/google-chrome || true
 
       - name: Checkout code
         uses: actions/checkout@v5
