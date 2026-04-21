@@ -74,7 +74,7 @@ jobs:
 
     steps:
       - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libpq-dev libyaml-dev pkg-config poppler-utils google-chrome-stable
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libpq-dev libyaml-dev pkg-config poppler-utils imagemagick google-chrome-stable
 
       - name: Checkout code
         uses: actions/checkout@v5
