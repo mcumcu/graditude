@@ -8,9 +8,9 @@ module Printable
   included do
     # Code within this block is executed when the concern is included
     # in a controller
-    ASSET_DIR = "app/assets"
-    FONT_DIR = "#{ASSET_DIR}/fonts"
-    IMG_DIR = "#{ASSET_DIR}/images"
+    ASSET_DIR = "app/assets" unless defined?(ASSET_DIR)
+    FONT_DIR = "#{ASSET_DIR}/fonts" unless defined?(FONT_DIR)
+    IMG_DIR = "#{ASSET_DIR}/images" unless defined?(IMG_DIR)
   end
 
   # Methods defined directly in the module become instance methods of the including controller
