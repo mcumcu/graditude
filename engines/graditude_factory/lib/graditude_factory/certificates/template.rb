@@ -47,7 +47,7 @@ module GraditudeFactory
       # Create the base Prawn document with styling
       def create_document
         config = page_config
-        @pdf = PrawnRails::Document.new(
+        @pdf = Prawn::Document.new(
           page_size: config[:page_size],
           page_layout: config[:page_layout],
           margin: config[:margin]
