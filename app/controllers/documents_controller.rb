@@ -1,8 +1,8 @@
 class DocumentsController < ApplicationController
-  include Printable
+  include GraditudeFactory::Concerns::Printable
 
   def index
-    @params = default_params
+    @params = default_certificate_params
 
     respond_to do |format|
       format.html

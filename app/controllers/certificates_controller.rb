@@ -98,6 +98,7 @@ class CertificatesController < ApplicationController
           :signature_path,
           :message,
           :user_id,
+          :template,
           nouns: []
         ]
       )
