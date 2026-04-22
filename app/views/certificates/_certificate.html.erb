@@ -13,7 +13,6 @@
       alt="Your certificate"
       class="rounded-xl"
       data-controller="preview"
-      data-preview-target="img"
-      data-preview-src-value="<%= "#{preview_certificate_path(certificate.id)}.png" %>"
+      data-preview-src-value="<%= preview_certificate_path(certificate, format: :png) %>"
     />
   </div>
