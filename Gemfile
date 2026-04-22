@@ -57,6 +57,7 @@ end
 
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
+  gem "dockerfile-rails", ">= 1.7"
   gem "web-console"
 end
 
@@ -69,5 +70,3 @@ gem "graditude_factory", path: "./engines/graditude_factory"
 gem "stripe"
 gem "tailwindcss-ruby", "~> 4.1"
 gem "tailwindcss-rails", "~> 4.4"
-
-gem "dockerfile-rails", ">= 1.7", group: :development

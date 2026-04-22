@@ -8,6 +8,7 @@ Rails.application.routes.draw do
 
   get "documents/index" => "documents#index"
   get "/up" => "health#up"
+  get "/favicon.ico" => redirect("/favicon.svg")
 
   # Rails built-in authentication
   resource :session
