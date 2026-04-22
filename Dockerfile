@@ -22,7 +22,7 @@ RUN gem update --system --no-document && \
 
 # Install base packages
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 postgresql-client && \
+    apt-get install --no-install-recommends -y curl git libjemalloc2 postgresql-client poppler-utils imagemagick && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Set production environment
@@ -46,18 +46,17 @@ RUN apt-get update -qq && \
       zlib1g-dev \
       libicu-dev \
       pkg-config \
-      poppler-utils \
-      imagemagick \
       nodejs && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Install application gems
 COPY Gemfile Gemfile.lock ./
+COPY engines/graditude_factory ./engines/graditude_factory
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
     bundle exec bootsnap precompile --gemfile
 
-# Copy application code
+# Copy remaining application code
 COPY . .
 
 # Precompile bootsnap code for faster boot times

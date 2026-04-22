@@ -15,7 +15,13 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 3.0"
 
   spec.files = Dir.chdir(__dir__) do
-    `git ls-files -z`.split("\x0").reject do |f|
+    files = if system("git rev-parse --is-inside-work-tree > /dev/null 2>&1")
+      `git ls-files -z`.split("\x0")
+    else
+      Dir.glob("**/*", File::FNM_DOTMATCH).reject { |f| File.directory?(f) || f.match?(/\A\.\.?\z/) }
+    end
+
+    files.reject do |f|
       (f == __FILE__) || f.match(%r{\A(?:(?:test|spec|features)/|\.(?:git|travis|circleci)|appveyor)})
     end
   end
