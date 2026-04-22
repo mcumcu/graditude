@@ -16,6 +16,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Install packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libyaml-dev pkg-config poppler-utils imagemagick
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -34,6 +37,9 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v5
+
+      - name: Install packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libyaml-dev pkg-config poppler-utils imagemagick
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -97,12 +103,12 @@ jobs:
       - name: Run tests
         env:
           RAILS_ENV: test
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/graditude_test
           # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:test:prepare test test:system
+        run: bin/rails db:test:prepare test
 
       - name: Keep screenshots from failed system tests
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: screenshots

@@ -7,6 +7,10 @@ module Printable
 
   included do
     include GraditudeFactory::Concerns::Printable
+
+    ASSET_DIR = "app/assets" unless defined?(ASSET_DIR)
+    FONT_DIR = "#{ASSET_DIR}/fonts" unless defined?(FONT_DIR)
+    IMG_DIR = "#{ASSET_DIR}/images" unless defined?(IMG_DIR)
   end
 
   # Convenience aliases for backward compatibility
