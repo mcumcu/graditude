@@ -7,6 +7,7 @@ Rails.application.routes.draw do
   get "certificates/:id/preview" => "certificates#preview", as: :preview_certificate
 
   get "documents/index" => "documents#index"
+  get "/up" => "health#up"
 
   # Rails built-in authentication
   resource :session

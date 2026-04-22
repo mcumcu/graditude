@@ -13,13 +13,13 @@ console_command = '/rails/bin/rails console'
   release_command = './bin/rails db:prepare'
 
 [env]
-  PORT = '8080'
+  PORT = '3000'
 
 [processes]
   app = './bin/rails server'
 
 [http_service]
-  internal_port = 8080
+  internal_port = 3000
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
