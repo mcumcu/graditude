@@ -42,4 +42,67 @@ class PrintableTest < ActiveSupport::TestCase
       ENV["DEFAULT_CERTIFICATE_TEMPLATE"] = original_value
     end
   end
+
+  test "blank_certificate_png_path generates a blank PNG preview from the existing rendering pipeline" do
+    dummy = PrintableDummy.new
+    captured = {}
+
+    fake_doc = Object.new
+    fake_doc.define_singleton_method(:render_file) do |path|
+      File.write(path, "PDF")
+    end
+
+    dummy.define_singleton_method(:make_certificate_document) do |template_name, params = {}|
+      captured[:template] = template_name
+      captured[:params] = params
+      fake_doc
+    end
+
+    dummy.define_singleton_method(:render_certificate_png) do |pdf_path, png_path|
+      captured[:pdf_path] = pdf_path
+      captured[:png_path] = png_path
+      png_path
+    end
+
+    result = dummy.blank_certificate_png_path("penn")
+
+    assert_equal dummy.default_params, captured[:params]
+    assert_equal "penn", captured[:template]
+    assert_equal dummy.temp_pdf_path("_blank").to_s, captured[:pdf_path]
+    assert_equal dummy.temp_png_path("_blank").to_s, captured[:png_path]
+    assert_equal captured[:png_path], result
+    assert_equal "PDF", File.read(captured[:pdf_path])
+  ensure
+    File.delete(dummy.temp_pdf_path("_blank")) if dummy&.temp_pdf_path("_blank")&.exist?
+  end
+
+  test "blank_certificate_png_path uses default template when no template is provided" do
+    dummy = PrintableDummy.new
+    captured = {}
+
+    fake_doc = Object.new
+    fake_doc.define_singleton_method(:render_file) do |path|
+      File.write(path, "PDF")
+    end
+
+    dummy.define_singleton_method(:make_certificate_document) do |template_name, params = {}|
+      captured[:template] = template_name
+      captured[:params] = params
+      fake_doc
+    end
+
+    dummy.define_singleton_method(:render_certificate_png) do |pdf_path, png_path|
+      captured[:pdf_path] = pdf_path
+      captured[:png_path] = png_path
+      png_path
+    end
+
+    result = dummy.blank_certificate_png_path
+
+    assert_equal dummy.default_params, captured[:params]
+    assert_equal dummy.default_certificate_template, captured[:template]
+    assert_equal dummy.temp_png_path("_blank").to_s, result
+  ensure
+    File.delete(dummy.temp_pdf_path("_blank")) if dummy&.temp_pdf_path("_blank")&.exist?
+  end
 end

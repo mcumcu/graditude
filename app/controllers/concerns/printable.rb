@@ -55,6 +55,8 @@ module Printable
       make_penn_document(params)
     when "westtown"
       make_westtown_document(params)
+    when "boulder"
+      make_boulder_document(params)
     else
       make_boulder_document(params)
     end
@@ -62,5 +64,22 @@ module Printable
 
   def default_certificate_template
     ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder")
+  end
+
+  # Generate a blank PNG preview for a certificate template.
+  # Uses the existing PDF rendering pipeline with default blank params.
+  # @param template_name [String, nil] the template name to render
+  # @return [String] path to the generated PNG file
+  def blank_certificate_png_path(template_name = nil)
+    template_name = template_name.presence || default_certificate_template
+    params = default_params
+    doc = make_certificate_document(template_name, params)
+    blank_template_name = template_name.presence || "_blank"
+
+    pdf_path = temp_pdf_path(blank_template_name).to_s
+    doc.render_file(pdf_path)
+
+    png_path = temp_png_path(blank_template_name).to_s
+    render_certificate_png(pdf_path, png_path)
   end
 end
