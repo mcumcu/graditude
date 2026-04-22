@@ -19,7 +19,7 @@ module Printable
   end
 
   # Legacy method: generates Penn certificate
-  def make_document(params = {})
+  def make_penn_document(params = {})
     pdf = generate_certificate_pdf(GraditudeFactory::Certificates::PennTemplate, params)
     pdf
   end
@@ -30,13 +30,37 @@ module Printable
     pdf
   end
 
-  # Legacy method: render PNG from Westtown certificate
+  # Legacy method: generates UC Boulder certificate PDF
+  def make_boulder_document(params = {})
+    pdf = generate_certificate_pdf(GraditudeFactory::Certificates::BoulderTemplate, params)
+    pdf
+  end
+
+  # Legacy method: render PNG from the certificate template
   def rerender_png_path
-    doc = make_westtown_document(@certificate&.data || default_params)
+    template_name = @certificate&.template.presence || default_certificate_template
+    params = @certificate&.data || default_params
+    doc = make_certificate_document(template_name, params)
+
     pdf_path = temp_pdf_path(@certificate&.id || "_blank").to_s
     doc.render_file(pdf_path)
 
     png_path = temp_png_path(@certificate&.id || "_blank").to_s
     render_certificate_png(pdf_path, png_path)
+  end
+
+  def make_certificate_document(template_name, params = {})
+    case template_name.to_s
+    when "penn"
+      make_penn_document(params)
+    when "westtown"
+      make_westtown_document(params)
+    else
+      make_boulder_document(params)
+    end
+  end
+
+  def default_certificate_template
+    ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder")
   end
 end
