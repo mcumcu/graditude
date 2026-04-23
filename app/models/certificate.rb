@@ -6,6 +6,7 @@ class Certificate < ApplicationRecord
   validates :template, inclusion: { in: TEMPLATE_VALUES }, allow_nil: true
   validate :presented_on_must_be_valid_date
 
+  before_validation :set_default_template, on: :create
   before_validation :normalize_presented_on
 
   store_accessor(:data,
@@ -20,6 +21,10 @@ class Certificate < ApplicationRecord
   )
 
   private
+
+  def set_default_template
+    self.template = ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder") if template.blank?
+  end
 
   def normalize_presented_on
     value = presented_on
