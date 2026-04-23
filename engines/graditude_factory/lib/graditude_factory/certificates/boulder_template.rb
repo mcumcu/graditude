@@ -44,7 +44,7 @@ module GraditudeFactory
         message = @params["message"] || ""
         presented_on = @params["presented_on"] || ""
         presented_on_date = parse_presented_on(presented_on)
-        nouns = []
+        nouns = @params["nouns"]&.reject { |n| n.empty? } || []
 
         pdf.move_up(14.mm)
 
@@ -80,7 +80,7 @@ module GraditudeFactory
         margin = nouns.any? ? 60 : 66
 
         pdf.font(body_font) do
-          boilerplate = "with all the rights and privileges thereunto appertaining. In witness thereof and in recognition#{nouns.any? ? " of their #{nouns.join(' and ')}," : ''} this certificate is given to"
+          boilerplate = "with all the rights and privileges thereunto appertaining. In witness thereof and with recognition#{nouns.any? ? " of their #{nouns.join(' and ')}," : ''} this certificate is given to"
 
           pdf.text_box boilerplate, align: :center, size: 6.mm, color: "565A5C", width: width - (margin * 2).mm, at: [ margin.mm, pdf.cursor ], height: 28.mm, leading: 1.mm
 
@@ -95,7 +95,7 @@ module GraditudeFactory
 
           # Date line
           pdf.font(body_font) do
-            pdf.text "Given at Boulder on #{presented_on_text(presented_on_date)}", align: :center, size: 6.mm, color: "565A5C"
+            pdf.text "Given at Boulder on the #{presented_on_text(presented_on_date)}", align: :center, size: 6.mm, color: "565A5C"
           end
         end
 
