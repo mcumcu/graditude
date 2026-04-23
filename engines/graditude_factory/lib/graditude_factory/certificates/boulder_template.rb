@@ -25,15 +25,15 @@ module GraditudeFactory
 
         # "The Regents of the" - small text above header
         pdf.font(body_font) do
-          pdf.text "The Regents of the", align: :center, size: 6.mm, color: "565A5C"
+          pdf.text "The Regents of the", align: :center, size: 7.mm, color: "565A5C"
         end
 
         pdf.move_down(2.mm)
 
-        # Render header image (same dimensions as Penn template)
+        # Render header image
         pdf.image header_path, width: 220.mm, position: :center
 
-        pdf.move_down(8.mm)
+        # pdf.move_down(8.mm)
       end
 
       def render_content(pdf)
@@ -43,52 +43,61 @@ module GraditudeFactory
         major = @params["major"]
         message = @params["message"] || ""
         presented_on = @params["presented_on"] || ""
+        presented_on_date = parse_presented_on(presented_on)
+        nouns = @params["nouns"]&.reject { |n| n.empty? } || []
+
+        pdf.move_up(14.mm)
 
         # "have conferred on"
         pdf.font(body_font) do
-          pdf.text "have conferred on", align: :center, size: 6.5.mm, color: "565A5C"
-        end
-
-        pdf.move_down(2.mm)
-
-        # Graduate name in large Old English
-        pdf.font(document_font) do
-          pdf.text graduate_name.to_s, align: :center, size: 15.mm, color: "000000"
-        end
-
-        pdf.move_down(2.mm)
-
-        # "the Degree"
-        pdf.font(body_font) do
-          pdf.text "the Degree", align: :center, size: 6.5.mm, color: "565A5C"
-        end
-
-        pdf.move_down(2.mm)
-
-        # Degree and major in Old English
-        degree_text = [ degree, major ].compact.join(", ")
-        pdf.font(document_font) do
-          pdf.text degree_text, align: :center, size: 10.mm, color: "000000"
-        end
-
-        pdf.move_down(3.mm)
-
-        # Boilerplate text - with horizontal margins
-        boilerplate = "with all the rights and privileges thereunto appertaining. In witness thereof this diploma is awarded by the Regents upon the recommendation of the Faculty."
-        pdf.font(body_font) do
-          pdf.text_box boilerplate, align: :center, size: 5.5.mm, color: "000000", width: width - 40.mm, at: [ 20.mm, pdf.cursor ]
-        end
-
-        pdf.move_down(18.mm)
-
-        # Date line
-        if presented_on.present?
-          pdf.font(body_font) do
-            pdf.text "Given at Boulder on #{presented_on}, A. D.", align: :center, size: 5.mm, color: "000000"
-          end
+          pdf.text "have conferred on", align: :center, size: 7.mm, color: "565A5C"
         end
 
         pdf.move_down(4.mm)
+
+        # Graduate name in large Old English
+        pdf.font(document_font) do
+          pdf.text graduate_name.to_s, align: :center, size: 10.mm, color: "000000"
+        end
+
+        pdf.move_down(4.mm)
+
+        # "the Degree"
+        pdf.font(body_font) do
+          pdf.text "the Degree", align: :center, size: 7.mm, color: "565A5C"
+        end
+
+        pdf.move_down(4.mm)
+
+        # Degree in Old English
+        pdf.font(document_font) do
+          pdf.text degree, align: :center, size: 10.mm, color: "000000"
+        end
+
+        pdf.move_down(4.mm)
+
+        # Graditude text - with horizontal margins
+        margin = nouns.any? ? 60 : 66
+
+        pdf.font(body_font) do
+          boilerplate = "with all the rights and privileges thereunto appertaining. In witness thereof and with recognition#{nouns.any? ? " of their #{nouns.join(' and ')}," : ''} this certificate is given to"
+
+          pdf.text_box boilerplate, align: :center, size: 6.mm, color: "565A5C", width: width - (margin * 2).mm, at: [ margin.mm, pdf.cursor ], height: 28.mm, leading: 1.mm
+
+          pdf.move_down(22.mm)
+
+          # Honoree in Old English
+          pdf.font(document_font) do
+            pdf.text honoree_name, align: :center, size: 12.mm, color: "000000"
+          end
+
+          pdf.move_down(4.mm)
+
+          # Date line
+          pdf.font(body_font) do
+            pdf.text "Given at Boulder on the #{presented_on_text(presented_on_date)}", align: :center, size: 6.mm, color: "565A5C"
+          end
+        end
 
         # Bottom row: left column (signature) | center (seal) | right column (message)
         # All elements positioned at the same vertical level
@@ -99,11 +108,11 @@ module GraditudeFactory
 
         # Left column: signature and certificate info
         pdf.font(document_font) do
-          pdf.text_box graduate_name.to_s, align: :center, size: 7.mm, width: col_width, at: [ 5.mm, row_y ]
+          pdf.text_box graduate_name.to_s, align: :center, size: 8.mm, width: col_width, at: [ 5.mm, row_y ]
         end
 
         pdf.font(body_font) do
-          pdf.text_box [ degree, major ].compact.join(", "), align: :center, size: 4.mm, width: col_width, at: [ 5.mm, row_y - 9.mm ]
+          pdf.text_box [ degree, major ].compact.join(", "), align: :center, size: 6.mm, width: col_width, at: [ 5.mm, row_y - 9.mm ]
         end
 
         # Center: seal horizontally centered
@@ -114,9 +123,28 @@ module GraditudeFactory
         if message.present?
           right_x = width - col_width - 5.mm
           pdf.font(body_font) do
-            pdf.text_box message, align: :center, size: 6.5.mm, width: col_width, at: [ right_x, row_y ]
+            pdf.text_box message, align: :center, size: 8.mm, width: col_width, at: [ right_x, row_y ]
           end
         end
+      end
+
+      private
+
+      def parse_presented_on(value)
+        return value if value.is_a?(Date)
+        return value.to_date if value.respond_to?(:to_date)
+
+        Date.parse(value.to_s)
+      rescue ArgumentError, TypeError
+        nil
+      end
+
+      def presented_on_text(date)
+        day = date.day.ordinalize
+        month = Date::MONTHNAMES[date.month]
+        year = date.year.humanize.gsub("-", " ")
+
+        "#{day} day of #{month}, A.D. #{year}"
       end
     end
   end
