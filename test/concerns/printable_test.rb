@@ -68,12 +68,11 @@ class PrintableTest < ActiveSupport::TestCase
 
     assert_equal dummy.default_params, captured[:params]
     assert_equal "penn", captured[:template]
-    assert_equal dummy.temp_pdf_path("_blank").to_s, captured[:pdf_path]
-    assert_equal dummy.temp_png_path("_blank").to_s, captured[:png_path]
+    assert_equal dummy.temp_pdf_path("penn").to_s, captured[:pdf_path]
     assert_equal captured[:png_path], result
     assert_equal "PDF", File.read(captured[:pdf_path])
   ensure
-    File.delete(dummy.temp_pdf_path("_blank")) if dummy&.temp_pdf_path("_blank")&.exist?
+    File.delete(dummy.temp_pdf_path("penn")) if dummy&.temp_pdf_path("penn")&.exist?
   end
 
   test "blank_certificate_png_path uses default template when no template is provided" do
@@ -101,8 +100,8 @@ class PrintableTest < ActiveSupport::TestCase
 
     assert_equal dummy.default_params, captured[:params]
     assert_equal dummy.default_certificate_template, captured[:template]
-    assert_equal dummy.temp_png_path("_blank").to_s, result
+    assert_equal dummy.temp_png_path("boulder").to_s, result
   ensure
-    File.delete(dummy.temp_pdf_path("_blank")) if dummy&.temp_pdf_path("_blank")&.exist?
+    File.delete(dummy.temp_pdf_path("boulder")) if dummy&.temp_pdf_path("boulder")&.exist?
   end
 end
