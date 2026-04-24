@@ -85,21 +85,21 @@
         <%# main hero content %>
         <div class="relative px-6 py-32 sm:py-40 lg:px-8 lg:py-56 lg:pr-0">
           <div class="mx-auto max-w-2xl lg:mx-0 lg:max-w-xl">
-            <div class="hidden sm:mb-10 sm:flex">
+            <div id="hero-info" class="hidden sm:mb-10 sm:flex">
               <div class="relative rounded-full px-4 py-2 --text-sm/6 text-gray-500 ring-1 ring-gray-900/10 hover:ring-gray-900/20 dark:text-gray-400 dark:ring-white/10 dark:hover:ring-white/20">
                 <%= yield :hero_info %>
               </div>
             </div>
 
-            <h1 class="text-5xl font-bold text-pretty text-gray-900 sm:text-7xl --dark:text-white">
+            <h1 id="hero-landing" class="text-5xl font-bold text-pretty text-gray-900 sm:text-7xl --dark:text-white">
               <%= yield :hero_heading %>
             </h1>
 
-            <p class="mt-8 text-lg font-medium text-pretty text-gray-500 sm:text-xl/8 dark:text-gray-400">
+            <p id="hero-copy" class="mt-8 text-lg font-medium text-pretty text-gray-500 sm:text-xl/8 dark:text-gray-400">
               <%= yield :hero_copy %>
             </p>
 
-            <div class="mt-10 flex items-center gap-x-6">
+            <div id="hero-cta" class="mt-10 flex items-center gap-x-6">
               <%= yield :hero_cta %>
             </div>
           </div>
@@ -108,7 +108,7 @@
     </div>
 
     <div class="bg-gray-50 lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 dark:bg-gray-800">
-      <%= image_tag "landing-hero.jpg", alt: "Image of college graduate celebrating graduation with their mother", class: "aspect-3/2 object-cover lg:aspect-auto lg:size-full" %>
+      <%= image_tag "landing-hero.jpg", id: "hero-image", alt: "Image of college graduate celebrating graduation with their mother", class: "aspect-3/2 object-cover lg:aspect-auto lg:size-full" %>
     </div>
   </div>
 </div>

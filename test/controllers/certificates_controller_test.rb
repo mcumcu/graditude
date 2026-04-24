@@ -27,6 +27,11 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
   test "should get new" do
     get new_certificate_url
     assert_response :success
+
+    assert_select "div.fixed"
+    assert_select "div.absolute"
+    assert_select "button[onclick=\"history.back()\"]", text: "✖︎"
+    assert_select "form[action=\"/certificates\"]"
   end
 
   test "should create certificate" do
@@ -46,6 +51,11 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
   test "should get edit" do
     get edit_certificate_url(@certificate)
     assert_response :success
+
+    assert_select "div.fixed"
+    assert_select "div.absolute"
+    assert_select "button[onclick=\"history.back()\"]", text: "✖︎"
+    assert_select "form[action=\"/certificates/#{@certificate.id}\"]"
   end
 
   test "should update certificate" do
