@@ -1,0 +1,114 @@
+<% content_for :title, "Graditude - Celebrate graduates" %>
+
+<% content_for :hero_heading do %>
+  <h1 class="text-4xl font-bold sm:text-5xl lg:text-6xl">
+    <%= @landing_title %>
+  </h1>
+<% end %>
+
+<% content_for :hero_copy do %>
+  <p class="max-w-2xl text-lg leading-8 sm:text-xl">
+    <%= @landing_subtitle %>
+  </p>
+<% end %>
+
+<% content_for :hero_cta do %>
+  <%= link_to @landing_cta_text, @landing_cta_path, class: "inline-flex items-center justify-center rounded-full bg-white px-8 py-4 text-lg font-bold text-slate-950 shadow-lg shadow-slate-950/10 transition hover:bg-slate-100" %>
+<% end %>
+
+<% content_for :hero_info do %>
+  <%= @landing_info %>
+  <%= link_to "More →", @landing_info_path, class: "font-semibold whitespace-nowrap text-indigo-600 dark:text-indigo-400" %>
+<% end %>
+
+<div class="bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+  <header class="absolute inset-x-0 top-0 z-50">
+    <%# Standard menu %>
+    <div class="mx-auto max-w-7xl">
+      <div class="px-6 pt-6 lg:max-w-2xl lg:pr-0 lg:pl-8">
+        <nav aria-label="Global" class="flex items-center justify-between lg:justify-start">
+          <%= render "landing/logo" %>
+
+          <button type="button" command="show-modal" commandfor="mobile-menu" class="-m-2.5 rounded-md p-2.5 text-gray-700 lg:hidden dark:text-gray-200">
+            <span class="sr-only">Open main menu</span>
+
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6">
+              <path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+
+          <div class="hidden lg:ml-12 lg:flex lg:gap-x-14">
+            <%= render "landing/navbar_links", mobile: false %>
+          </div>
+        </nav>
+      </div>
+    </div>
+
+    <%# Mobile menu %>
+    <el-dialog>
+      <dialog id="mobile-menu" class="backdrop:bg-transparent lg:hidden">
+        <div tabindex="0" class="fixed inset-0 focus:outline-none">
+          <el-dialog-panel class="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10 dark:bg-gray-900 dark:sm:ring-gray-100/10">
+            <div class="flex items-center justify-between">
+              <%= render "landing/logo" %>
+
+              <button type="button" command="close" commandfor="mobile-menu" class="-m-2.5 rounded-md p-2.5 text-gray-700 dark:text-gray-200">
+                <span class="sr-only">Close menu</span>
+
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6">
+                  <path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="mt-6 flow-root">
+              <div class="-my-6 divide-y divide-gray-500/10 dark:divide-white/10">
+                <div class="space-y-2 py-6">
+                  <%= render "landing/navbar_links", mobile: true %>
+                </div>
+              </div>
+            </div>
+          </el-dialog-panel>
+        </div>
+      </dialog>
+    </el-dialog>
+  </header>
+
+  <div class="relative">
+    <div class="mx-auto max-w-7xl">
+      <div class="relative z-10 pt-14 lg:w-full lg:max-w-2xl">
+        <%# creates a slanted right-edge panel shape on the hero %>
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" class="absolute inset-y-0 right-8 hidden h-full w-80 translate-x-1/2 transform fill-white lg:block dark:fill-gray-900">
+          <polygon points="0,0 90,0 50,100 0,100" />
+        </svg>
+
+        <%# main hero content %>
+        <div class="relative px-6 py-32 sm:py-40 lg:px-8 lg:py-56 lg:pr-0">
+          <div class="mx-auto max-w-2xl lg:mx-0 lg:max-w-xl">
+            <div id="hero-info" class="hidden sm:mb-10 sm:flex">
+              <div class="relative rounded-full px-4 py-2 --text-sm/6 text-gray-500 ring-1 ring-gray-900/10 hover:ring-gray-900/20 dark:text-gray-400 dark:ring-white/10 dark:hover:ring-white/20">
+                <%= yield :hero_info %>
+              </div>
+            </div>
+
+            <h1 id="hero-landing" class="text-5xl font-bold text-pretty text-gray-900 sm:text-7xl --dark:text-white">
+              <%= yield :hero_heading %>
+            </h1>
+
+            <p id="hero-copy" class="mt-8 text-lg font-medium text-pretty text-gray-500 sm:text-xl/8 dark:text-gray-400">
+              <%= yield :hero_copy %>
+            </p>
+
+            <div id="hero-cta" class="mt-10 flex items-center gap-x-6">
+              <%= yield :hero_cta %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-gray-50 lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 dark:bg-gray-800">
+      <%= image_tag "landing-hero.jpg", id: "hero-image", alt: "Image of college graduate celebrating graduation with their mother", class: "aspect-3/2 object-cover lg:aspect-auto lg:size-full" %>
+    </div>
+  </div>
+</div>
