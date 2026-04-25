@@ -34,7 +34,7 @@ class CertificatesController < ApplicationController
 
     respond_to do |format|
       if @certificate.save
-        format.html { redirect_to @certificate, notice: "★ Certificate was created" }
+        format.html { redirect_to @certificate, notice: "Certificate was created" }
         format.json { render :show, status: :created, location: @certificate }
       else
         format.html { render :new, status: :unprocessable_entity }

@@ -10,4 +10,16 @@ module ApplicationHelper
   def field_row_classes
     "flex flex-col gap-2"
   end
+
+  # Render the shared dark mode toggle button partial.
+  # Example:
+  #   <%= dark_mode_toggle %>
+  #   <%= dark_mode_toggle(button_classes: "mr-4", aria_label: "Switch theme") %>
+  def dark_mode_toggle(button_classes: nil, aria_label: "Toggle dark mode", **button_attrs)
+    render partial: "shared/darkmode_toggle", locals: {
+      button_classes: button_classes,
+      aria_label: aria_label,
+      button_attrs: button_attrs
+    }
+  end
 end

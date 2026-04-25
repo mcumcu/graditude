@@ -2,13 +2,49 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="202.94888mm"
-   height="202.94887mm"
-   viewBox="0 0 202.94888 202.94887"
+   width="202.94885mm"
+   height="202.94888mm"
+   viewBox="0 0 202.94885 202.94889"
    version="1.1"
    id="svg1"
+   sodipodi:docname="graditude_logo.svg"
+   inkscape:export-filename="graditude_logo.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:export-bgcolor="#ffffff00"
+     inkscape:zoom="1.0116669"
+     inkscape:cx="383.52545"
+     inkscape:cy="383.03121"
+     inkscape:window-width="2264"
+     inkscape:window-height="1186"
+     inkscape:window-x="0"
+     inkscape:window-y="30"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg1">
+    <inkscape:page
+       x="8.4077908e-45"
+       y="0"
+       width="202.94885"
+       height="202.94888"
+       id="page2"
+       margin="0"
+       bleed="0" />
+  </sodipodi:namedview>
   <defs
      id="defs1" />
   <rect
@@ -16,12 +52,12 @@
      id="rect3"
      width="364.69778"
      height="334.40933"
-     x="-79.901703"
-     y="-61.889923" />
+     x="-79.901688"
+     y="-61.889935" />
   <g
      id="g1"
      style="display:none"
-     transform="translate(-121.93467,-123.08497)">
+     transform="translate(-121.93466,-123.08498)">
     <path
        id="path1"
        style="display:inline;fill:#000000;stroke-width:1"
@@ -31,7 +67,7 @@
   <g
      id="layer1"
      style="display:none"
-     transform="translate(-121.93467,-123.08497)">
+     transform="translate(-121.93466,-123.08498)">
     <path
        style="display:inline;fill:#1a1a1a;stroke-width:1"
        id="path6-9"
@@ -41,7 +77,7 @@
   <g
      id="layer2"
      style="display:none"
-     transform="translate(-121.93467,-123.08497)">
+     transform="translate(-121.93466,-123.08498)">
     <text
        xml:space="preserve"
        style="font-size:132.597px;line-height:1.25;font-family:'DM Sans';-inkscape-font-specification:'DM Sans, @opsz=40,wght=900';font-variant-ligatures:none;font-variation-settings:'opsz' 40, 'wght' 900;text-align:center;text-anchor:middle;fill:#ffffff;stroke-width:0.487263"
@@ -55,12 +91,18 @@
   </g>
   <g
      id="g5"
-     style="display:inline"
-     transform="translate(-121.93467,-123.08497)">
+     style="display:inline;fill:#808080"
+     transform="translate(-121.93466,-123.08498)"
+     inkscape:export-filename="graditude_logo_icon_white.png"
+     inkscape:export-xdpi="96"
+     inkscape:export-ydpi="96">
     <path
        id="path4"
-       style="display:inline;fill:#1a1a1a;stroke-width:1"
+       style="display:inline;fill:#808080;stroke-width:1"
        d="m 185.07595,174.59996 3.33801,3.04128 -1.37018,4.30277 4.41138,0.96476 0.96484,4.41138 4.30277,-1.37018 3.0412,3.33801 3.04127,-3.33801 4.30277,1.37018 0.96476,-4.41138 4.41138,-0.96476 -1.37018,-4.30277 3.33801,-3.04128 -3.33801,-3.0412 1.37018,-4.30277 -4.41138,-0.96484 -0.96476,-4.41137 -4.30277,1.37017 -3.04127,-3.338 -3.0412,3.338 -4.30277,-1.37017 -0.96484,4.41137 -4.41138,0.96484 1.37018,4.30277 z m 7.67803,-0.89804 c 0.0132,-0.69236 0.13727,-1.34163 0.37227,-1.94771 0.46669,-1.22451 1.31528,-2.16061 2.54588,-2.80827 l 0.8296,3.09603 c -0.46941,0.32448 -0.7833,0.75965 -0.94172,1.30547 -0.16174,0.53347 -0.14498,1.16473 0.0504,1.89393 0.21526,0.80335 0.57663,1.43514 1.08407,1.89527 0.49509,0.46344 1.10207,0.75121 1.82092,0.86326 0.70649,0.11537 1.49231,0.0571 2.35746,-0.17473 0.88987,-0.23844 1.6057,-0.58254 2.14749,-1.03238 0.5418,-0.44985 0.90214,-0.98354 1.08108,-1.60109 0.16327,-0.6266 0.14389,-1.31691 -0.0581,-2.07082 -0.2848,-1.0629 -0.7781,-1.79169 -1.47998,-2.18647 -0.70519,-0.40714 -1.49461,-0.55997 -2.36815,-0.45837 l 0.81471,3.04038 -2.07636,0.55636 -1.55979,-5.8212 7.24867,-1.94225 0.68554,2.55837 -2.00321,0.75533 0.0199,0.0741 c 0.55487,0.14275 1.05832,0.36549 1.51035,0.66826 0.45203,0.30277 0.83411,0.69056 1.14623,1.16328 0.30881,0.46037 0.54436,0.99332 0.70663,1.59892 0.29805,1.11233 0.29275,2.18014 -0.0159,3.20336 -0.32435,1.01418 -0.91468,1.90087 -1.77096,2.66018 -0.85627,0.7593 -1.94562,1.31615 -3.26806,1.67049 -1.3348,0.35766 -2.58465,0.41439 -3.74955,0.17017 -1.16822,-0.25658 -2.17364,-0.79523 -3.01615,-1.61597 -0.84581,-0.83309 -1.4525,-1.9356 -1.82009,-3.30748 -0.20864,-0.77864 -0.30633,-1.51408 -0.29314,-2.20644 z"
-       transform="matrix(0,6.9086555,-6.9086555,0,1429.6601,-1155.541)" />
+       transform="matrix(0,6.9086555,-6.9086555,0,1429.6601,-1155.541)"
+       inkscape:export-filename="graditude_logo_icon_black.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
   </g>
 </svg>
