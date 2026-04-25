@@ -1,15 +1,25 @@
 <% mobile = local_assigns.fetch(:mobile, false) %>
+
 <% link_class = if mobile
-  "-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5"
+  "-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5 hover:cursor-pointer w-full text-left"
 else
-  "text-sm/6 font-semibold text-gray-900 dark:text-white"
+  "font-semibold dark:text-white pt-1.5 hover:cursor-pointer"
 end %>
 
+<% unless mobile %>
+  <%= render "landing/logo" %>
+<% end %>
+
 <%= link_to "Certificates", certificates_path, class: link_class %>
+
 <%#= link_to "About", "#about", class: link_class %>
+
 <% if authenticated? %>
   <%= button_to "Sign out", session_path, method: :delete, data: { turbo_confirm: "Are you sure?" }, form: { class: "inline" }, class: link_class %>
 <% else %>
   <%= link_to "Sign in", new_session_path, command: "show-modal", commandfor: "session-form", class: link_class %>
 <% end %>
 
+<div class="mt-4 lg:mt-0">
+  <%= dark_mode_toggle %>
+</div>
