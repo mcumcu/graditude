@@ -13,42 +13,63 @@
 
   <div class="flex flex-col lg:flex-row gap-4">
     <div class="flex flex-col w-full">
-      <%= form.label :graduate_name, class: form_label_classes %>
-      <%= form.text_field :graduate_name, class: form_input_classes(certificate), type: :search %>
+      <%= render "shared/field_row",
+        form: form,
+        attribute: :graduate_name,
+        label_text: "Graduate name",
+        field_html: form.text_field(:graduate_name, class: form_input_classes(certificate), type: :search) %>
     </div>
 
     <div class="flex flex-col w-full">
-      <%= form.label :honoree_name, class: form_label_classes %>
-      <%= form.text_field :honoree_name, class: form_input_classes(certificate), type: :search %>
-    </div>
-  </div>
-
-  <div class="flex flex-col lg:flex-row gap-4">
-    <div class="flex flex-col w-full">
-      <%= form.label :major, class: form_label_classes %>
-      <%= form.text_field :major, class: form_input_classes(certificate), type: :search %>
-    </div>
-
-    <div class="flex flex-col w-full">
-      <%= form.label :degree, class: form_label_classes %>
-      <%= form.text_field :degree, class: form_input_classes(certificate), type: :search %>
-    </div>
-
-    <div class="flex flex-col w-full">
-      <%= form.label "Graduation date", class: form_label_classes %>
-      <%= form.date_field :presented_on, class: form_input_classes(certificate) %>
+      <%= render "shared/field_row",
+        form: form,
+        attribute: :honoree_name,
+        label_text: "Honoree name",
+        field_html: form.text_field(:honoree_name, class: form_input_classes(certificate), type: :search) %>
     </div>
   </div>
 
   <div class="flex flex-col lg:flex-row gap-4">
     <div class="flex flex-col w-full">
-      <%= form.label "Why", class: form_label_classes %>
-      <%= form.select :nouns, options_for_select(@options_for_nouns, certificate.nouns), { include_blank: false }, {multiple: true, class: "h-30 #{form_input_classes(certificate)}"} %>
+      <%= render "shared/field_row",
+        form: form,
+        attribute: :major,
+        label_text: "Major",
+        field_html: form.text_field(:major, class: form_input_classes(certificate), type: :search) %>
     </div>
 
     <div class="flex flex-col w-full">
-      <%= form.label :message, class: form_label_classes %>
-      <%= form.text_area :message, class: "h-30 #{form_input_classes(certificate)}" %>
+      <%= render "shared/field_row",
+        form: form,
+        attribute: :degree,
+        label_text: "Degree",
+        field_html: form.text_field(:degree, class: form_input_classes(certificate), type: :search) %>
+    </div>
+
+    <div class="flex flex-col w-full">
+      <%= render "shared/field_row",
+        form: form,
+        attribute: :presented_on,
+        label_text: "Graduation date",
+        field_html: form.date_field(:presented_on, class: form_input_classes(certificate)) %>
+    </div>
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-4">
+    <div class="flex flex-col w-full">
+      <%= render "shared/field_row",
+        form: form,
+        attribute: :nouns,
+        label_text: "Why",
+        field_html: form.select(:nouns, options_for_select(@options_for_nouns, certificate.nouns), { include_blank: false }, { multiple: true, class: "h-30 #{form_input_classes(certificate)}" }) %>
+    </div>
+
+    <div class="flex flex-col w-full">
+      <%= render "shared/field_row",
+        form: form,
+        attribute: :message,
+        label_text: "Message",
+        field_html: form.text_area(:message, class: "h-30 #{form_input_classes(certificate)}") %>
     </div>
   </div>
 

@@ -8,4 +8,6 @@
   </h1>
 
   <%= render "shared/modal_wrapper", dialog_id: "certificate-form", title: "Edit Certificate" do %>
+    <%= render "form", certificate: @certificate %>
+  <% end %>
 </div>

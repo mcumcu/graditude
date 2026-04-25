@@ -1,21 +1,23 @@
-<div class="mx-auto md:w-2/3 w-full">
+<%= render "shared/modal_wrapper", dialog_id: "password-reset-form", title: "Update your password" do %>
   <% if alert = flash[:alert] %>
     <p class="py-2 px-3 bg-red-50 mb-5 text-red-500 font-medium rounded-lg inline-block" id="alert"><%= alert %></p>
   <% end %>
 
-  <h1 class="font-bold text-4xl">Update your password</h1>
+  <%= form_with url: password_path(params[:token]), method: :put, class: "contents flex flex-col gap-6" do |form| %>
+    <%= render "shared/field_row",
+      form: form,
+      attribute: :password,
+      label_text: "Password",
+      field_html: form.password_field(:password, required: true, autocomplete: "new-password", placeholder: "Enter new password", maxlength: 72, class: form_input_classes) %>
 
-  <%= form_with url: password_path(params[:token]), method: :put, class: "contents" do |form| %>
-    <div class="my-5">
-      <%= form.password_field :password, required: true, autocomplete: "new-password", placeholder: "Enter new password", maxlength: 72, class: "block shadow-sm rounded-md border border-gray-400 focus:outline-solid focus:outline-blue-600 px-3 py-2 mt-2 w-full" %>
-    </div>
-
-    <div class="my-5">
-      <%= form.password_field :password_confirmation, required: true, autocomplete: "new-password", placeholder: "Repeat new password", maxlength: 72, class: "block shadow-sm rounded-md border border-gray-400 focus:outline-solid focus:outline-blue-600 px-3 py-2 mt-2 w-full" %>
-    </div>
+    <%= render "shared/field_row",
+      form: form,
+      attribute: :password_confirmation,
+      label_text: "Confirm password",
+      field_html: form.password_field(:password_confirmation, required: true, autocomplete: "new-password", placeholder: "Repeat new password", maxlength: 72, class: form_input_classes) %>
 
     <div class="inline">
       <%= form.submit "Save", class: "w-full sm:w-auto text-center rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-primary text-white inline-block font-medium cursor-pointer" %>
     </div>
   <% end %>
-</div>
+<% end %>
