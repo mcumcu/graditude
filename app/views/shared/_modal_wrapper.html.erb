@@ -1,0 +1,18 @@
+<div class="fixed inset-0 z-50">
+  <div class="absolute inset-0 bg-background/50" onclick="history.back()"></div>
+  <div class="relative min-h-screen min-w-screen flex justify-center items-center p-4">
+    <div class="relative p-8 bg-background rounded-xl shadow-lg text-content" onclick="event.stopPropagation()">
+      <h2 class="mb-10 flex justify-between items-center">
+        <span class="font-bold text-3xl">
+          <%= title %>
+        </span>
+
+        <button type="button" onclick="history.back()" class="text-2xl focus:ring-0 focus:ring-offset-0 focus:outline-none hover:cursor-pointer text-content-muted hover:text-content">
+          ✖︎
+        </button>
+      </h2>
+
+      <%= yield %>
+    </div>
+  </div>
+</div>

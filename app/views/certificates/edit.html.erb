@@ -7,5 +7,5 @@
     Certificate for <%= @certificate.honoree_name %>
   </h1>
 
-  <%= render "form", certificate: @certificate %>
+  <%= render "shared/modal_wrapper", dialog_id: "certificate-form", title: "Edit Certificate" do %>
 </div>
