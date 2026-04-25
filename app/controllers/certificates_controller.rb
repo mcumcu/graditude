@@ -1,6 +1,8 @@
 class CertificatesController < ApplicationController
   include Printable
 
+  rescue_from ActionController::ParameterMissing, with: :missing_certificate_params
+
   before_action :set_certificate, only: %i[ show edit update destroy preview ]
   before_action :options_for_nouns, only: %i[ index edit new create show ]
 
@@ -30,7 +32,7 @@ class CertificatesController < ApplicationController
 
   # POST /certificates or /certificates.json
   def create
-    @certificate = Certificate.new(certificate_params[:certificate])
+    @certificate = Certificate.new(certificate_params.merge(user: Current.user))
 
     respond_to do |format|
       if @certificate.save
@@ -46,7 +48,7 @@ class CertificatesController < ApplicationController
   # PATCH/PUT /certificates/1 or /certificates/1.json
   def update
     respond_to do |format|
-      if @certificate.update(certificate_params[:certificate])
+      if @certificate.update(certificate_params)
         format.html do
           if @certificate.saved_changes?
             redirect_to certificates_path, notice: "Certificate for #{@certificate.honoree_name} was updated"
@@ -87,21 +89,21 @@ class CertificatesController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def certificate_params
-      params.permit(
-        :id,
-        certificate: [
-          :graduate_name,
-          :degree,
-          :major,
-          :honoree_name,
-          :presented_on,
-          :signature_path,
-          :message,
-          :user_id,
-          :template,
-          nouns: []
-        ]
+      params.require(:certificate).permit(
+        :graduate_name,
+        :degree,
+        :major,
+        :honoree_name,
+        :presented_on,
+        :signature_path,
+        :message,
+        :template,
+        nouns: []
       )
+    end
+
+    def missing_certificate_params
+      head :bad_request
     end
 
     def options_for_nouns

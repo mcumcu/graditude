@@ -17,7 +17,7 @@
         form: form,
         attribute: :graduate_name,
         label_text: "Graduate name",
-        field_html: form.text_field(:graduate_name, class: form_input_classes(certificate), type: :search) %>
+        field_html: form.text_field(:graduate_name, class: form_input_classes(certificate, :graduate_name), type: :search) %>
     </div>
 
     <div class="flex flex-col w-full">
@@ -25,56 +25,70 @@
         form: form,
         attribute: :honoree_name,
         label_text: "Honoree name",
-        field_html: form.text_field(:honoree_name, class: form_input_classes(certificate), type: :search) %>
+        field_html: form.text_field(:honoree_name, class: form_input_classes(certificate, :honoree_name), type: :search) %>
     </div>
   </div>
 
   <div class="flex flex-col lg:flex-row gap-4">
-    <div class="flex flex-col w-full">
-      <%= render "shared/field_row",
-        form: form,
-        attribute: :major,
-        label_text: "Major",
-        field_html: form.text_field(:major, class: form_input_classes(certificate), type: :search) %>
-    </div>
+    <% if certificate.template_data_fields.include?(:major) %>
+      <div class="flex flex-col w-full">
+        <%= render "shared/field_row",
+          form: form,
+          attribute: :major,
+          label_text: "Major",
+          field_html: form.text_field(:major, class: form_input_classes(certificate, :major), type: :search) %>
+      </div>
+    <% end %>
 
-    <div class="flex flex-col w-full">
-      <%= render "shared/field_row",
-        form: form,
-        attribute: :degree,
-        label_text: "Degree",
-        field_html: form.text_field(:degree, class: form_input_classes(certificate), type: :search) %>
-    </div>
+     <% if certificate.template_data_fields.include?(:degree) %>
+      <div class="flex flex-col w-full">
+        <%= render "shared/field_row",
+          form: form,
+          attribute: :degree,
+          label_text: "Degree",
+          field_html: form.text_field(:degree, class: form_input_classes(certificate, :degree), type: :search) %>
+      </div>
+    <% end %>
 
-    <div class="flex flex-col w-full">
-      <%= render "shared/field_row",
-        form: form,
-        attribute: :presented_on,
-        label_text: "Graduation date",
-        field_html: form.date_field(:presented_on, class: form_input_classes(certificate)) %>
-    </div>
+    <% if certificate.template_data_fields.include?(:presented_on) %>
+      <div class="flex flex-col w-full">
+        <%= render "shared/field_row",
+          form: form,
+          attribute: :presented_on,
+          label_text: "Gifting date",
+          field_html: form.date_field(:presented_on, class: form_input_classes(certificate, :presented_on)) %>
+      </div>
+    <% end %>
   </div>
 
   <div class="flex flex-col lg:flex-row gap-4">
     <div class="flex flex-col w-full">
-      <%= render "shared/field_row",
-        form: form,
-        attribute: :nouns,
-        label_text: "Why",
-        field_html: form.select(:nouns, options_for_select(@options_for_nouns, certificate.nouns), { include_blank: false }, { multiple: true, class: "h-30 #{form_input_classes(certificate)}" }) %>
+      <% if certificate.template_data_fields.include?(:nouns) %>
+        <% available_nouns = @options_for_nouns || [] %>
+        <% selected_nouns = certificate.nouns.presence || [] %>
+
+        <%= render "shared/field_row",
+          form: form,
+          attribute: :nouns,
+          label_text: "Why",
+          field_html: form.select(:nouns, options_for_select(available_nouns, selected_nouns), { include_blank: false }, { multiple: true, class: "h-39 #{form_input_classes(certificate, :nouns)}" }),
+          hint: "What are you grateful for? Hold down the ⌃ or ⌘ button to select more than one option (optional)" %>
+      <% end %>
     </div>
 
     <div class="flex flex-col w-full">
-      <%= render "shared/field_row",
-        form: form,
-        attribute: :message,
-        label_text: "Message",
-        field_html: form.text_area(:message, class: "h-30 #{form_input_classes(certificate)}") %>
+      <% if certificate.template_data_fields.include?(:message) %>
+        <%= render "shared/field_row",
+          form: form,
+          attribute: :message,
+          label_text: "Message",
+          field_html: form.text_area(:message, class: "h-39 overflow-y-auto #{form_input_classes(certificate, :message)}"),
+          hint: "Add a personal message to the certificate (optional)" %>
+      <% end %>
     </div>
   </div>
 
   <%= form.hidden_field :signature_path, value: "givers_signature.png" %>
-  <%= form.hidden_field :user_id, value: Current.user.id %>
 
   <div class="flex flex-col md:flex-row justify-center gap-8 my-8 text-background dark:text-background">
     <%= form.submit "Save", class: "w-full min-w-48 sm:w-auto text-center rounded-md px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium cursor-pointer" %>

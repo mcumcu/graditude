@@ -1,8 +1,11 @@
 <div class="<%= field_row_classes %>">
   <%= form.label attribute, label_text, class: form_label_classes %>
+
   <%= field_html %>
 
-  <% if local_assigns[:hint].present? %>
+  <% if local_assigns[:form] && form.object&.errors && form.object&.errors[attribute].present? %>
+    <p class="text-sm text-error mt-1 uppercase">&uarr;&nbsp;<%= form.object.errors[attribute].to_sentence %></p>
+  <% elsif local_assigns[:hint].present? %>
     <p class="text-sm text-content-muted"><%= hint %></p>
   <% end %>
 </div>

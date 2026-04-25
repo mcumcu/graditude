@@ -30,17 +30,33 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "div.fixed"
     assert_select "div.absolute"
-    assert_select "button[onclick=\"history.back()\"]", text: "✖︎"
+    assert_select "button[onclick=\"window.location='/certificates'\"]", text: "✖︎"
     assert_select "form[action=\"/certificates\"]"
   end
 
   test "should create certificate" do
     assert_difference("Certificate.count") do
-      post certificates_url, params: { certificate: { user_id: @certificate.user_id } }
+      post certificates_url, params: {
+        certificate: {
+          graduate_name: "New Grad",
+          honoree_name: "Honoree Recipient",
+          degree: "Bachelor of Science",
+          presented_on: "2026-05-15"
+        }
+      }
     end
 
     new_certificate = Certificate.order(created_at: :desc).first
     assert_redirected_to certificate_url(new_certificate)
+    assert_equal @certificate.user_id, new_certificate.user_id
+  end
+
+  test "should return bad request when certificate params are missing" do
+    assert_no_difference("Certificate.count") do
+      post certificates_url, params: {}
+    end
+
+    assert_response :bad_request
   end
 
   test "should show certificate" do
@@ -54,13 +70,16 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "div.fixed"
     assert_select "div.absolute"
-    assert_select "button[onclick=\"history.back()\"]", text: "✖︎"
+    assert_select "button[onclick=\"window.location='/certificates'\"]", text: "✖︎"
     assert_select "form[action=\"/certificates/#{@certificate.id}\"]"
   end
 
   test "should update certificate" do
-    patch certificate_url(@certificate), params: { certificate: { user_id: @certificate.user_id } }
+    patch certificate_url(@certificate), params: { certificate: { graduate_name: "Updated Grad" } }
     assert_redirected_to certificates_url
+
+    @certificate.reload
+    assert_equal "Updated Grad", @certificate.graduate_name
   end
 
   test "should destroy certificate" do

@@ -29,3 +29,8 @@
 
 en:
   hello: "Hello world"
+
+  activerecord:
+    attributes:
+      certificate:
+        presented_on: "Gifting date"

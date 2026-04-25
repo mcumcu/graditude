@@ -7,27 +7,52 @@ export default class extends Controller {
     priceId: String
   }
 
-  async initialize() {
-    const stripe = await loadStripe(this.publishableKeyValue)
+  static targets = ["button", "feedback"]
 
-    const fetchClientSecret = async () => {
-      const response = await fetch("/checkout", {
-        method: "POST",
-        body: new URLSearchParams({
-          price_id: this.priceIdValue
-        })
-      })
+  async connect() {
+    this.stripe = await loadStripe(this.publishableKeyValue)
+  }
 
-      const { clientSecret } = await response.json()
-      console.log(clientSecret)
-      return clientSecret
+  async startCheckout(event) {
+    event.preventDefault()
+
+    if (!this.priceIdValue) {
+      return this.showError("Missing price id.")
     }
 
-    const checkout = await stripe.initEmbeddedCheckout({
-      fetchClientSecret,
+    this.buttonTarget.disabled = true
+    this.showFeedback("Redirecting to Stripe checkout…")
+
+    const response = await fetch("/checkout", {
+      method: "POST",
+      body: new URLSearchParams({
+        price_id: this.priceIdValue
+      })
     })
 
-    // Mount Checkout
-    checkout.mount("#checkout")
+    const body = await response.json()
+    if (!response.ok || body.error) {
+      this.buttonTarget.disabled = false
+      return this.showError(body.error || "Unable to create checkout session.")
+    }
+
+    const { error } = await this.stripe.redirectToCheckout({
+      sessionId: body.sessionId
+    })
+
+    if (error) {
+      this.buttonTarget.disabled = false
+      this.showError(error.message)
+    }
+  }
+
+  showFeedback(message) {
+    if (this.hasFeedbackTarget) {
+      this.feedbackTarget.textContent = message
+    }
+  }
+
+  showError(message) {
+    this.showFeedback(message)
   }
 }
