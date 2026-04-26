@@ -61,6 +61,8 @@ class CheckoutSessionsController < ApplicationController
     )
 
     render json: { sessionId: session.id }
+  rescue Stripe::StripeError => error
+    render json: { error: error.message }, status: :bad_gateway
   end
 
   def success; end

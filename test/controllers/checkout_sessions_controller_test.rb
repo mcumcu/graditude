@@ -56,6 +56,21 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
     Stripe::Checkout::Session.define_singleton_method(:create, original_create)
   end
 
+  test "create returns Stripe error as JSON when checkout session creation fails" do
+    original_create = Stripe::Checkout::Session.method(:create)
+
+    Stripe::Checkout::Session.define_singleton_method(:create) do |_attrs|
+      raise Stripe::StripeError.new("Expired API Key provided")
+    end
+
+    post checkout_url, params: { price_id: "price_test" }
+
+    assert_response :bad_gateway
+    assert_equal "Expired API Key provided", JSON.parse(response.body)["error"]
+  ensure
+    Stripe::Checkout::Session.define_singleton_method(:create, original_create)
+  end
+
   test "create returns bad request when price_id is missing" do
     post checkout_url
 

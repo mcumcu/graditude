@@ -30,7 +30,15 @@ export default class extends Controller {
       })
     })
 
-    const body = await response.json()
+    let body
+    try {
+      body = await response.json()
+    } catch (error) {
+      const text = await response.text().catch(() => "")
+      this.buttonTarget.disabled = false
+      return this.showError(text || error.message || "Unable to parse server response.")
+    }
+
     if (!response.ok || body.error) {
       this.buttonTarget.disabled = false
       return this.showError(body.error || "Unable to create checkout session.")
