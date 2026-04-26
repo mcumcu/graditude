@@ -68,5 +68,5 @@ end
 # App-specific gems
 gem "graditude_factory", path: "./engines/graditude_factory"
 gem "stripe"
-gem "tailwindcss-ruby", "~> 4.1"
+gem "tailwindcss-ruby", "~> 4.2"
 gem "tailwindcss-rails", "~> 4.4"
