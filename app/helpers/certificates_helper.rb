@@ -1,7 +1,7 @@
 module CertificatesHelper
   PRICE_ID_BY_TEMPLATE = {
     "boulder" => "price_1S7JZoBKCB1NBOVa2U4OXmFy",
-    "westtown" => "price_1S7JZoBKCB1NBOVa2U4OXmFz"
+    "westtown" => "price_1S7JZoBKCB1NBOVa2U4OXmFy"
   }.freeze
 
   def checkout_price_id_for_template(template)
