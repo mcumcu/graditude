@@ -28,8 +28,8 @@ module ApplicationHelper
   end
 
   def stripe_test_mode?
-    [ ENV["STRIPE_KEY"], ENV["STRIPE_KEY_PUB"] ].any? do |key|
-      key.to_s.start_with?("sk_test", "pk_test")
-    end
+    publishable = ENV["STRIPE_KEY_PUB"].to_s
+    secret = ENV["STRIPE_KEY"].to_s
+    publishable.start_with?("pk_test_") || secret.start_with?("sk_test_")
   end
 end

@@ -2,6 +2,16 @@ ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
 
+if Rails.env.test?
+  test_db_name = ActiveRecord::Base.connection_db_config.database
+  if test_db_name&.end_with?("_development")
+    raise <<~ERROR
+      Test environment is configured to use a development database (#{test_db_name}).
+      Update config/database.yml or TEST_DATABASE_URL so tests use a dedicated test database.
+    ERROR
+  end
+end
+
 module ActiveSupport
   class TestCase
     # Run tests in parallel with specified workers

@@ -38,7 +38,7 @@
           </div>
 
           <% if stripe_test_mode? %>
-            <div class="mb-6 rounded-2xl border bg-error/20 p-5 text-error shadow-sm">
+            <div class="mb-6 rounded-xl bg-error/20 p-5 text-error shadow-sm">
               <p class="font-semibold">Stripe TEST mode is active</p>
               <p class="mt-2 text-sm">Do not enter real personal or payment information. Use Stripe test cards only.</p>
 
@@ -46,17 +46,17 @@
                 <div class="rounded-xl bg-background p-4 shadow-sm">
                   <p class="font-semibold">Success cards</p>
                   <ul class="mt-3 space-y-2">
-                    <li><strong>Mastercard:</strong> 5555 5555 5555 4444, any 3 digits CVC</li>
-                    <li><strong>Amex:</strong> 3782 822463 10005, any 4 digits CVC</li>
+                    <li>Mastercard: <strong>5555 5555 5555 4444</strong>, any 3 digits CVC</li>
+                    <li>Amex: <strong>3782 822463 10005</strong> , any 4 digits CVC</li>
                   </ul>
                 </div>
 
                 <div class="rounded-xl bg-background p-4 shadow-sm">
                   <p class="font-semibold">Decline/test cards</p>
                   <ul class="mt-3 space-y-2">
-                    <li><strong>Generic Decline:</strong> 4000 0000 0000 0002, any 3 digits CVC</li>
-                    <li><strong>Insufficient Funds:</strong> 4000 0000 0000 9995, any 3 digits CVC</li>
-                    <li><strong>Incorrect CVC:</strong> 4242 4242 4242 4242, 000</li>
+                    <li>Generic Decline: <strong>4000 0000 0000 0002</strong>, any 3 digits CVC</li>
+                    <li>Insufficient Funds: <strong>4000 0000 0000 9995,</strong> any 3 digits CVC</li>
+                    <li>Incorrect CVC: <strong>4242 4242 4242 4242</strong>, 000</li>
                   </ul>
                 </div>
               </div>
