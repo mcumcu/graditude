@@ -26,4 +26,10 @@ module ApplicationHelper
       button_attrs: button_attrs
     }
   end
+
+  def stripe_test_mode?
+    [ ENV["STRIPE_KEY"], ENV["STRIPE_KEY_PUB"] ].any? do |key|
+      key.to_s.start_with?("sk_test", "pk_test")
+    end
+  end
 end
