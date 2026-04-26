@@ -21,7 +21,7 @@ export default class extends Controller {
     }
 
     this.buttonTarget.disabled = true
-    this.showFeedback("Redirecting to Stripe checkout…")
+    this.showFeedback("✸ Starting checkout…")
 
     const response = await fetch("/checkout", {
       method: "POST",

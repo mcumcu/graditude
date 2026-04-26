@@ -1,3 +1,5 @@
-if ENV["STRIPE_KEY"].present?
-  Stripe.api_key = ENV["STRIPE_KEY"]
+stripe_secret_key = ENV["STRIPE_KEY"]
+
+if stripe_secret_key.present?
+  Stripe.api_key = stripe_secret_key
 end
