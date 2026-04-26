@@ -31,6 +31,8 @@ module Graditude
     end
 
     config.after_initialize do
+      next unless Rails.env.production?
+
       stripe_secret_key = ENV["STRIPE_KEY"]
       stripe_publishable_key = ENV["STRIPE_KEY_PUB"]
 
