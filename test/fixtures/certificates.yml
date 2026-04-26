@@ -2,6 +2,16 @@
 
 one:
   user: one
+  data:
+    graduate_name: "Graduate One"
+    honoree_name: "Honoree One"
+    degree: "Bachelor of Science"
+    presented_on: "2026-05-15"
 
 two:
   user: two
+  data:
+    graduate_name: "Graduate Two"
+    honoree_name: "Honoree Two"
+    degree: "Master of Arts"
+    presented_on: "2026-05-15"

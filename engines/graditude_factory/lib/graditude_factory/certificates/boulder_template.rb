@@ -140,6 +140,8 @@ module GraditudeFactory
       end
 
       def presented_on_text(date)
+        return "" unless date
+
         day = date.day.ordinalize
         month = Date::MONTHNAMES[date.month]
         year = date.year.humanize.gsub("-", " ")

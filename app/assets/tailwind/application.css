@@ -7,6 +7,7 @@
   --font-mono: "IBM Plex Mono", monospace;
   --font-headline: "DM Sans", sans-serif;
   --color-background: oklch(0.9491 0 0); /* light gray appx. #eeeeee */
+  --color-background-secondary: oklch(1 0 0); /* lighter than background, appx. #ffffff */
   --color-primary: oklch(0 0 0);
   --color-secondary: oklch(0 0 0 / 80%);
   --color-tertiary: oklch(0 0 0 / 60%);
@@ -22,6 +23,7 @@
   --color-secondary: oklch(1 0 0 / 80%);
   --color-tertiary: oklch(1 0 0 / 60%);
   --color-background: oklch(0.3 0 0);
+  --color-background-secondary: oklch(0.1 0 0); /* darker than background, appx. #111111 */
   --color-content: oklch(0.8 0 264.052 / 80%);
   --color-content-muted: oklch(0.8 0 264.052 / 60%);
   --color-content-dark: oklch(0 0 264.052 / 80%);

@@ -1,9 +1,22 @@
 class Certificate < ApplicationRecord
   TEMPLATE_VALUES = %w[boulder westtown penn].freeze
+  DEFAULT_MINIMUM_REQUIRED_DATA_FIELDS = %i[graduate_name honoree_name degree presented_on].freeze
+  TEMPLATE_MINIMUM_REQUIRED_DATA_FIELDS = {
+    "boulder" => DEFAULT_MINIMUM_REQUIRED_DATA_FIELDS,
+    "westtown" => DEFAULT_MINIMUM_REQUIRED_DATA_FIELDS + %i[major],
+    "penn" => DEFAULT_MINIMUM_REQUIRED_DATA_FIELDS
+  }.freeze
+  TEMPLATE_OPTIONAL_DATA_FIELDS = {
+    "boulder" => %i[message nouns],
+    "westtown" => %i[message nouns],
+    "penn" => %i[message nouns]
+  }.freeze
 
   belongs_to :user
 
   validates :template, inclusion: { in: TEMPLATE_VALUES }, allow_nil: true
+  validates :graduate_name, :honoree_name, :degree, :presented_on, presence: true
+  validates :major, presence: true, if: -> { template == "westtown" }
   validate :presented_on_must_be_valid_date
 
   before_validation :set_default_template, on: :create
@@ -19,6 +32,11 @@ class Certificate < ApplicationRecord
     :presented_on,
     :signature_path
   )
+
+  def template_data_fields
+    TEMPLATE_MINIMUM_REQUIRED_DATA_FIELDS.fetch(self.template.to_s, DEFAULT_MINIMUM_REQUIRED_DATA_FIELDS) +
+      TEMPLATE_OPTIONAL_DATA_FIELDS.fetch((self.template.presence || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder")).to_s, [])
+  end
 
   private
 
@@ -44,8 +62,13 @@ class Certificate < ApplicationRecord
   def presented_on_must_be_valid_date
     return if presented_on.blank?
 
-    Date.parse(presented_on)
+    Date.parse(presented_on.to_s)
   rescue ArgumentError, TypeError
     errors.add(:presented_on, "must be a valid date")
+  end
+
+  def attribute_blank?(attribute)
+    value = send(attribute)
+    value.is_a?(Array) ? value.reject(&:blank?).blank? : value.blank?
   end
 end

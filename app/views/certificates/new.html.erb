@@ -2,6 +2,6 @@
   Create a Certificate
 <% end %>
 
-<%= render "shared/modal_wrapper", dialog_id: "certificate-form", title: "Create a Certificate" do %>
-  <%= render "form", certificate: @certificate %>
+<%= render "shared/modal_wrapper", dialog_id: "certificate-form", title: "Create a Certificate", close_path: certificates_path do %>
+  <%= render "form", certificate: @certificate, close_path: certificates_path %>
 <% end %>
