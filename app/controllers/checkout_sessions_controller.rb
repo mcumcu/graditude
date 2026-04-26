@@ -4,7 +4,7 @@ class CheckoutSessionsController < ApplicationController
 
   TEMPLATE_PRICE_IDS = {
     "boulder" => "price_1S7JZoBKCB1NBOVa2U4OXmFy",
-    "westtown" => "price_1S7JZoBKCB1NBOVa2U4OXmFz"
+    "westtown" => "price_1S7JZoBKCB1NBOVa2U4OXmFy"
   }.freeze
 
   PRODUCTS = {

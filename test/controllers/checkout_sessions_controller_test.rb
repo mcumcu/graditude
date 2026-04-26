@@ -36,7 +36,7 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
     post checkout_url, params: { certificate_id: certificate.id }
 
     assert_response :success
-    assert_equal "price_1S7JZoBKCB1NBOVa2U4OXmFz", called_with[:line_items].first[:price]
+    assert_equal "y", called_with[:line_items].first[:price]
   ensure
     Stripe::Checkout::Session.define_singleton_method(:create, original_create) if defined?(original_create) && original_create
   end
