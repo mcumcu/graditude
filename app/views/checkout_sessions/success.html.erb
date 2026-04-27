@@ -18,25 +18,26 @@
         </div>
       </div>
 
-      <div class="mt-8 grid gap-4 sm:grid-cols-2">
-        <div class="rounded-2xl bg-background-secondary p-5">
+      <div class="mt-8 grid gap-4 sm:grid-cols-1">
+        <div class="rounded-lg bg-background-secondary p-5">
           <p class="font-semibold">Purchased product</p>
           <p class="mt-2">Graditude Certificate</p>
         </div>
 
-        <div class="rounded-2xl bg-background-secondary p-5">
+      <!--  This is a bit of a hack to show the session ID on the success page for debugging purposes. The session ID is not currently being used for anything, but it can be helpful to see it here when testing the checkout flow.
+        <div class="rounded-lg bg-background-secondary p-5">
           <p class="font-semibold">Stripe session</p>
           <% if @session_id.present? %>
             <p class="mt-2 break-all"><strong><%= @session_id %></strong></p>
           <% else %>
-            <p class="mt-2 text-content/70">Session details are being confirmed.</p>
+            <p class="mt-2 text-content/70">Your purchase is being confirmed.</p>
           <% end %>
         </div>
+      -->
       </div>
     </div>
 
     <div class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
-      <%#= link_to "Continue", root_path, class: "inline-flex w-full items-center justify-center rounded-full bg-black px-8 py-4 text-lg font-bold text-white shadow-lg shadow-gray-950/10 transition hover:bg-indigo-800 sm:w-auto" %>
       <%= link_to "View certificates", certificates_path, class: "inline-flex w-full items-center justify-center rounded-full bg-black px-8 py-4 text-lg font-bold text-white shadow-lg shadow-gray-950/10 transition hover:bg-indigo-800 sm:w-auto" %>
     </div>
 
