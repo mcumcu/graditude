@@ -1,5 +1,47 @@
-<section class="checkout-success">
-  <h1>Payment successful</h1>
-  <p>Thank you for your purchase. Your payment has been processed successfully.</p>
-  <%= link_to "Return to home", root_path, class: "button" %>
+<section class="checkout-success mx-auto max-w-7xl py-12 px-4 sm:px-6 lg:px-8 text-primary">
+  <div class="rounded-lg bg-background-secondary/50 dark:bg-background p-8 shadow-sm">
+    <div class="max-w-3xl">
+      <h1 class="text-4xl font-semibold">Payment complete</h1>
+      <p class="mt-4 text-lg leading-relaxed text-content/80">Thank you for your order. Your Graditude certificate purchase is confirmed.</p>
+    </div>
+
+    <div class="mt-8 rounded-lg bg-background p-8 shadow-sm">
+      <div class="grid gap-6 sm:grid-cols-[1fr_auto] sm:items-center">
+        <div>
+          <p class="text-sm uppercase tracking-[0.2em] text-primary/70">Order status</p>
+          <h2 class="mt-3 text-2xl font-semibold">Success</h2>
+          <p class="mt-3 text-content/70">Your payment was processed successfully. We’re preparing your certificate order now.</p>
+        </div>
+
+        <div class="rounded-full border border-primary/10 bg-primary/5 px-5 py-4 text-sm text-primary">
+          <span class="font-semibold">Confirmed</span>
+        </div>
+      </div>
+
+      <div class="mt-8 grid gap-4 sm:grid-cols-2">
+        <div class="rounded-2xl bg-background-secondary p-5">
+          <p class="font-semibold">Purchased product</p>
+          <p class="mt-2">Graditude Certificate</p>
+        </div>
+
+        <div class="rounded-2xl bg-background-secondary p-5">
+          <p class="font-semibold">Stripe session</p>
+          <% if @session_id.present? %>
+            <p class="mt-2 break-all"><strong><%= @session_id %></strong></p>
+          <% else %>
+            <p class="mt-2 text-content/70">Session details are being confirmed.</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
+      <%= link_to "Continue", root_path, class: "inline-flex w-full items-center justify-center rounded-full bg-black px-8 py-4 text-lg font-bold text-white shadow-lg shadow-gray-950/10 transition hover:bg-indigo-800 sm:w-auto" %>
+      <%= link_to "View your certificates", certificates_path, class: "inline-flex w-full items-center justify-center rounded-full border border-black/10 bg-white px-8 py-4 text-lg font-semibold text-black transition hover:bg-black/95 hover:text-white sm:w-auto" %>
+    </div>
+
+    <p class="mt-6 text-sm text-content/70">
+      If anything looks wrong, email <a href="mailto:support@thegraditude.com" class="font-semibold text-primary">support@thegraditude.com</a> and we’ll help you right away.
+    </p>
+  </div>
 </section>

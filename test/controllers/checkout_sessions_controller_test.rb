@@ -79,16 +79,19 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "success page renders" do
-    get checkout_success_url
+    get checkout_success_url, params: { session_id: "cs_test_123" }
 
     assert_response :success
-    assert_select "h1", "Payment successful"
+    assert_select "h1", "Payment complete"
+    assert_select "strong", "cs_test_123"
+    assert_select "a[href='mailto:support@thegraditude.com']"
   end
 
   test "cancel page renders" do
     get checkout_cancel_url
 
     assert_response :success
-    assert_select "h1", "Payment canceled"
+    assert_select "h1", "Checkout canceled"
+    assert_select "a[href='mailto:support@thegraditude.com']"
   end
 end

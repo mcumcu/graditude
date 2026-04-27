@@ -56,7 +56,7 @@ class CheckoutSessionsController < ApplicationController
         }
       ],
       mode: "payment",
-      success_url: "#{request.base_url}#{checkout_success_path}",
+      success_url: "#{request.base_url}#{checkout_success_path}?session_id={CHECKOUT_SESSION_ID}",
       cancel_url: "#{request.base_url}#{checkout_cancel_path}"
     )
 
@@ -65,9 +65,12 @@ class CheckoutSessionsController < ApplicationController
     render json: { error: error.message }, status: :bad_gateway
   end
 
-  def success; end
+  def success
+    @session_id = params[:session_id]
+  end
 
-  def cancel; end
+  def cancel
+  end
 
   private
 
