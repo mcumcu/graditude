@@ -33,6 +33,8 @@ module Graditude
     config.after_initialize do
       next unless Rails.env.production?
 
+      next if ENV["SECRET_KEY_BASE_DUMMY"].present? || ENV["SKIP_STRIPE_VALIDATION"].present?
+
       stripe_secret_key = ENV["STRIPE_KEY"]
       stripe_publishable_key = ENV["STRIPE_KEY_PUB"]
 
