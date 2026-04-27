@@ -2,6 +2,9 @@
   data-controller="checkout" 
   data-checkout-publishable-key-value="<%= ENV["STRIPE_KEY_PUB"] %>" 
   data-checkout-price-id-value="<%= @price_id %>"
+  <% if @certificate_ids.present? %>
+    data-checkout-certificate-ids-value="<%= @certificate_ids.join(',') %>"
+  <% end %>
 >
   <section class="checkout-page mx-auto max-w-7xl py-12 px-4 sm:px-6 lg:px-8 text-primary">
     <% if @product.present? %>

@@ -13,6 +13,8 @@ class Certificate < ApplicationRecord
   }.freeze
 
   belongs_to :user
+  has_many :checkout_session_certificates, dependent: :destroy
+  has_many :checkout_sessions, through: :checkout_session_certificates
 
   validates :template, inclusion: { in: TEMPLATE_VALUES }, allow_nil: true
   validates :graduate_name, :honoree_name, :degree, :presented_on, presence: true
