@@ -4,7 +4,8 @@ import { loadStripe } from "@stripe/stripe-js"
 export default class extends Controller {
   static values = {
     publishableKey: String,
-    priceId: String
+    priceId: String,
+    certificateIds: String
   }
 
   static targets = ["button", "feedback"]
@@ -23,11 +24,14 @@ export default class extends Controller {
     this.buttonTarget.disabled = true
     this.showFeedback("✸ Starting checkout…")
 
+    const params = new URLSearchParams({ price_id: this.priceIdValue })
+    if (this.certificateIdsValue?.trim()) {
+      params.append("certificate_ids", this.certificateIdsValue)
+    }
+
     const response = await fetch("/checkout", {
       method: "POST",
-      body: new URLSearchParams({
-        price_id: this.priceIdValue
-      })
+      body: params
     })
 
     let body

@@ -48,10 +48,47 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
       OpenStruct.new(id: "cs_test")
     end
 
-    post checkout_url, params: { price_id: "price_test" }
+    assert_enqueued_with(job: CheckoutSessionReconciliationJob) do
+      post checkout_url, params: { price_id: "price_test" }
+    end
 
     assert_response :success
     assert_equal "cs_test", JSON.parse(response.body)["sessionId"]
+  ensure
+    Stripe::Checkout::Session.define_singleton_method(:create, original_create)
+  end
+
+  test "show returns checkout session details" do
+    checkout_session = CheckoutSession.create!(status: :open, items: [ { price_id: "price_test", quantity: 1 } ], raw: {}, stripe_session_id: "cs_show_test")
+
+    get checkout_session_url(checkout_session), as: :json
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal checkout_session.id, body["id"]
+    assert_equal "open", body["status"]
+    assert_equal [], body["certificate_ids"]
+  end
+
+  test "create persists checkout session and certificate associations" do
+    certificate_one = certificates(:one)
+    certificate_two = certificates(:two)
+    called_with = nil
+    original_create = Stripe::Checkout::Session.method(:create)
+
+    Stripe::Checkout::Session.define_singleton_method(:create) do |attrs|
+      called_with = attrs
+      OpenStruct.new(id: "cs_multi_test")
+    end
+
+    post checkout_url, params: { certificate_ids: [ certificate_one.id, certificate_two.id ] }
+
+    assert_response :success
+    checkout_session = CheckoutSession.find_by(stripe_session_id: "cs_multi_test")
+    assert_not_nil checkout_session
+    assert_equal 2, checkout_session.certificates.count
+    assert_equal "cs_multi_test", JSON.parse(response.body)["sessionId"]
+    assert_equal [ certificate_one.id.to_s, certificate_two.id.to_s ].join(","), called_with[:metadata][:certificate_ids]
   ensure
     Stripe::Checkout::Session.define_singleton_method(:create, original_create)
   end
@@ -79,16 +116,19 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "success page renders" do
-    get checkout_success_url
+    get checkout_success_url, params: { session_id: "cs_test_123" }
 
     assert_response :success
-    assert_select "h1", "Payment successful"
+    assert_select "h1", "Payment complete"
+    assert_select "strong", "cs_test_123"
+    assert_select "a[href='mailto:support@thegraditude.com']"
   end
 
   test "cancel page renders" do
     get checkout_cancel_url
 
     assert_response :success
-    assert_select "h1", "Payment canceled"
+    assert_select "h1", "Checkout canceled"
+    assert_select "a[href='mailto:support@thegraditude.com']"
   end
 end

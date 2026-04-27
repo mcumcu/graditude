@@ -1,6 +1,8 @@
 Rails.application.routes.draw do
   get "checkout" => "checkout_sessions#new", as: :new_checkout
   post "checkout" => "checkout_sessions#create"
+  get "checkout_sessions/:id" => "checkout_sessions#show", as: :checkout_session
+  post "stripe/webhook" => "stripe_webhooks#receive"
   get "checkout/success" => "checkout_sessions#success", as: :checkout_success
   get "checkout/cancel" => "checkout_sessions#cancel", as: :checkout_cancel
 

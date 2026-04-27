@@ -1,5 +1,5 @@
   <div style="background-image: url('<%= asset_path("#{certificate.template || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder")}.png") %>'); background-size: cover; background-position: center; background-repeat: no-repeat;" class="
-    rounded-xl
+    rounded-lg
     h-[418.671875] w-[542]
     md:h-[395.5] md:w-[512]
     lg:h-[527.3125] lg:w-[682.65625]
@@ -11,7 +11,7 @@
   ">
     <img
       alt="Your certificate"
-      class="rounded-xl"
+      class="rounded-lg"
       data-controller="preview"
       data-preview-src-value="<%= preview_certificate_path(certificate, format: :png) %>"
     />
