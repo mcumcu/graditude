@@ -36,7 +36,7 @@ class CertificatesController < ApplicationController
 
     respond_to do |format|
       if @certificate.save
-        format.html { redirect_to @certificate, notice: "Certificate was created" }
+        format.html { redirect_to @certificate, notice: "Certificate for #{@certificate.honoree_name} was created" }
         format.json { render :show, status: :created, location: @certificate }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -69,7 +69,7 @@ class CertificatesController < ApplicationController
     @certificate.destroy!
 
     respond_to do |format|
-      format.html { redirect_to certificates_path, notice: "✖︎ Certificate was deleted", status: :see_other }
+      format.html { redirect_to certificates_path, alert: "Certificate for #{@certificate.honoree_name} was deleted", status: :see_other }
       format.json { head :no_content }
     end
   end

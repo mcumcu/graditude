@@ -3,7 +3,7 @@
 <div class="fixed inset-0 z-50">
   <div class="absolute inset-0 bg-background-secondary/50 dark:bg-background/50" onclick="<%= close_path ? "window.location='#{j close_path}'" : 'history.back()' %>"></div>
   <div class="relative min-h-screen min-w-screen flex justify-center items-center p-4">
-    <div class="relative p-8 rounded-lg shadow-lg text-content bg-background dark:bg-background-secondary" onclick="event.stopPropagation()">
+    <div class="relative p-8 rounded-lg shadow-lg text-content bg-background dark:bg-background-secondary w-full max-w-3xl" onclick="event.stopPropagation()">
       <h2 class="mb-10 flex justify-between items-center">
         <span class="font-bold text-3xl">
           <%= title %>

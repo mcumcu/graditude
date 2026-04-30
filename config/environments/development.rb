@@ -37,6 +37,18 @@ Rails.application.configure do
   # Make template changes take effect immediately.
   config.action_mailer.perform_caching = false
 
+  config.action_mailer.delivery_method = :postmark
+  config.action_mailer.postmark_settings = {
+    api_token: ENV.fetch("POSTMARK_API_TOKEN")
+  }
+
+  # If you'd rather use a local Mailpit instance during development, uncomment this block.
+  # config.action_mailer.delivery_method = :smtp
+  # config.action_mailer.smtp_settings = {
+  #   address: "0.0.0.0",
+  #   port: 1025,
+  # }
+
   # Set localhost to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
 

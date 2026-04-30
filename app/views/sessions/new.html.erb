@@ -1,33 +1,11 @@
 <%= render "shared/modal_wrapper", dialog_id: "session-form", title: "Sign in" do %>
-  <% if alert = flash[:alert] %>
-    <p class="py-2 px-3 bg-red-50 mb-5 text-red-500 font-medium rounded-lg inline-block" id="alert"><%= alert %></p>
-  <% end %>
-
-  <% if notice = flash[:notice] %>
-    <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-lg inline-block" id="notice"><%= notice %></p>
-  <% end %>
-
-  <%= form_with url: session_url, class: "contents flex flex-col gap-6" do |form| %>
-    <%= render "shared/field_row",
-      form: form,
-      attribute: :email_address,
-      label_text: "Email address",
-      field_html: form.email_field(:email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address], class: form_input_classes) %>
-
-    <%= render "shared/field_row",
-      form: form,
-      attribute: :password,
-      label_text: "Password",
-      field_html: form.password_field(:password, required: true, autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72, class: form_input_classes) %>
-
-    <div class="col-span-6 sm:flex sm:items-center sm:gap-4">
-      <div class="inline">
-        <%= form.submit "Sign in", class: "w-full sm:w-auto text-center rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-primary text-white inline-block font-medium cursor-pointer" %>
-      </div>
-
-      <div class="mt-4 text-sm text-content-muted sm:mt-0">
-        <%= link_to "Forgot password?", new_password_path, class: "text-gray-700 underline hover:no-underline" %>
-      </div>
-    </div>
-  <% end %>
-<% end %>
+  <%= render "sessions/email_form",
+    dialog_id: "session-form",
+    title: "Sign in",
+    submit_text: "Email sign-in link",
+    note_html: safe_join([
+      "New here? ",
+      link_to("Sign up", new_signup_path, command: "show-modal", commandfor: "signup-form", class: "text-content-muted underline hover:no-underline")
+    ])
+  %>
+<% end%>

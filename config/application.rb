@@ -24,6 +24,7 @@ module Graditude
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
     #
+    #
 
     # Use UUIDs as default primary keys
     config.generators do |generator|
