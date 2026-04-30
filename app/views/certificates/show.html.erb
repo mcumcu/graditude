@@ -2,11 +2,9 @@
   Preview
 <% end %>
 
-<div class="mx-auto md:w-2/3 w-full flex flex-col gap-8">
-  <div class="flex justify-between items-center gap-4">
-    <h1 class="font-bold text-4xl">Preview</h1>
-
-    <%= link_to "My certificates", certificates_path, class: "w-36 text-white sm:w-auto text-center rounded-md px-3 py-2 bg-primary/70 hover:bg-primary inline-block font-medium" %>
+<div class="container mx-auto flex flex-col gap-8 pt-6">
+  <div class="flex flex-col justify-center items-center gap-8">
+    <h1 class="font-headline text-3xl">Certificate for <%= @certificate.honoree_name %></h1>
   </div>
 
   <% if notice.present? %>

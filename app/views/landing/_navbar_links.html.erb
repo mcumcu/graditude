@@ -7,6 +7,7 @@ else
 end %>
 
 <% unless mobile %>
+  <%# show logo for wide screens %>
   <%= render "landing/logo" %>
 <% end %>
 
@@ -18,6 +19,7 @@ end %>
   <%= button_to "Sign out", session_path, method: :delete, data: { turbo_confirm: "Are you sure?" }, form: { class: "inline" }, class: link_class %>
 <% else %>
   <%= link_to "Sign in", new_session_path, command: "show-modal", commandfor: "session-form", class: link_class %>
+  <%= link_to "Sign up", new_signup_path, command: "show-modal", commandfor: "signup-form", class: link_class %>
 <% end %>
 
 <div class="mt-4 lg:mt-0">

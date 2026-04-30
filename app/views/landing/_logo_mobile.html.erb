@@ -1,0 +1,11 @@
+<%
+  href ||= root_path
+  alt ||= "The Graditude"
+%>
+
+<%= link_to href do %>
+  <span class="sr-only"><%= alt %></span>
+
+  <%= image_tag "graditude_logo_word_black.png", alt: alt, class: "pl-2 h-5 w-auto dark:hidden" %>
+  <%= image_tag "graditude_logo_word_white.png", alt: alt, class: "pl-2 hidden h-5 w-auto dark:inline" %>
+<% end %>

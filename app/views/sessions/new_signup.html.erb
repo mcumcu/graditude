@@ -1,0 +1,12 @@
+<%= render "shared/modal_wrapper", dialog_id: "session-form", title: "Sign up" do %>
+  <%= render "sessions/email_form",
+    dialog_id: "session-form",
+    title: "Sign up",
+    submit_text: "Email sign-up link",
+    note_html: safe_join([
+      "Already have an account? ",
+      link_to("Sign in", new_session_path, command: "show-modal", commandfor: "session-form", class: "text-content-muted underline hover:no-underline")
+    ])
+  %>
+<% end%>
+<%#= render "sessions/email_form", dialog_id: "signup-form", title: "Sign up", submit_text: "Email sign-in link", note_html: link_to("Already have an account? Sign in", new_session_path, command: "show-modal", commandfor: "session-form", class: "text-gray-700 underline hover:no-underline") %>
