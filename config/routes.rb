@@ -15,6 +15,8 @@ Rails.application.routes.draw do
 
   # Rails built-in authentication
   resource :session
+  get "sign-up" => "sessions#new_signup", as: :new_signup
+  get "session/authenticate/*token" => "sessions#authenticate", as: :authenticate_session
   resources :passwords, param: :token
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

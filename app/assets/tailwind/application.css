@@ -14,8 +14,8 @@
   --color-content: oklch(0.2 0 264.052 / 80%);
   --color-content-muted: oklch(0.6 0 264.052 / 60%);
   --color-content-dark: oklch(0 0 264.052 / 80%);
-  --color-error: oklch(0.6453 0.2603 2.47 / 80%);
-  --color-success: oklch(0.8751 0.23444 151.1848 / 80%);
+  --color-error: oklch(0.5453 0.2603 2.47 / 80%);
+  --color-success: oklch(0.6751 0.23444 151.1848 / 80%);
 }
 
 .dark {

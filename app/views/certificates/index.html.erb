@@ -1,10 +1,8 @@
-<% content_for :title, "Certificates" %>
+<% content_for :title, "Certificates #{pluralize(@certificates.count, "Certificate")}" %>
 
-<div class="mx-auto md:w-2/3 w-full flex flex-col gap-8">
-  <div class="flex justify-center items-center">
-    <%# <h1 class="font-headline text-3xl">My Certificates</h1> %>
-
-    <%== link_to "✚ New", new_certificate_path, class: "w-full min-w-48 text-background dark:text-background sm:w-auto text-center rounded-md px-3 py-2 bg-primary/80 dark:bg-primary-dark/80 hover:bg-primary dark:hov inline-block font-medium" %>
+<div class="container mx-auto flex flex-col gap-8 pt-6">
+  <div class="flex flex-col justify-center items-center gap-8">
+    <h1 class="font-headline text-3xl">My <%= pluralize(@certificates.count, "Certificate") %></h1>
   </div>
 
   <% if notice.present? %>
@@ -14,11 +12,11 @@
   <div id="certificates" class="min-w-full flex flex-col gap-16">
     <% if @certificates.any? %>
       <% @certificates.each do |certificate| %>
-        <div class="flex flex-col gap-8">
+        <%= link_to certificate_path(certificate), class: "flex flex-col gap-8" do %>
           <%= render certificate %>
 
-          <%= render partial: "action_buttons", locals: {certificate: certificate, show_edit: true} %>
-        </div>
+          <%= render partial: "action_buttons", locals: {certificate: certificate, show_edit: false} %>
+        <% end %>
       <% end %>
     <% else %>
       <p class="text-center my-10">No certificates found.</p>

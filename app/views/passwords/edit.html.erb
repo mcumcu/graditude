@@ -1,7 +1,5 @@
 <%= render "shared/modal_wrapper", dialog_id: "password-reset-form", title: "Update your password" do %>
-  <% if alert = flash[:alert] %>
-    <p class="py-2 px-3 bg-red-50 mb-5 text-red-500 font-medium rounded-lg inline-block" id="alert"><%= alert %></p>
-  <% end %>
+  <%= render "shared/flash_messages" %>
 
   <%= form_with url: password_path(params[:token]), method: :put, class: "contents flex flex-col gap-6" do |form| %>
     <%= render "shared/field_row",
