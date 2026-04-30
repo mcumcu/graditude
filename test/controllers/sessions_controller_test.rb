@@ -9,7 +9,7 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to new_session_path
-    assert_equal "Check your inbox for a sign-in link.", flash[:notice]
+    assert_equal "Check your inbox for a sign-in link", flash[:notice]
     assert User.exists?(email_address: "new@example.com")
   end
 
@@ -21,7 +21,7 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to new_session_path
-    assert_equal "Check your inbox for a sign-in link.", flash[:notice]
+    assert_equal "Check your inbox for a sign-in link", flash[:notice]
   end
 
   test "authenticates with a valid magic link" do
@@ -39,6 +39,6 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     get authenticate_session_url(token: "invalid-token")
 
     assert_redirected_to new_session_path
-    assert_equal "That sign-in link is invalid or has expired.", flash[:alert]
+    assert_equal "That sign-in link is invalid or has expired", flash[:alert]
   end
 end
