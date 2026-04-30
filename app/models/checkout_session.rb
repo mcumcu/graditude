@@ -1,6 +1,8 @@
 class CheckoutSession < ApplicationRecord
+  belongs_to :cart, optional: true
   has_many :checkout_session_certificates, dependent: :destroy
   has_many :certificates, through: :checkout_session_certificates
+  has_many :certificate_products, dependent: :nullify
 
   enum :status, {
     open: "open",
@@ -38,5 +40,10 @@ class CheckoutSession < ApplicationRecord
     end
 
     update!(status: new_status, raw: raw_hash.deep_merge(stripe_session: stripe_session.to_hash))
+    complete_order! if new_status == "complete"
+  end
+
+  def complete_order!
+    cart&.complete_order!(self)
   end
 end

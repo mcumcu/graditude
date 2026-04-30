@@ -2,28 +2,30 @@ require "test_helper"
 require "ostruct"
 
 class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
-  test "new renders successfully with price_id" do
-    get new_checkout_url, params: { price_id: "price_1S7JZoBKCB1NBOVa2U4OXmFy" }
+  test "new renders checkout page for signed-in user" do
+    user = users(:one)
+    sign_in user
+
+    product = Product.create!(title: "Graduation Gift", description: "Ceremony edition", price_cents: 3000, currency: "USD", details: {})
+    price_map = StripePriceMap.create!(product: product, stripe_price_id: "price_test")
+    cart = Cart.open_for(user)
+    cart.certificate_products.create!(product: product, certificate: certificates(:one), stripe_price_map: price_map, quantity: 1)
+
+    get new_checkout_url
 
     assert_response :success
-    assert_select "h1", "Graditude Certificate"
+    assert_select "h1", "Checkout"
     assert_select "button", "Start checkout"
   end
 
-  test "new renders certificate preview from certificate_id" do
-    certificate = certificates(:one)
-    certificate.update!(template: "westtown", major: "Computer Science")
+  test "create uses cart items for checkout" do
+    user = users(:one)
+    sign_in user
 
-    get new_checkout_url, params: { certificate_id: certificate.id }
-
-    assert_response :success
-    assert_select "h1", "Westtown Graduation Certificate"
-    assert_select "img[src*='preview']"
-  end
-
-  test "create uses template price id when price_id is omitted" do
-    certificate = certificates(:one)
-    certificate.update!(template: "westtown", major: "Computer Science")
+    product = Product.create!(title: "Graduation Gift", description: "Ceremony edition", price_cents: 3000, currency: "USD", details: {})
+    price_map = StripePriceMap.create!(product: product, stripe_price_id: "price_test")
+    cart = Cart.open_for(user)
+    cart.certificate_products.create!(product: product, certificate: certificates(:one), stripe_price_map: price_map, quantity: 2)
 
     called_with = nil
     original_create = Stripe::Checkout::Session.method(:create)
@@ -33,29 +35,23 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
       OpenStruct.new(id: "cs_test")
     end
 
-    post checkout_url, params: { certificate_id: certificate.id }
+    post checkout_url
 
     assert_response :success
-    assert_equal "price_1S7JZoBKCB1NBOVa2U4OXmFy", called_with[:line_items].first[:price]
+    assert_equal "price_test", called_with[:line_items].first[:price]
+    assert_equal 2, called_with[:line_items].first[:quantity]
+    assert_equal "cs_test", JSON.parse(response.body)["sessionId"]
   ensure
     Stripe::Checkout::Session.define_singleton_method(:create, original_create) if defined?(original_create) && original_create
   end
 
-  test "create returns checkout session id" do
-    original_create = Stripe::Checkout::Session.method(:create)
+  test "create returns bad request when cart is empty" do
+    sign_in users(:one)
 
-    Stripe::Checkout::Session.define_singleton_method(:create) do |_attrs|
-      OpenStruct.new(id: "cs_test")
-    end
+    post checkout_url
 
-    assert_enqueued_with(job: CheckoutSessionReconciliationJob) do
-      post checkout_url, params: { price_id: "price_test" }
-    end
-
-    assert_response :success
-    assert_equal "cs_test", JSON.parse(response.body)["sessionId"]
-  ensure
-    Stripe::Checkout::Session.define_singleton_method(:create, original_create)
+    assert_response :bad_request
+    assert_equal "cart is empty", JSON.parse(response.body)["error"]
   end
 
   test "show returns checkout session details" do
@@ -70,49 +66,27 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal [], body["certificate_ids"]
   end
 
-  test "create persists checkout session and certificate associations" do
-    certificate_one = certificates(:one)
-    certificate_two = certificates(:two)
-    called_with = nil
-    original_create = Stripe::Checkout::Session.method(:create)
-
-    Stripe::Checkout::Session.define_singleton_method(:create) do |attrs|
-      called_with = attrs
-      OpenStruct.new(id: "cs_multi_test")
-    end
-
-    post checkout_url, params: { certificate_ids: [ certificate_one.id, certificate_two.id ] }
-
-    assert_response :success
-    checkout_session = CheckoutSession.find_by(stripe_session_id: "cs_multi_test")
-    assert_not_nil checkout_session
-    assert_equal 2, checkout_session.certificates.count
-    assert_equal "cs_multi_test", JSON.parse(response.body)["sessionId"]
-    assert_equal [ certificate_one.id.to_s, certificate_two.id.to_s ].join(","), called_with[:metadata][:certificate_ids]
-  ensure
-    Stripe::Checkout::Session.define_singleton_method(:create, original_create)
-  end
-
   test "create returns Stripe error as JSON when checkout session creation fails" do
+    user = users(:one)
+    sign_in user
+
+    product = Product.create!(title: "Graduation Gift", description: "Ceremony edition", price_cents: 3000, currency: "USD", details: {})
+    price_map = StripePriceMap.create!(product: product, stripe_price_id: "price_test")
+    cart = Cart.open_for(user)
+    cart.certificate_products.create!(product: product, certificate: certificates(:one), stripe_price_map: price_map, quantity: 1)
+
     original_create = Stripe::Checkout::Session.method(:create)
 
     Stripe::Checkout::Session.define_singleton_method(:create) do |_attrs|
       raise Stripe::StripeError.new("Expired API Key provided")
     end
 
-    post checkout_url, params: { price_id: "price_test" }
+    post checkout_url
 
     assert_response :bad_gateway
     assert_equal "Expired API Key provided", JSON.parse(response.body)["error"]
   ensure
-    Stripe::Checkout::Session.define_singleton_method(:create, original_create)
-  end
-
-  test "create returns bad request when price_id is missing" do
-    post checkout_url
-
-    assert_response :bad_request
-    assert_equal "missing price_id", JSON.parse(response.body)["error"]
+    Stripe::Checkout::Session.define_singleton_method(:create, original_create) if defined?(original_create) && original_create
   end
 
   test "success page renders" do

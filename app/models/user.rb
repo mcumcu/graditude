@@ -1,6 +1,9 @@
 class User < ApplicationRecord
   has_secure_password validations: false
   has_many :sessions, dependent: :destroy
+  has_many :carts, dependent: :destroy
+  has_one :open_cart, -> { where(status: :open) }, class_name: "Cart"
+  has_many :certificates, dependent: :destroy
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
   validates :email_address, presence: true, uniqueness: true

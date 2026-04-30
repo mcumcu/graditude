@@ -1,100 +1,43 @@
-<div 
-  data-controller="checkout" 
-  data-checkout-publishable-key-value="<%= ENV["STRIPE_KEY_PUB"] %>" 
-  data-checkout-price-id-value="<%= @price_id %>"
-  <% if @certificate_ids.present? %>
-    data-checkout-certificate-ids-value="<%= @certificate_ids.join(',') %>"
-  <% end %>
->
+<div data-controller="checkout" data-checkout-publishable-key-value="<%= ENV["STRIPE_KEY_PUB"] %>">
   <section class="checkout-page mx-auto max-w-7xl py-12 px-4 sm:px-6 lg:px-8 text-primary">
-    <% if @product.present? %>
-      <div class="grid gap-8 lg:grid-cols-[2fr_1fr]">
-        <div class="rounded-lg bg-background-secondary/50 dark:bg-background p-6 shadow-sm">
-          <div class="aspect-4/3 overflow-hidden rounded-lg bg-content">
-            <%= image_tag @product[:image], alt: @product[:name], class: "h-full w-full object-cover" %>
-          </div>
+    <h1 class="text-3xl font-semibold">Checkout</h1>
 
-          <div class="mt-6">
-            <h1 class="text-3xl font-semibold"><%= @product[:name] %></h1>
-
-            <p class="mt-4"><%= @product[:description] %></p>
-
-            <p class="mt-6 text-2xl font-bold"><%= number_to_currency(@product[:price_cents] / 100.0, unit: "$", precision: 2) %></p>
-          </div>
-
-          <ul class="mt-6 space-y-3">
-            <% @product[:features].each do |feature| %>
-              <li class="flex items-start  align-bottom gap-3">
-                <span class="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-primary pt-1">✓</span>
-
-                <span class="text-primary pt-1"><%= feature %></span>
-              </li>
-            <% end %>
-          </ul>
-        </div>
-
-        <div class="rounded-lg bg-background-secondary/50 dark:bg-background p-6 shadow-sm">
-          <div class="mb-6">
-            <h2 class="text-xl font-semibold">Order summary</h2>
-
-            <p class="mt-2">Review your certificate and start secure checkout with Stripe.</p>
-          </div>
-
-          <% if stripe_test_mode? %>
-            <div class="mb-6 rounded-lg bg-error/20 p-5 text-error shadow-sm">
-              <p class="font-semibold">Stripe TEST mode is active</p>
-              <p class="mt-2 text-sm">Do not enter real personal or payment information. Use Stripe test cards only.</p>
-
-              <div class="mt-4 grid gap-3 text-sm sm:grid-rows-2">
-                <div class="rounded-lg bg-background p-4 shadow-sm">
-                  <p class="font-semibold">Success cards</p>
-                  <ul class="mt-3 space-y-2">
-                    <li>Mastercard: <strong>5555 5555 5555 4444</strong>, any 3 digits CVC</li>
-                    <li>Amex: <strong>3782 822463 10005</strong> , any 4 digits CVC</li>
-                  </ul>
-                </div>
-
-                <div class="rounded-lg bg-background p-4 shadow-sm">
-                  <p class="font-semibold">Decline/test cards</p>
-                  <ul class="mt-3 space-y-2">
-                    <li>Generic Decline: <strong>4000 0000 0000 0002</strong>, any 3 digits CVC</li>
-                    <li>Insufficient Funds: <strong>4000 0000 0000 9995,</strong> any 3 digits CVC</li>
-                    <li>Incorrect CVC: <strong>4242 4242 4242 4242</strong>, 000</li>
-                  </ul>
-                </div>
+    <% if @cart.certificate_products.any? %>
+      <div class="mt-8 space-y-6">
+        <% @cart.certificate_products.includes(:product, :certificate).each do |item| %>
+          <div class="rounded-lg bg-background-secondary/50 p-6 shadow-sm">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 class="text-xl font-semibold"><%= item.product.title %></h2>
+                <p class="mt-2 text-sm text-gray-600"><%= item.certificate.honoree_name.presence || item.certificate.graduate_name %></p>
+                <p class="mt-3 text-sm text-gray-700"><%= item.product.description %></p>
               </div>
 
-              <p class="mt-4 text-xs">Use any future expiry date and any ZIP/postal code. This page will behave like a real Stripe checkout flow, but it is in TEST mode.</p>
+              <div class="text-right">
+                <p class="text-sm text-gray-600">Quantity: <%= item.quantity %></p>
+                <p class="mt-2 text-lg font-semibold"><%= number_to_currency(item.total_cents / 100.0, unit: "$", precision: 2) %></p>
+              </div>
             </div>
-          <% end %>
-
-          <div class="rounded-lg bg-background dark:bg-background-secondary p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-              <span>Product</span>
-
-              <span><%= @product[:name] %></span>
-            </div>
-
-            <div class="mt-4 flex items-center justify-between">
-              <strong>Total</strong>
-
-              <strong><%= number_to_currency(@product[:price_cents] / 100.0, unit: "$", precision: 2) %></strong>
-            </div>
-
-            <button type="button" data-action="checkout#startCheckout" data-checkout-target="button" class="mt-8 w-full inline-flex items-center justify-center rounded-full bg-black text-white dark:bg-white dark:text-black px-8 py-4 text-lg font-bold text-gray-950 shadow-lg shadow-gray-950/10 transition hover:bg-indigo-800 dark:hover:bg-indigo-200">
-              Start checkout
-            </button>
-
-            <p data-checkout-target="feedback" class="mt-4 text-sm text-success text-center animate-pulse"></p>
           </div>
-        </div>
+        <% end %>
       </div>
-    <% elsif @price_id.present? %>
-      <p class="text-center text-gray-700">Unknown product for price ID: <strong><%= @price_id %></strong>.</p>
 
-      <p class="mt-4 text-center text-gray-600">Please return to the previous page and choose a valid product.</p>
+      <div class="mt-10 rounded-lg bg-background p-6 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-lg font-semibold">Order total</span>
+          <span class="text-lg font-semibold"><%= number_to_currency(@cart.total_cents / 100.0, unit: "$", precision: 2) %></span>
+        </div>
+
+        <button type="button" data-action="checkout#startCheckout" data-checkout-target="button" class="mt-8 w-full inline-flex items-center justify-center rounded-full bg-black text-white px-8 py-4 text-lg font-bold shadow-lg transition hover:bg-indigo-800">
+          Start checkout
+        </button>
+
+        <p data-checkout-target="feedback" class="mt-4 text-sm text-success text-center animate-pulse"></p>
+      </div>
     <% else %>
-      <p>Please choose a product before starting checkout.</p>
+      <div class="mt-8 rounded-lg bg-background-secondary/50 p-6 shadow-sm">
+        <p class="text-base text-gray-700">Your cart is empty. Add a certificate and product to start checkout.</p>
+      </div>
     <% end %>
   </section>
 </div>
