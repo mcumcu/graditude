@@ -51,9 +51,9 @@ class CertificatesController < ApplicationController
       if @certificate.update(certificate_params)
         format.html do
           if @certificate.saved_changes?
-            redirect_to certificates_path, notice: "Certificate for #{@certificate.honoree_name} was updated"
+            redirect_to certificate_path(@certificate), notice: "Certificate for #{@certificate.honoree_name} was updated"
           else
-            redirect_to certificates_path
+            redirect_to certificate_path(@certificate)
           end
         end
         format.json { render :show, status: :ok, location: @certificate }

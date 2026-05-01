@@ -32,4 +32,10 @@ module ApplicationHelper
     secret = ENV["STRIPE_KEY"].to_s
     publishable.start_with?("pk_test_") || secret.start_with?("sk_test_")
   end
+
+  def cart_items_count
+    return 0 unless Current.user
+
+    Cart.open_for(Current.user).certificate_products.sum(:quantity)
+  end
 end

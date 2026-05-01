@@ -20,4 +20,10 @@ module CertificatesHelper
   def product_for_template(template)
     Product.find_by(title: PRODUCT_TITLE_BY_TEMPLATE[template.to_s.presence || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder")])
   end
+
+  def certificate_in_cart?(certificate)
+    return false unless Current.user
+
+    Current.user.open_cart&.certificate_products&.exists?(certificate_id: certificate.id)
+  end
 end

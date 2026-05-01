@@ -3,17 +3,22 @@
 <% link_class = if mobile
   "-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-white/5 hover:cursor-pointer w-full text-left hover:decoration-underline hover:decoration-gray-900/50 dark:hover:decoration-white/50 bg-left-bottom bg-gradient-to-r from-indigo-500 to-indigo-500 bg-[length:0%_2px] bg-no-repeat hover:bg-[length:100%_2px] transition-all duration-500 ease-out"
 else
-  "font-semibold dark:text-white pt-1.5 hover:cursor-pointer bg-left-bottom bg-gradient-to-r from-indigo-500 to-indigo-500 bg-[length:0%_2px] bg-no-repeat hover:bg-[length:100%_2px] transition-all duration-500 ease-out"
+  "min-w-16 font-semibold dark:text-white pt-1.5 hover:cursor-pointer bg-left-bottom bg-gradient-to-r from-indigo-500 to-indigo-500 bg-[length:0%_2px] bg-no-repeat hover:bg-[length:100%_2px] transition-all duration-500 ease-out"
 end %>
 
 <% unless mobile %>
-  <%# show logo for wide screens %>
   <%= render "landing/logo" %>
 <% end %>
 
 <%= link_to "Certificates", certificates_path, class: link_class %>
 
-<%#= link_to "About", "#about", class: link_class %>
+<%= link_to cart_path, class: link_class do %>
+  <span>Cart</span>
+
+  <% if cart_items_count.positive? %>
+    <span class="ml-2 inline-flex items-center rounded-full bg-content-muted px-2.5 py-0.5 text-sm font-bold text-white"> <%= cart_items_count %> </span>
+  <% end %>
+<% end %>
 
 <% if authenticated? %>
   <%= button_to "Sign out", session_path, method: :delete, data: { turbo_confirm: "Are you sure?" }, form: { class: "inline" }, class: link_class %>
