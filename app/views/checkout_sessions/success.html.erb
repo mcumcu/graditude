@@ -1,20 +1,27 @@
+<% checkout_status = @checkout_status.presence || "complete" %>
+<% processing = checkout_status == "open" %>
+
 <section class="checkout-success mx-auto max-w-7xl py-12 px-4 sm:px-6 lg:px-8 text-primary">
   <div class="rounded-lg bg-background-secondary/50 dark:bg-background p-8 shadow-sm">
     <div class="max-w-3xl">
-      <h1 class="text-4xl font-semibold">Payment complete</h1>
-      <p class="mt-4 text-lg leading-relaxed text-content/80">Thank you for your order. Your Graditude certificate purchase is confirmed.</p>
+      <h1 class="text-4xl font-semibold"><%= processing ? "Payment processing" : "Payment complete" %></h1>
+      <p class="mt-4 text-lg leading-relaxed text-content/80">
+        <%= processing ? "Your payment is still being finalized. This can happen with bank-based and delayed payment methods." : "Thank you for your order. Your Graditude certificate purchase is confirmed." %>
+      </p>
     </div>
 
     <div class="mt-8 rounded-lg bg-background p-8 shadow-sm">
       <div class="grid gap-6 sm:grid-cols-[1fr_auto] sm:items-center">
         <div>
           <p class="text-sm uppercase tracking-[0.2em] text-primary/70">Order status</p>
-          <h2 class="mt-3 text-2xl font-semibold">Success</h2>
-          <p class="mt-3 text-content/70">Your payment was processed successfully. We’re preparing your certificate order now.</p>
+          <h2 class="mt-3 text-2xl font-semibold"><%= processing ? "Processing" : "Success" %></h2>
+          <p class="mt-3 text-content/70">
+            <%= processing ? "We have received your payment attempt and are waiting for final confirmation from your payment method." : "Your payment was processed successfully. We are preparing your certificate order now." %>
+          </p>
         </div>
 
         <div class="rounded-full border border-primary/10 bg-primary/5 px-5 py-4 text-sm text-primary">
-          <span class="font-semibold">Confirmed</span>
+          <span class="font-semibold"><%= processing ? "Pending" : "Confirmed" %></span>
         </div>
       </div>
 

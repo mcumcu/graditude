@@ -1,20 +1,66 @@
+<% checkout_outcome = @checkout_outcome.to_s %>
+<% async_failed = checkout_outcome == "failed" %>
+<% session_expired = checkout_outcome == "expired" %>
+<% page_title = if async_failed
+                  "Payment not completed"
+                elsif session_expired
+                  "Checkout session expired"
+                else
+                  "Checkout canceled"
+                end %>
+<% lead_copy = if async_failed
+                 "Your delayed payment method did not complete successfully."
+               elsif session_expired
+                 "Your checkout session expired before payment was completed."
+               else
+                 "It looks like your payment process was stopped before it completed."
+               end %>
+<% step_title = if async_failed
+                  "Try another payment method"
+                elsif session_expired
+                  "Start a new checkout"
+                else
+                  "You can try again"
+                end %>
+<% step_copy = if async_failed
+                 "Try checkout again with a different payment method, or retry this payment method when you are ready."
+               elsif session_expired
+                 "Return to checkout to generate a new secure session and complete payment."
+               else
+                 "Return to checkout when you’re ready, or contact support if you’d like help with your order."
+               end %>
+<% badge_label = if async_failed
+                  "Async payment failed"
+                elsif session_expired
+                  "Expired"
+                else
+                  "Canceled"
+                end %>
+<% badge_classes = if async_failed
+                    "border-error/25 bg-error/10 text-error"
+                  elsif session_expired
+                    "border-primary/20 bg-primary/10 text-primary"
+                  else
+                    "border-warning/20 bg-warning/10 text-warning"
+                  end %>
+
 <section class="checkout-cancel mx-auto max-w-7xl py-12 px-4 sm:px-6 lg:px-8 text-primary">
   <div class="rounded-lg bg-background-secondary/50 dark:bg-background p-8 shadow-sm">
     <div class="max-w-3xl">
-      <h1 class="text-4xl font-semibold">Checkout canceled</h1>
-      <p class="mt-4 text-lg leading-relaxed text-content/80">It looks like your payment process was stopped before it completed.</p>
+      <h1 class="text-4xl font-semibold"><%= page_title %></h1>
+      <p class="mt-4 text-lg leading-relaxed text-content/80"><%= lead_copy %></p>
     </div>
 
     <div class="mt-8 rounded-lg bg-background p-8 shadow-sm">
       <div class="grid gap-6 sm:grid-cols-[1fr_auto] sm:items-center">
         <div>
           <p class="text-sm uppercase tracking-[0.2em] text-primary/70">Next step</p>
-          <h2 class="mt-3 text-2xl font-semibold">You can try again</h2>
-          <p class="mt-3 text-content/70">Return to checkout when you’re ready, or contact support if you’d like help with your order.</p>
+          <h2 class="mt-3 text-2xl font-semibold"><%= step_title %></h2>
+          <p class="mt-3 text-content/70"><%= step_copy %></p>
         </div>
 
-        <div class="rounded-full border border-warning/20 bg-warning/10 px-5 py-4 text-sm text-warning">
-          <span class="font-semibold">Canceled</span>
+        <div class="rounded-full border px-5 py-4 text-sm <%= badge_classes %>">
+          <span class="font-semibold"><%= badge_label %></span>
         </div>
       </div>
     </div>

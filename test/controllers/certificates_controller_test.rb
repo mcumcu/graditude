@@ -96,7 +96,7 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
 
   test "should update certificate" do
     patch certificate_url(@certificate), params: { certificate: { graduate_name: "Updated Grad" } }
-    assert_redirected_to certificates_url
+    assert_redirected_to certificate_url(@certificate)
 
     @certificate.reload
     assert_equal "Updated Grad", @certificate.graduate_name

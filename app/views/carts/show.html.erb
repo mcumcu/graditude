@@ -36,6 +36,7 @@
 
                       <span>In stock</span>
                     </p>
+
                     <div class="ml-4">
                       <%= button_to "Remove", cart_item_path(item), method: :delete, form: { class: "inline" }, class: "text-sm font-medium text-error" %>
                     </div>
@@ -48,7 +49,7 @@
           <section aria-labelledby="summary-heading" class="mt-10">
             <h2 id="summary-heading" class="sr-only">Order summary</h2>
 
-            <div>
+            <div data-checkout-summary-target="summary">
               <dl class="space-y-4">
                 <div class="flex items-center justify-between">
                   <dt class="text-lg font-medium">Subtotal</dt>
@@ -59,11 +60,9 @@
               <p class="mt-1 text-sm">Shipping and taxes will be calculated at checkout.</p>
             </div>
 
-            <div class="mt-10">
-              <a href="<%= new_checkout_path %>" class="w-full inline-flex items-center justify-center rounded-full border border-transparent bg-primary px-4 py-3 text-base font-medium text-background shadow-sm">Checkout</a>
-            </div>
+            <%= render "shared/checkout_widget", publishable_key: ENV["STRIPE_KEY_PUB"], button_text: "Checkout" %>
 
-            <div class="mt-6 text-center text-sm">
+            <div data-checkout-summary-target="summary" class="mt-6 text-center text-sm">
               <p>
                 or
                 <%= link_to "Continue Shopping", certificates_path, class: "font-medium" %>

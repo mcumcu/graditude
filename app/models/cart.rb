@@ -40,7 +40,7 @@ class Cart < ApplicationRecord
   def complete_order!(checkout_session)
     transaction do
       update!(status: :completed)
-      certificate_products.pending.update_all(status: "purchased", checkout_session_id: checkout_session.id)
+      certificate_products.where(status: "pending").update_all(status: "purchased", checkout_session_id: checkout_session.id)
     end
   end
 end
