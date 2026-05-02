@@ -3,8 +3,15 @@ class CartItemsController < ApplicationController
     cart = current_cart
     product = Product.find(params.require(:product_id))
     certificate = Current.user.certificates.find(params.require(:certificate_id))
-    price_map = StripePriceMap.find_by!(product: product)
+    price_map = StripePriceMap.find_by(product: product, active: true)
 
+    unless price_map
+      respond_to do |format|
+        format.html { redirect_to cart_path, alert: "This product is not currently available for purchase." }
+        format.json { render json: { error: "No active price is available for this product." }, status: :unprocessable_entity }
+      end
+      return
+    end
     cart_item = cart.certificate_products.create!(
       product: product,
       certificate: certificate,
