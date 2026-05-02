@@ -3,7 +3,7 @@ class CartItemsController < ApplicationController
     cart = current_cart
     product = Product.find(params.require(:product_id))
     certificate = Current.user.certificates.find(params.require(:certificate_id))
-    price_map = StripePriceMap.find_by(product: product)
+    price_map = StripePriceMap.find_by(product: product, active: true)
 
     unless price_map
       respond_to do |format|
