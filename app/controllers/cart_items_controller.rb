@@ -3,18 +3,33 @@ class CartItemsController < ApplicationController
     cart = current_cart
     product = Product.find(params.require(:product_id))
     certificate = Current.user.certificates.find(params.require(:certificate_id))
-    price_map = StripePriceMap.find_by!(product: product)
+    price_map = StripePriceMap.find_by(product: product)
 
-    cart_item = cart.certificate_products.create!(
+    unless price_map
+      respond_to do |format|
+        format.html { redirect_to cart_path, alert: "This product is not currently available for purchase." }
+        format.json { render json: { error: "No active price is available for this product." }, status: :unprocessable_entity }
+      end
+      return
+    end
+
+    cart_item = cart.certificate_products.create(
       product: product,
       certificate: certificate,
       stripe_price_map: price_map,
       quantity: params.fetch(:quantity, 1)
     )
 
-    respond_to do |format|
-      format.html { redirect_to cart_path, notice: "Added to cart." }
-      format.json { render json: cart_item.as_json(only: %i[id quantity status], methods: %i[total_cents]), status: :created }
+    if cart_item.persisted?
+      respond_to do |format|
+        format.html { redirect_to cart_path, notice: "Added to cart." }
+        format.json { render json: cart_item.as_json(only: %i[id quantity status], methods: %i[total_cents]), status: :created }
+      end
+    else
+      respond_to do |format|
+        format.html { redirect_to cart_path, alert: cart_item.errors.full_messages.to_sentence }
+        format.json { render json: { errors: cart_item.errors.full_messages }, status: :unprocessable_entity }
+      end
     end
   end
 

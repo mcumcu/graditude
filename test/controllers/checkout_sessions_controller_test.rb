@@ -150,6 +150,18 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Expired API Key provided", JSON.parse(response.body)["error"]
   end
 
+  test "success redirects to cancel when session_id is missing" do
+    get checkout_success_url
+
+    assert_redirected_to checkout_cancel_path
+  end
+
+  test "success redirects to cancel when session_id does not match any checkout session" do
+    get checkout_success_url, params: { session_id: "cs_unknown_xyz" }
+
+    assert_redirected_to checkout_cancel_path
+  end
+
   test "success page renders for complete checkout session" do
     CheckoutSession.create!(status: :complete, items: [ { price_id: "price_test", quantity: 1 } ], raw: {}, stripe_session_id: "cs_test_123")
 
