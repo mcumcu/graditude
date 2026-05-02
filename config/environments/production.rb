@@ -60,10 +60,13 @@ Rails.application.configure do
   # Set host to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: "thegraditude.com", protocol: "https" }
 
-  config.action_mailer.delivery_method = :postmark
-  config.action_mailer.postmark_settings = {
-    api_token: ENV.fetch("POSTMARK_API_TOKEN")
-  }
+  # A production config guard so asset precompilation can run without requiring Postmark credentials to be present
+  if (postmark_token = ENV["POSTMARK_API_TOKEN"]).present?
+    config.action_mailer.delivery_method = :postmark
+    config.action_mailer.postmark_settings = {
+      api_token: postmark_token
+    }
+  end
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
