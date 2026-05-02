@@ -19,6 +19,8 @@ class Cart < ApplicationRecord
 
   def self.open_for(user)
     user.open_cart || user.create_open_cart!
+  rescue ActiveRecord::RecordNotUnique
+    user.reload.open_cart
   end
 
   def checkout_items
