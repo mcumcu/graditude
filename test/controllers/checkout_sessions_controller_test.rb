@@ -2,60 +2,108 @@ require "test_helper"
 require "ostruct"
 
 class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
-  test "new renders successfully with price_id" do
-    get new_checkout_url, params: { price_id: "price_1S7JZoBKCB1NBOVa2U4OXmFy" }
+  test "new renders checkout page for signed-in user" do
+    user = users(:one)
+    sign_in user
+
+    product = Product.create!(title: "Graduation Gift", description: "Ceremony edition", price_cents: 3000, currency: "USD", details: {})
+    price_map = StripePriceMap.create!(product: product, stripe_price_id: "price_test")
+    cart = Cart.open_for(user)
+    cart.certificate_products.create!(product: product, certificate: certificates(:one), stripe_price_map: price_map, quantity: 1)
+
+    get new_checkout_url
 
     assert_response :success
-    assert_select "h1", "Graditude Certificate"
-    assert_select "button", "Start checkout"
+    assert_select "h1", "Checkout"
+    assert_select "button", "Start secure checkout"
   end
 
-  test "new renders certificate preview from certificate_id" do
-    certificate = certificates(:one)
-    certificate.update!(template: "westtown", major: "Computer Science")
+  test "create uses cart items for checkout" do
+    user = users(:one)
+    sign_in user
 
-    get new_checkout_url, params: { certificate_id: certificate.id }
-
-    assert_response :success
-    assert_select "h1", "Westtown Graduation Certificate"
-    assert_select "img[src*='preview']"
-  end
-
-  test "create uses template price id when price_id is omitted" do
-    certificate = certificates(:one)
-    certificate.update!(template: "westtown", major: "Computer Science")
+    product = Product.create!(title: "Graduation Gift", description: "Ceremony edition", price_cents: 3000, currency: "USD", details: {})
+    price_map = StripePriceMap.create!(product: product, stripe_price_id: "price_test")
+    cart = Cart.open_for(user)
+    cart.certificate_products.create!(product: product, certificate: certificates(:one), stripe_price_map: price_map, quantity: 2)
 
     called_with = nil
-    original_create = Stripe::Checkout::Session.method(:create)
-
-    Stripe::Checkout::Session.define_singleton_method(:create) do |attrs|
+    fake_session_resource = Object.new
+    fake_session_resource.define_singleton_method(:create) do |attrs|
       called_with = attrs
-      OpenStruct.new(id: "cs_test")
+      OpenStruct.new(id: "cs_test", client_secret: "cs_test_secret")
+    end
+    fake_checkout = OpenStruct.new(sessions: fake_session_resource)
+    fake_client = Object.new
+    fake_client.define_singleton_method(:v1) { OpenStruct.new(checkout: fake_checkout) }
+
+    original_new = Stripe::StripeClient.singleton_class.instance_method(:new)
+    Stripe::StripeClient.singleton_class.send(:define_method, :new) do |*args, **kwargs, &block|
+      fake_client
     end
 
-    post checkout_url, params: { certificate_id: certificate.id }
+    begin
+      post checkout_url
+    ensure
+      Stripe::StripeClient.singleton_class.send(:define_method, :new, original_new)
+    end
 
     assert_response :success
-    assert_equal "price_1S7JZoBKCB1NBOVa2U4OXmFy", called_with[:line_items].first[:price]
-  ensure
-    Stripe::Checkout::Session.define_singleton_method(:create, original_create) if defined?(original_create) && original_create
+    assert_equal "elements", called_with[:ui_mode]
+    assert_equal "price_test", called_with[:line_items].first[:price]
+    assert_equal 2, called_with[:line_items].first[:quantity]
+    assert_equal [ "card" ], called_with[:payment_method_types]
+    assert_includes called_with[:return_url], "/checkout/success?session_id={CHECKOUT_SESSION_ID}"
+    assert_equal "cs_test", JSON.parse(response.body)["sessionId"]
+    assert_equal "cs_test_secret", JSON.parse(response.body)["clientSecret"]
   end
 
-  test "create returns checkout session id" do
-    original_create = Stripe::Checkout::Session.method(:create)
+  test "create uses configured payment method types" do
+    user = users(:one)
+    sign_in user
 
-    Stripe::Checkout::Session.define_singleton_method(:create) do |_attrs|
-      OpenStruct.new(id: "cs_test")
+    original_types = ENV["STRIPE_CHECKOUT_PAYMENT_METHOD_TYPES"]
+    ENV["STRIPE_CHECKOUT_PAYMENT_METHOD_TYPES"] = "card, us_bank_account, link"
+
+    product = Product.create!(title: "Graduation Gift", description: "Ceremony edition", price_cents: 3000, currency: "USD", details: {})
+    price_map = StripePriceMap.create!(product: product, stripe_price_id: "price_test")
+    cart = Cart.open_for(user)
+    cart.certificate_products.create!(product: product, certificate: certificates(:one), stripe_price_map: price_map, quantity: 1)
+
+    called_with = nil
+    fake_session_resource = Object.new
+    fake_session_resource.define_singleton_method(:create) do |attrs|
+      called_with = attrs
+      OpenStruct.new(id: "cs_test", client_secret: "cs_test_secret")
+    end
+    fake_checkout = OpenStruct.new(sessions: fake_session_resource)
+    fake_client = Object.new
+    fake_client.define_singleton_method(:v1) { OpenStruct.new(checkout: fake_checkout) }
+
+    original_new = Stripe::StripeClient.singleton_class.instance_method(:new)
+    Stripe::StripeClient.singleton_class.send(:define_method, :new) do |*args, **kwargs, &block|
+      fake_client
     end
 
-    assert_enqueued_with(job: CheckoutSessionReconciliationJob) do
-      post checkout_url, params: { price_id: "price_test" }
+    begin
+      post checkout_url
+    ensure
+      Stripe::StripeClient.singleton_class.send(:define_method, :new, original_new)
     end
 
     assert_response :success
-    assert_equal "cs_test", JSON.parse(response.body)["sessionId"]
+    assert_equal [ "card", "us_bank_account", "link" ], called_with[:payment_method_types]
   ensure
-    Stripe::Checkout::Session.define_singleton_method(:create, original_create)
+    ENV["STRIPE_CHECKOUT_PAYMENT_METHOD_TYPES"] = original_types
+  end
+
+  test "create returns bad request when cart is empty" do
+    sign_in users(:one)
+
+    post checkout_url
+
+    assert_response :bad_request
+    assert_equal "cart is empty", JSON.parse(response.body)["error"]
   end
 
   test "show returns checkout session details" do
@@ -70,52 +118,53 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal [], body["certificate_ids"]
   end
 
-  test "create persists checkout session and certificate associations" do
-    certificate_one = certificates(:one)
-    certificate_two = certificates(:two)
-    called_with = nil
-    original_create = Stripe::Checkout::Session.method(:create)
-
-    Stripe::Checkout::Session.define_singleton_method(:create) do |attrs|
-      called_with = attrs
-      OpenStruct.new(id: "cs_multi_test")
-    end
-
-    post checkout_url, params: { certificate_ids: [ certificate_one.id, certificate_two.id ] }
-
-    assert_response :success
-    checkout_session = CheckoutSession.find_by(stripe_session_id: "cs_multi_test")
-    assert_not_nil checkout_session
-    assert_equal 2, checkout_session.certificates.count
-    assert_equal "cs_multi_test", JSON.parse(response.body)["sessionId"]
-    assert_equal [ certificate_one.id.to_s, certificate_two.id.to_s ].join(","), called_with[:metadata][:certificate_ids]
-  ensure
-    Stripe::Checkout::Session.define_singleton_method(:create, original_create)
-  end
-
   test "create returns Stripe error as JSON when checkout session creation fails" do
-    original_create = Stripe::Checkout::Session.method(:create)
+    user = users(:one)
+    sign_in user
 
-    Stripe::Checkout::Session.define_singleton_method(:create) do |_attrs|
+    product = Product.create!(title: "Graduation Gift", description: "Ceremony edition", price_cents: 3000, currency: "USD", details: {})
+    price_map = StripePriceMap.create!(product: product, stripe_price_id: "price_test")
+    cart = Cart.open_for(user)
+    cart.certificate_products.create!(product: product, certificate: certificates(:one), stripe_price_map: price_map, quantity: 1)
+
+    fake_session_resource = Object.new
+    fake_session_resource.define_singleton_method(:create) do |_attrs|
       raise Stripe::StripeError.new("Expired API Key provided")
     end
+    fake_checkout = OpenStruct.new(sessions: fake_session_resource)
+    fake_client = Object.new
+    fake_client.define_singleton_method(:v1) { OpenStruct.new(checkout: fake_checkout) }
 
-    post checkout_url, params: { price_id: "price_test" }
+    original_new = Stripe::StripeClient.singleton_class.instance_method(:new)
+    Stripe::StripeClient.singleton_class.send(:define_method, :new) do |*args, **kwargs, &block|
+      fake_client
+    end
+
+    begin
+      post checkout_url
+    ensure
+      Stripe::StripeClient.singleton_class.send(:define_method, :new, original_new)
+    end
 
     assert_response :bad_gateway
     assert_equal "Expired API Key provided", JSON.parse(response.body)["error"]
-  ensure
-    Stripe::Checkout::Session.define_singleton_method(:create, original_create)
   end
 
-  test "create returns bad request when price_id is missing" do
-    post checkout_url
+  test "success redirects to cancel when session_id is missing" do
+    get checkout_success_url
 
-    assert_response :bad_request
-    assert_equal "missing price_id", JSON.parse(response.body)["error"]
+    assert_redirected_to checkout_cancel_path
   end
 
-  test "success page renders" do
+  test "success redirects to cancel when session_id does not match any checkout session" do
+    get checkout_success_url, params: { session_id: "cs_unknown_xyz" }
+
+    assert_redirected_to checkout_cancel_path
+  end
+
+  test "success page renders for complete checkout session" do
+    CheckoutSession.create!(status: :complete, items: [ { price_id: "price_test", quantity: 1 } ], raw: {}, stripe_session_id: "cs_test_123")
+
     get checkout_success_url, params: { session_id: "cs_test_123" }
 
     assert_response :success
@@ -124,11 +173,44 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href='mailto:support@thegraditude.com']"
   end
 
+  test "success redirects to cancel for failed checkout session" do
+    CheckoutSession.create!(status: :failed, items: [ { price_id: "price_test", quantity: 1 } ], raw: {}, stripe_session_id: "cs_test_failed")
+
+    get checkout_success_url, params: { session_id: "cs_test_failed" }
+
+    assert_redirected_to checkout_cancel_path(session_id: "cs_test_failed", outcome: "failed")
+  end
+
+  test "success redirects to cancel for expired checkout session" do
+    CheckoutSession.create!(status: :expired, items: [ { price_id: "price_test", quantity: 1 } ], raw: {}, stripe_session_id: "cs_test_expired")
+
+    get checkout_success_url, params: { session_id: "cs_test_expired" }
+
+    assert_redirected_to checkout_cancel_path(session_id: "cs_test_expired", outcome: "expired")
+  end
+
   test "cancel page renders" do
     get checkout_cancel_url
 
     assert_response :success
     assert_select "h1", "Checkout canceled"
+    assert_select "span.font-semibold", "Canceled"
     assert_select "a[href='mailto:support@thegraditude.com']"
+  end
+
+  test "cancel page shows async payment failed badge" do
+    get checkout_cancel_url, params: { outcome: "failed", session_id: "cs_async_failed_123" }
+
+    assert_response :success
+    assert_select "h1", "Payment not completed"
+    assert_select "span.font-semibold", "Async payment failed"
+  end
+
+  test "cancel page shows expired badge" do
+    get checkout_cancel_url, params: { outcome: "expired", session_id: "cs_expired_123" }
+
+    assert_response :success
+    assert_select "h1", "Checkout session expired"
+    assert_select "span.font-semibold", "Expired"
   end
 end

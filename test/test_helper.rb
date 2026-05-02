@@ -4,8 +4,9 @@ require "rails/test_help"
 
 module ActiveSupport
   class TestCase
-    # Run tests in parallel with specified workers
-    parallelize(workers: :number_of_processors)
+    # Run tests sequentially by default to avoid process-fork instability on some macOS/Ruby/PostgreSQL setups.
+    # Set PARALLEL_WORKERS to a higher number when parallel test execution is stable in your environment.
+    parallelize(workers: ENV.fetch("PARALLEL_WORKERS", 1).to_i)
 
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all

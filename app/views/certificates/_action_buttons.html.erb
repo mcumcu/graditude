@@ -2,17 +2,26 @@
   <%= render "form_modal", certificate: certificate %>
 
   <div class="flex flex-col md:flex-row justify-center gap-8 p-8 md:p-0" data-visibility-target="hideable">
-    <%= form_with(url: new_checkout_path, data: { turbo: false }, method: :get) do |f| %>
-      <input type="hidden" id="price_id" name="price_id" value="<%= checkout_price_id_for_template(certificate.template) %>" />
+    <% if (product_id = add_to_cart_product_id_for_template(certificate.template)) %>
+      <% already_in_cart = certificate_in_cart?(certificate) %>
 
-      <input type="hidden" id="certificate_id" name="certificate_id" value="<%= certificate.id %>" />
-      <%= f.submit "Checkout", class: "w-full min-w-48 text-background dark:text-background lg:w-auto text-center rounded-full px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium" %>
+      <% if already_in_cart %>
+        <%= link_to "Already in cart", cart_path, class: "w-full min-w-48 text-gray-700 dark:text-gray-100 lg:w-auto text-center rounded-full px-3 py-2 bg-gray-300 dark:bg-gray-600 inline-block font-medium hover:text-gray-900 dark:hover:text-white" %>
+      <% else %>
+        <%= form_with(url: cart_items_path, method: :post, local: true) do |f| %>
+          <%= f.hidden_field :product_id, value: product_id %>
+          <%= f.hidden_field :certificate_id, value: certificate.id %>
+          <%= f.hidden_field :quantity, value: 1 %>
+
+          <%= f.submit "Add to cart", class: "w-full min-w-48 text-background dark:text-background lg:w-auto text-center rounded-full px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium hover:cursor-pointer" %>
+        <% end %>
+      <% end %>
     <% end %>
 
     <% if show_edit %>
-      <button command="show-modal" commandfor="certificate-form" class="w-full min-w-48 text-background dark:text-background lg:w-auto text-center rounded-full px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium">Edit</button>
+      <button command="show-modal" commandfor="certificate-form" class="w-full min-w-48 text-background dark:text-background lg:w-auto text-center rounded-full px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium hover:cursor-pointer">Edit</button>
     <% end %>
 
-    <%= button_to "✖︎ Delete", certificate, method: :delete, class: "w-full min-w-48 text-background dark:text-background lg:w-auto text-center rounded-full px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium", data: { turbo_confirm: "Are you sure?" } %>
+    <%= button_to "✖︎ Delete", certificate, method: :delete, class: "w-full min-w-48 text-background dark:text-background lg:w-auto text-center rounded-full px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium hover:cursor-pointer", data: { turbo_confirm: "Are you sure?" } %>
   </div>
 </div>

@@ -64,6 +64,26 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "should show already in cart link when certificate is already in cart" do
+    product = Product.create!(title: "Boulder Graduation Certificate", price_cents: 1000, currency: "USD")
+    stripe_price_map = StripePriceMap.create!(product: product, stripe_price_id: "price_test_already_in_cart")
+    cart = Cart.open_for(users(:one))
+
+    CertificateProduct.create!(
+      cart: cart,
+      certificate: @certificate,
+      product: product,
+      stripe_price_map: stripe_price_map,
+      quantity: 1,
+      status: "pending"
+    )
+
+    get certificate_url(@certificate)
+    assert_response :success
+    assert_select "a[href='#{cart_path}']", text: "Already in cart"
+    assert_select "form[action='#{cart_items_path}']", 0
+  end
+
   test "should get edit" do
     get edit_certificate_url(@certificate)
     assert_response :success
@@ -76,7 +96,7 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
 
   test "should update certificate" do
     patch certificate_url(@certificate), params: { certificate: { graduate_name: "Updated Grad" } }
-    assert_redirected_to certificates_url
+    assert_redirected_to certificate_url(@certificate)
 
     @certificate.reload
     assert_equal "Updated Grad", @certificate.graduate_name

@@ -6,6 +6,9 @@ Rails.application.routes.draw do
   get "checkout/success" => "checkout_sessions#success", as: :checkout_success
   get "checkout/cancel" => "checkout_sessions#cancel", as: :checkout_cancel
 
+  resource :cart, only: [ :show ]
+  resources :cart_items, only: [ :create, :destroy ]
+
   resources :certificates
   get "certificates/:id/preview" => "certificates#preview", as: :preview_certificate
 

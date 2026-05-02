@@ -1,16 +1,13 @@
 <% content_for :title do %>
-  Preview
+  Certificate Preview
 <% end %>
 
-<div class="container mx-auto flex flex-col gap-8 pt-6">
+<div class="mx-auto flex flex-col gap-8 pt-6">
   <div class="flex flex-col justify-center items-center gap-8">
     <h1 class="font-headline text-3xl">Certificate for <%= @certificate.honoree_name %></h1>
   </div>
 
-  <% if notice.present? %>
-    <%= render partial: "notice", locals: {certificate: @certificate} %>
-
-  <% end %>
+  <%= render "shared/flash_messages" %>
 
   <%= render @certificate %>
 

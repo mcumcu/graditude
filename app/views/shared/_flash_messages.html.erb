@@ -1,11 +1,29 @@
 <% if alert = flash[:alert] %>
-  <div class="py-2 px-4 bg-error mb-6 text-background text-lg rounded-full w-full inline-block shadow-sm" id="alert">
+  <div
+    data-controller="flash"
+    class="transition-opacity duration-500 ease-out py-2 px-4 bg-error mb-6 text-background text-lg rounded-full w-full inline-block shadow-sm"
+    id="alert"
+  >
     ✖︎ <%= alert %>
   </div>
 <% end %>
 
 <% if notice = flash[:notice] %>
-  <div class="py-2 px-4 bg-success mb-6 text-background text-lg rounded-full w-full inline-block shadow-sm" id="notice">
+  <div
+    data-controller="flash"
+    class="transition-opacity duration-500 ease-out py-2 px-4 bg-success mb-6 text-background text-lg rounded-full w-full inline-block shadow-sm"
+    id="notice"
+  >
     ✹ <%= notice %>
+  </div>
+<% end %>
+
+<% if info = flash[:info] %>
+  <div
+    data-controller="flash"
+    class="transition-opacity duration-500 ease-out py-2 px-4 bg-indigo-600 dark:bg-indigo-400 mb-6 text-background text-lg rounded-full w-full inline-block shadow-sm"
+    id="info"
+  >
+    ✹ <%= info %>
   </div>
 <% end %>
