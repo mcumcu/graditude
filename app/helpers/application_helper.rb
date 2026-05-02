@@ -36,6 +36,7 @@ module ApplicationHelper
   def cart_items_count
     return 0 unless Current.user
 
-    Cart.open_for(Current.user).certificate_products.sum(:quantity)
+    cart = Current.user.open_cart
+    cart ? cart.certificate_products.sum(:quantity) : 0
   end
 end
