@@ -62,12 +62,14 @@ class CheckoutSessionsController < ApplicationController
   def success
     @session_id = params[:session_id]
     if @session_id.blank?
-      redirect_to checkout_cancel_path and return
+      redirect_to checkout_cancel_path
+      return
     end
 
     checkout_session = CheckoutSession.find_by(stripe_session_id: @session_id)
     unless checkout_session
-      redirect_to checkout_cancel_path and return
+      redirect_to checkout_cancel_path
+      return
     end
 
     begin
