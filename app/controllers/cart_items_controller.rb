@@ -21,7 +21,11 @@ class CartItemsController < ApplicationController
   def destroy
     cart_item = current_cart.certificate_products.find(params[:id])
     cart_item.destroy!
-    head :no_content
+
+    respond_to do |format|
+      format.html { redirect_to cart_path, notice: "Removed from cart." }
+      format.json { head :no_content }
+    end
   end
 
   private
