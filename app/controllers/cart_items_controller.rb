@@ -12,8 +12,17 @@ class CartItemsController < ApplicationController
       end
       return
     end
+<<<<<<< HEAD
+
+<<<<<<< HEAD
 
     cart_item = cart.certificate_products.create(
+=======
+    cart_item = cart.certificate_products.create!(
+>>>>>>> origin/cart
+=======
+    cart_item = cart.certificate_products.create!(
+>>>>>>> origin/cart
       product: product,
       certificate: certificate,
       stripe_price_map: price_map,
