@@ -1,5 +1,4 @@
 class CheckoutSessionsController < ApplicationController
-  skip_before_action :verify_authenticity_token, only: %i[create]
   allow_unauthenticated_access only: %i[success cancel show]
 
   def new

@@ -82,10 +82,16 @@ export default class extends Controller {
   }
 
   async createCheckoutSession() {
+    const token = document.querySelector('meta[name="csrf-token"]')?.content
+    if (!token) {
+      throw new Error("Unable to locate CSRF token. Refresh the page and try again.")
+    }
+
     const response = await fetch("/checkout", {
       method: "POST",
       headers: {
-        Accept: "application/json"
+        Accept: "application/json",
+        "X-CSRF-Token": token
       }
     })
 
