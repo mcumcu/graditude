@@ -28,16 +28,23 @@ module CertificatesHelper
     when "EUR" then "€"
     when "GBP" then "£"
     when "JPY" then "¥"
-    else "#{currency&.upcase} " 
+    else "#{currency&.upcase} "
     end
   end
 
   def add_to_cart_product_id_for_template(template)
-    product_for_template(template)&.id
+    active_price_map_for_template(template)&.product_id
   end
 
   def product_for_template(template)
-    Product.find_by(title: PRODUCT_TITLE_BY_TEMPLATE[template.to_s.presence || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder")])
+    template_name = template.to_s.presence || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder")
+    Product.find_by(title: PRODUCT_TITLE_BY_TEMPLATE[template_name]) ||
+      Product.where("title ILIKE ?", "%#{template_name.titleize}% Graduation Certificate%")
+             .order(:title)
+             .first ||
+      Product.where.not(stripe_product_id: nil).find do |product|
+        product.certificate_template_names.include?(template_name)
+      end
   end
 
   def certificate_in_cart?(certificate)

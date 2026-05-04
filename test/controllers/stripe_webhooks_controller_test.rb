@@ -73,4 +73,36 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
   ensure
     Stripe::Webhook.define_singleton_method(:construct_event, original_construct_event)
   end
+
+  test "product.updated webhook refreshes product details and cache" do
+    product = Product.create!(title: "Legacy Product", stripe_product_id: "prod_test_webhook", details: {})
+    raw_product = {
+      "id" => "prod_test_webhook",
+      "name" => "Updated Stripe Product",
+      "description" => "Updated Stripe description",
+      "metadata" => { "certificate_templates" => "boulder,westtown" }
+    }
+    product_object = OpenStruct.new(id: "prod_test_webhook", to_hash: raw_product)
+    event = OpenStruct.new(
+      type: "product.updated",
+      data: OpenStruct.new(object: product_object),
+      to_hash: { "type" => "product.updated" }
+    )
+
+    original_construct_event = Stripe::Webhook.method(:construct_event)
+    Stripe::Webhook.define_singleton_method(:construct_event) do |_payload, _sig_header, _secret|
+      event
+    end
+
+    Rails.cache.delete(product.send(:stripe_product_cache_key))
+
+    post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+
+    assert_response :success
+    assert_equal "Updated Stripe Product", product.reload.details.dig("stripe", "product", "name")
+  ensure
+    if original_construct_event
+      Stripe::Webhook.define_singleton_method(:construct_event, original_construct_event.to_proc)
+    end
+  end
 end

@@ -16,6 +16,31 @@ class StripeWebhooksController < ApplicationController
   private
 
   def handle_event(event)
+    case event.type
+    when "product.created", "product.updated"
+      handle_product_event(event.data.object)
+    when "product.deleted"
+      handle_deleted_product_event(event.data.object)
+    else
+      handle_checkout_event(event)
+    end
+  end
+
+  def handle_product_event(product_object)
+    product = Product.find_by(stripe_product_id: product_object.id)
+    return unless product
+
+    product.update_cached_stripe_product!(product_object.to_hash)
+  end
+
+  def handle_deleted_product_event(product_object)
+    product = Product.find_by(stripe_product_id: product_object.id)
+    return unless product
+
+    product.clear_stripe_product_cache!
+  end
+
+  def handle_checkout_event(event)
     session = event.data.object
     checkout_session = CheckoutSession.find_by(stripe_session_id: session.id)
     return unless checkout_session
