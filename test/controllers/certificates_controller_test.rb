@@ -1,4 +1,5 @@
 require "test_helper"
+require "ostruct"
 
 class CertificatesControllerTest < ActionDispatch::IntegrationTest
   setup do
@@ -60,12 +61,17 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should show certificate" do
-    get certificate_url(@certificate)
+    stripe_price = OpenStruct.new(unit_amount: 2500, currency: "usd")
+
+    stub_stripe_price_retrieve(stripe_price) do
+      get certificate_url(@certificate)
+    end
+
     assert_response :success
   end
 
   test "should show already in cart link when certificate is already in cart" do
-    product = Product.create!(title: "Boulder Graduation Certificate", price_cents: 1000, currency: "USD")
+    product = Product.create!(title: "Boulder Graduation Certificate")
     stripe_price_map = StripePriceMap.create!(product: product, stripe_price_id: "price_test_already_in_cart")
     cart = Cart.open_for(users(:one))
 
@@ -78,7 +84,12 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
       status: "pending"
     )
 
-    get certificate_url(@certificate)
+    stripe_price = OpenStruct.new(unit_amount: 2500, currency: "usd")
+
+    stub_stripe_price_retrieve(stripe_price) do
+      get certificate_url(@certificate)
+    end
+
     assert_response :success
     assert_select "a[href='#{cart_path}']", text: "Already in cart"
     assert_select "form[action='#{cart_items_path}']", 0

@@ -24,19 +24,24 @@ class Cart < ApplicationRecord
   end
 
   def checkout_items
-    certificate_products.includes(:product, :stripe_price_map).map do |item|
+    certificate_products.includes(:product, :certificate, :stripe_price_map).map do |item|
       {
         certificate_product_id: item.id,
         product_id: item.product_id,
         certificate_id: item.certificate_id,
         price_id: item.stripe_price_map.stripe_price_id,
-        quantity: item.quantity
+        quantity: item.quantity,
+        product_title: item.product.title,
+        product_description: item.product.description,
+        currency: item.stripe_price_map.currency,
+        unit_amount: item.stripe_price_map.unit_amount_cents,
+        certificate_template: item.certificate.template
       }
     end
   end
 
   def total_cents
-    certificate_products.includes(:product).sum { |item| item.product.price_cents * item.quantity }
+    certificate_products.includes(:product, :stripe_price_map).sum { |item| item.total_cents }
   end
 
   def complete_order!(checkout_session)

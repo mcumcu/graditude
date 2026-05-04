@@ -35,6 +35,15 @@ class ActionDispatch::IntegrationTest
   end
   alias sign_in sign_in_as
 
+  def stub_stripe_price_retrieve(stripe_price)
+    original_retrieve = Stripe::Price.method(:retrieve)
+    Stripe::Price.define_singleton_method(:retrieve) { |_price_id| stripe_price }
+
+    yield
+  ensure
+    Stripe::Price.define_singleton_method(:retrieve, original_retrieve)
+  end
+
   def sign_out
     delete session_url
     follow_redirect! if response.redirect?

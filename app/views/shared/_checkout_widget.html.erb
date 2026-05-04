@@ -1,7 +1,6 @@
-<% publishable_key = local_assigns.fetch(:publishable_key, ENV["STRIPE_KEY_PUB"]) %>
 <% button_text = local_assigns.fetch(:button_text, "Checkout") %>
 
-<div data-controller="checkout" data-checkout-publishable-key-value="<%= publishable_key %>">
+<div data-controller="checkout stripe" data-stripe-publishable-key-value="<%= ENV["STRIPE_KEY_PUB"] %>">
   <div class="mt-10">
     <div data-checkout-target="buttonGroup">
       <button type="button" data-action="checkout#startCheckout" data-checkout-target="button" class="w-full inline-flex items-center justify-center rounded-full border border-transparent bg-primary px-4 py-3 text-base font-medium text-background shadow-sm">
@@ -9,14 +8,6 @@
       </button>
 
       <p data-checkout-target="feedback" class="mt-4 text-sm text-success"></p>
-    </div>
-
-    <div data-checkout-target="paymentContainer" class="mt-6 hidden space-y-4">
-      <div data-checkout-target="paymentElement"></div>
-
-      <button type="button" data-action="checkout#confirm" data-checkout-target="payButton" disabled class="w-full inline-flex items-center justify-center rounded-full border border-transparent bg-primary px-4 py-3 text-base font-medium text-background shadow-sm disabled:cursor-not-allowed disabled:opacity-50">
-        Pay now
-      </button>
     </div>
   </div>
 </div>

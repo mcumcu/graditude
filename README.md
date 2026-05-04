@@ -49,6 +49,35 @@ bin/rails runner 'require "fileutils"; ctrl = CertificatesController.new; params
 
 This application supports a Stripe Checkout integration using Rails controllers and Stimulus.
 
+Client-side Stripe JS is loaded through Importmaps:
+
+```bash
+bin/importmap pin @stripe/stripe-js
+```
+
+A Stimulus controller can import the wrapper and initialize Stripe with `loadStripe`:
+
+```js
+import { Controller } from "@hotwired/stimulus"
+import { loadStripe } from "@stripe/stripe-js"
+
+export default class extends Controller {
+  async connect() {
+    const stripe = await loadStripe("your_publishable_key")
+    // Initialize Elements or Checkout here
+  }
+}
+```
+
+Stripe.js is loaded from `js.stripe.com` via the Stripe JS wrapper. Do not bundle the raw `stripe.js` file into our own assets or host it ourselves.
+
+This integration also forwards dynamic per-item display data to Checkout using `line_items.price_data.product_data.*`, so item name, description, and image can be overridden at runtime while Stripe price behavior remains unchanged.
+
+If you use a Content Security Policy (CSP), whitelist:
+
+* `https://js.stripe.com`
+* `https://api.stripe.com`
+
 Required environment variables:
 
 * `STRIPE_KEY` — Stripe secret key stored on the server only.

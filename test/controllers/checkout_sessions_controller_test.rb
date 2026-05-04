@@ -31,7 +31,7 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
     fake_session_resource = Object.new
     fake_session_resource.define_singleton_method(:create) do |attrs|
       called_with = attrs
-      OpenStruct.new(id: "cs_test", client_secret: "cs_test_secret")
+      OpenStruct.new(id: "cs_test", client_secret: "cs_test_secret", url: "https://checkout.test/session/cs_test")
     end
     fake_checkout = OpenStruct.new(sessions: fake_session_resource)
     fake_client = Object.new
@@ -49,13 +49,21 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :success
-    assert_equal "elements", called_with[:ui_mode]
-    assert_equal "price_test", called_with[:line_items].first[:price]
+    assert_equal "payment", called_with[:mode]
     assert_equal 2, called_with[:line_items].first[:quantity]
     assert_equal [ "card" ], called_with[:payment_method_types]
-    assert_includes called_with[:return_url], "/checkout/success?session_id={CHECKOUT_SESSION_ID}"
+    assert_equal "required", called_with[:billing_address_collection]
+    assert_equal [ "US", "CA" ], called_with[:shipping_address_collection][:allowed_countries]
+    assert_includes called_with[:success_url], "/checkout/success?session_id={CHECKOUT_SESSION_ID}"
+    assert_includes called_with[:cancel_url], "/checkout/cancel?session_id={CHECKOUT_SESSION_ID}"
+
+    first_line_item = called_with[:line_items].first
+    assert_equal "price_test", first_line_item[:price]
+    assert_equal 2, first_line_item[:quantity]
+    assert_nil first_line_item[:price_data]
+
     assert_equal "cs_test", JSON.parse(response.body)["sessionId"]
-    assert_equal "cs_test_secret", JSON.parse(response.body)["clientSecret"]
+    assert_equal "https://checkout.test/session/cs_test", JSON.parse(response.body)["url"]
   end
 
   test "create uses configured payment method types" do
@@ -74,7 +82,7 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
     fake_session_resource = Object.new
     fake_session_resource.define_singleton_method(:create) do |attrs|
       called_with = attrs
-      OpenStruct.new(id: "cs_test", client_secret: "cs_test_secret")
+      OpenStruct.new(id: "cs_test", client_secret: "cs_test_secret", url: "https://checkout.test/session/cs_test")
     end
     fake_checkout = OpenStruct.new(sessions: fake_session_resource)
     fake_client = Object.new
@@ -93,6 +101,7 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_equal [ "card", "us_bank_account", "link" ], called_with[:payment_method_types]
+    assert_equal "payment", called_with[:mode]
   ensure
     ENV["STRIPE_CHECKOUT_PAYMENT_METHOD_TYPES"] = original_types
   end

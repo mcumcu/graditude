@@ -3,6 +3,28 @@ class Product < ApplicationRecord
   has_many :stripe_price_maps, dependent: :destroy
 
   validates :title, presence: true
-  validates :price_cents, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
-  validates :currency, presence: true
+
+  def active_stripe_price_map
+    stripe_price_maps.active.order(created_at: :desc).first
+  end
+
+  def stripe_price_map
+    active_stripe_price_map
+  end
+
+  def stripe_price
+    stripe_price_map&.stripe_price
+  end
+
+  def stripe_price_amount_cents
+    stripe_price&.unit_amount
+  end
+
+  def stripe_price_currency
+    stripe_price&.currency
+  end
+
+  def stripe_price_id
+    stripe_price_map&.stripe_price_id
+  end
 end

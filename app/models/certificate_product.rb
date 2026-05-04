@@ -13,7 +13,7 @@ class CertificateProduct < ApplicationRecord
   validate :stripe_price_map_belongs_to_product
 
   def total_cents
-    product.price_cents * quantity
+    stripe_price_map.unit_amount_cents * quantity
   end
 
   private
