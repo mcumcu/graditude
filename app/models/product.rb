@@ -1,14 +1,16 @@
 class Product < ApplicationRecord
   has_many :certificate_products, dependent: :restrict_with_error
-  has_many :stripe_price_maps, dependent: :destroy
 
-  validates :title, presence: true, unless: :stripe_product_id?
   validates :stripe_product_id, uniqueness: true, allow_blank: true
 
   STRIPE_PRODUCT_CACHE_EXPIRES_IN = 1.hour
 
   before_save :clear_previous_stripe_product_cache, if: :will_save_change_to_stripe_product_id?
   after_destroy :clear_stripe_product_cache!
+
+  def stripe_product_cache
+    self[:stripe_product_cache]
+  end
 
   def stripe_product_data(reload: false)
     return unless stripe_product_id.present?
@@ -18,7 +20,7 @@ class Product < ApplicationRecord
       fetch_and_cache_stripe_product_data
     else
       Rails.cache.fetch(stripe_product_cache_key, expires_in: STRIPE_PRODUCT_CACHE_EXPIRES_IN, skip_nil: true) do
-        details.dig("stripe", "product").presence || fetch_and_cache_stripe_product_data
+        stripe_product_cache.presence || fetch_and_cache_stripe_product_data
       end
     end
   end
@@ -32,19 +34,19 @@ class Product < ApplicationRecord
   end
 
   def stripe_name
-    stripe_product_data&.fetch("name", nil).presence || title
+    stripe_product_data&.fetch("name", nil).presence
   end
 
   def stripe_description
-    stripe_product_data&.fetch("description", nil).presence || description
+    stripe_product_data&.fetch("description", nil).presence
   end
 
   def title
-    stripe_product_data&.fetch("name", nil).presence || super
+    stripe_name
   end
 
   def description
-    stripe_product_data&.fetch("description", nil).presence || super
+    stripe_description
   end
 
   def stripe_metadata
@@ -55,27 +57,11 @@ class Product < ApplicationRecord
     stripe_metadata.fetch("certificate_templates", "").to_s.split(",").map(&:strip).reject(&:blank?)
   end
 
-  def stripe_default_price
-    price_reference = stripe_product_data&.fetch("default_price", nil)
-    return unless price_reference.present?
+  def stripe_price(reload: false)
+    return unless stripe_price_id.present?
 
-    if price_reference.is_a?(String)
-      Stripe::Price.retrieve(price_reference)
-    else
-      price_reference
-    end
-  end
-
-  def active_stripe_price_map
-    stripe_price_maps.active.order(created_at: :desc).first
-  end
-
-  def stripe_price_map
-    active_stripe_price_map
-  end
-
-  def stripe_price
-    stripe_default_price || stripe_price_map&.stripe_price
+    @stripe_price = nil if reload
+    @stripe_price ||= Stripe::Price.retrieve(stripe_price_id)
   end
 
   def stripe_price_amount_cents
@@ -87,7 +73,7 @@ class Product < ApplicationRecord
   end
 
   def stripe_price_id
-    stripe_price&.id || stripe_price_map&.stripe_price_id
+    stripe_product_data&.fetch("default_price", nil)
   end
 
   def update_cached_stripe_product!(stripe_product_hash)
@@ -117,11 +103,7 @@ class Product < ApplicationRecord
 
     return unless persisted?
 
-    cached_details = details.is_a?(Hash) ? details.deep_dup : {}
-    cached_details["stripe"] ||= {}
-    cached_details["stripe"]["product"] = raw_product
-    cached_details["stripe"]["cached_at"] = Time.current.utc.iso8601
-    update_column(:details, cached_details)
+    update_column(:stripe_product_cache, raw_product)
   end
 
   def clear_previous_stripe_product_cache

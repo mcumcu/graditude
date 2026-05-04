@@ -61,9 +61,23 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should show certificate" do
+    stripe_product = OpenStruct.new(
+      id: "prod_test",
+      name: "Boulder Graduation Certificate",
+      description: "A presentation-ready certificate",
+      metadata: { "certificate_templates" => "boulder,westtown" },
+      default_price: "price_test_default",
+      to_hash: {
+        "id" => "prod_test",
+        "name" => "Boulder Graduation Certificate",
+        "description" => "A presentation-ready certificate",
+        "metadata" => { "certificate_templates" => "boulder,westtown" },
+        "default_price" => "price_test_default"
+      }
+    )
     stripe_price = OpenStruct.new(unit_amount: 2500, currency: "usd")
 
-    stub_stripe_price_retrieve(stripe_price) do
+    stub_stripe_product_and_price_retrieve(stripe_product, stripe_price) do
       get certificate_url(@certificate)
     end
 
@@ -71,22 +85,35 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should show already in cart link when certificate is already in cart" do
-    product = Product.create!(title: "Boulder Graduation Certificate")
-    stripe_price_map = StripePriceMap.create!(product: product, stripe_price_id: "price_test_already_in_cart")
+    product = Product.create!(stripe_product_id: "prod_test")
     cart = Cart.open_for(users(:one))
 
     CertificateProduct.create!(
       cart: cart,
       certificate: @certificate,
       product: product,
-      stripe_price_map: stripe_price_map,
+      stripe_price_id: "price_test_already_in_cart",
       quantity: 1,
       status: "pending"
     )
 
+    stripe_product = OpenStruct.new(
+      id: "prod_test",
+      name: "Boulder Graduation Certificate",
+      description: "A presentation-ready certificate",
+      metadata: { "certificate_templates" => "boulder,westtown" },
+      default_price: "price_test_default",
+      to_hash: {
+        "id" => "prod_test",
+        "name" => "Boulder Graduation Certificate",
+        "description" => "A presentation-ready certificate",
+        "metadata" => { "certificate_templates" => "boulder,westtown" },
+        "default_price" => "price_test_default"
+      }
+    )
     stripe_price = OpenStruct.new(unit_amount: 2500, currency: "usd")
 
-    stub_stripe_price_retrieve(stripe_price) do
+    stub_stripe_product_and_price_retrieve(stripe_product, stripe_price) do
       get certificate_url(@certificate)
     end
 

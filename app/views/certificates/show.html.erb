@@ -5,9 +5,9 @@
 <div class="mx-auto flex flex-col gap-8 pt-6">
   <div class="flex flex-col justify-center items-center gap-8">
     <h1 class="font-headline text-3xl">Certificate for <%= @certificate.honoree_name %></h1>
-    <% if (price_map = active_price_map_for_template(@certificate.template)) %>
+    <% if (product = product_for_template(@certificate.template)) %>
       <p class="text-base font-medium text-gray-700 dark:text-gray-300">
-        Current price: <%= formatted_stripe_price(price_map) %>
+        Current price: <%= formatted_stripe_price(product) %>
       </p>
     <% end %>
   </div>

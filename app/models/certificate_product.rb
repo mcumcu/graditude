@@ -2,27 +2,28 @@ class CertificateProduct < ApplicationRecord
   belongs_to :cart
   belongs_to :certificate
   belongs_to :product
-  belongs_to :stripe_price_map
   belongs_to :checkout_session, optional: true
 
   STATUSES = %w[pending purchased canceled].freeze
 
   validates :status, presence: true, inclusion: { in: STATUSES }
-  validates :cart, :certificate, :product, :stripe_price_map, presence: true
+  validates :cart, :certificate, :product, :stripe_price_id, presence: true
   validates :quantity, numericality: { only_integer: true, greater_than: 0 }
-  validate :stripe_price_map_belongs_to_product
 
-  def total_cents
-    stripe_price_map.unit_amount_cents * quantity
+  def stripe_price(reload: false)
+    @stripe_price = nil if reload
+    @stripe_price ||= Stripe::Price.retrieve(stripe_price_id)
   end
 
-  private
+  def unit_amount_cents
+    stripe_price.unit_amount
+  end
 
-  def stripe_price_map_belongs_to_product
-    return if stripe_price_map.nil? || product.nil?
+  def currency
+    stripe_price.currency
+  end
 
-    unless stripe_price_map.product_id == product_id
-      errors.add(:stripe_price_map, "must belong to the selected product")
-    end
+  def total_cents
+    unit_amount_cents * quantity
   end
 end

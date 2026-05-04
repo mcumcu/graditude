@@ -44,6 +44,28 @@ class ActionDispatch::IntegrationTest
     Stripe::Price.define_singleton_method(:retrieve, original_retrieve)
   end
 
+  def stub_stripe_product_retrieve(stripe_product)
+    original_retrieve = Stripe::Product.method(:retrieve)
+    Stripe::Product.define_singleton_method(:retrieve) { |_product_id| stripe_product }
+
+    yield
+  ensure
+    Stripe::Product.define_singleton_method(:retrieve, original_retrieve)
+  end
+
+  def stub_stripe_product_and_price_retrieve(stripe_product, stripe_price = nil)
+    original_product_retrieve = Stripe::Product.method(:retrieve)
+    original_price_retrieve = Stripe::Price.method(:retrieve)
+
+    Stripe::Product.define_singleton_method(:retrieve) { |_product_id| stripe_product }
+    Stripe::Price.define_singleton_method(:retrieve) { |_price_id| stripe_price } if stripe_price
+
+    yield
+  ensure
+    Stripe::Product.define_singleton_method(:retrieve, original_product_retrieve)
+    Stripe::Price.define_singleton_method(:retrieve, original_price_retrieve) if stripe_price
+  end
+
   def sign_out
     delete session_url
     follow_redirect! if response.redirect?

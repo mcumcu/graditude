@@ -34,7 +34,7 @@ class ProductTest < ActiveSupport::TestCase
       OpenStruct.new(id: price_id, unit_amount: 3500, currency: "usd")
     end
 
-    product = Product.create!(title: "Legacy Product", stripe_product_id: "prod_test_delegates")
+    product = Product.create!(stripe_product_id: "prod_test_delegates")
     Rails.cache.delete(product.send(:stripe_product_cache_key))
 
     begin
@@ -55,8 +55,8 @@ class ProductTest < ActiveSupport::TestCase
     end
   end
 
-  test "stripe_product_data caches stripe product payload in details and Rails cache" do
-    product = Product.create!(title: "Legacy Product", stripe_product_id: "prod_test_cache")
+  test "stripe_product_data caches stripe product payload in stripe_product_cache and Rails cache" do
+    product = Product.create!(stripe_product_id: "prod_test_cache")
     stripe_product = OpenStruct.new(
       id: "prod_test_cache",
       name: "Stripe Product Name",
@@ -82,7 +82,7 @@ class ProductTest < ActiveSupport::TestCase
     assert_equal "Stripe Product Name", product_data["name"]
     assert_equal "Stripe product description", product.stripe_description
     assert_equal %w[boulder westtown], product.certificate_template_names
-    assert_equal "Stripe Product Name", product.details.dig("stripe", "product", "name")
+    assert_equal "Stripe Product Name", product.reload.stripe_product_cache["name"]
   ensure
     if defined?(original_retrieve) && original_retrieve
       Stripe::Product.define_singleton_method(:retrieve, original_retrieve.to_proc)

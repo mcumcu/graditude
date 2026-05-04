@@ -74,8 +74,8 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
     Stripe::Webhook.define_singleton_method(:construct_event, original_construct_event)
   end
 
-  test "product.updated webhook refreshes product details and cache" do
-    product = Product.create!(title: "Legacy Product", stripe_product_id: "prod_test_webhook", details: {})
+  test "product.updated webhook refreshes stripe_product_cache" do
+    product = Product.create!(stripe_product_id: "prod_test_webhook")
     raw_product = {
       "id" => "prod_test_webhook",
       "name" => "Updated Stripe Product",
@@ -99,7 +99,7 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
     post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
 
     assert_response :success
-    assert_equal "Updated Stripe Product", product.reload.details.dig("stripe", "product", "name")
+    assert_equal "Updated Stripe Product", product.reload.stripe_product_cache["name"]
   ensure
     if original_construct_event
       Stripe::Webhook.define_singleton_method(:construct_event, original_construct_event.to_proc)
