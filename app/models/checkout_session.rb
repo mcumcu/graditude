@@ -52,6 +52,7 @@ class CheckoutSession < ApplicationRecord
 
     stripe_session = Stripe::Checkout::Session.expire(
       stripe_session_id,
+      {},
       { idempotency_key: expire_idempotency_key }
     )
 

@@ -7,7 +7,7 @@ class CheckoutSessionExpirationJobTest < ActiveJob::TestCase
     stripe_session = OpenStruct.new(id: "cs_expire_test", status: "expired", to_hash: { "id" => "cs_expire_test", "status" => "expired" })
 
     original_expire = Stripe::Checkout::Session.method(:expire)
-    Stripe::Checkout::Session.define_singleton_method(:expire) do |_id, _params = {}|
+    Stripe::Checkout::Session.define_singleton_method(:expire) do |_id, _params = {}, _opts = {}|
       stripe_session
     end
 
