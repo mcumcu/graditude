@@ -22,6 +22,7 @@ class CheckoutSessionsController < ApplicationController
       items: items
     }
 
+    expire_existing_checkout_sessions(cart)
     checkout_session = CheckoutSession.create!(status: :open, cart: cart, items: items, raw: raw_payload)
     cart.certificate_products.update_all(checkout_session_id: checkout_session.id)
 
@@ -162,6 +163,12 @@ class CheckoutSessionsController < ApplicationController
   def checkout_item_image_url(template)
     template_name = template.presence || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder")
     "#{request.base_url}#{view_context.asset_path("#{template_name}.png")}".gsub(%r{([^:])/+}, '\1/')
+  end
+
+  def expire_existing_checkout_sessions(cart)
+    cart.checkout_sessions.open.where.not(stripe_session_id: nil).find_each do |checkout_session|
+      CheckoutSessionExpirationJob.perform_later(checkout_session.id)
+    end
   end
 
   def current_cart

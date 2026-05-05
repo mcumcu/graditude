@@ -49,6 +49,33 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_equal "expired", checkout_session.reload.status
+    assert_equal "checkout.session.expired", checkout_session.reload.raw["stripe_event"]["type"]
+    assert_equal "cs_test_expired", checkout_session.reload.raw["stripe_session"]["id"]
+  ensure
+    Stripe::Webhook.define_singleton_method(:construct_event, original_construct_event)
+  end
+
+  test "expired webhook merges stripe event payload into existing raw data" do
+    checkout_session = CheckoutSession.create!(status: :open, items: [ { price_id: "price_test", quantity: 1 } ], raw: { "original_note" => "keep" }, stripe_session_id: "cs_test_expired_merge")
+    event = OpenStruct.new(
+      type: "checkout.session.expired",
+      data: OpenStruct.new(object: OpenStruct.new(id: "cs_test_expired_merge", to_hash: { "id" => "cs_test_expired_merge" })),
+      to_hash: { "type" => "checkout.session.expired" }
+    )
+
+    original_construct_event = Stripe::Webhook.method(:construct_event)
+    Stripe::Webhook.define_singleton_method(:construct_event) do |_payload, _sig_header, _secret|
+      event
+    end
+
+    post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+
+    assert_response :success
+    reloaded = checkout_session.reload
+    assert_equal "keep", reloaded.raw["original_note"]
+    assert_equal "checkout.session.expired", reloaded.raw["stripe_event"]["type"]
+    assert_equal "cs_test_expired_merge", reloaded.raw["stripe_session"]["id"]
+    assert_equal "expired", reloaded.status
   ensure
     Stripe::Webhook.define_singleton_method(:construct_event, original_construct_event)
   end

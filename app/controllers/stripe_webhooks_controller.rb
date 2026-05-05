@@ -46,6 +46,7 @@ class StripeWebhooksController < ApplicationController
     return unless checkout_session
 
     new_status = status_for(event.type)
+    return unless new_status.present?
 
     checkout_session.update(
       status: new_status,
@@ -71,7 +72,7 @@ class StripeWebhooksController < ApplicationController
     when "checkout.session.canceled"
       "canceled"
     else
-      "open"
+      nil
     end
   end
 end

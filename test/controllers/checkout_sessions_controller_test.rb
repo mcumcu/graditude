@@ -100,6 +100,59 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "creates a new checkout session after enqueuing expiration for previous open sessions" do
+    user = users(:one)
+    sign_in user
+
+    product = Product.create!(stripe_product_id: "prod_test")
+    cart = Cart.open_for(user)
+    previous_session = cart.checkout_sessions.create!(status: :open, items: [ { price_id: "price_test", quantity: 1 } ], raw: {}, stripe_session_id: "cs_prior_test")
+    cart.certificate_products.create!(product: product, certificate: certificates(:one), stripe_price_id: "price_test", quantity: 1)
+
+    stripe_product = OpenStruct.new(
+      id: "prod_test",
+      name: "Graduation Gift",
+      description: "Ceremony edition",
+      metadata: {},
+      default_price: "price_test_default",
+      to_hash: {
+        "id" => "prod_test",
+        "name" => "Graduation Gift",
+        "description" => "Ceremony edition",
+        "metadata" => {},
+        "default_price" => "price_test_default"
+      }
+    )
+    stripe_price = OpenStruct.new(unit_amount: 3000, currency: "usd")
+
+    stub_stripe_product_and_price_retrieve(stripe_product, stripe_price) do
+      called_with = nil
+      fake_session_resource = Object.new
+      fake_session_resource.define_singleton_method(:create) do |attrs|
+        called_with = attrs
+        OpenStruct.new(id: "cs_test", client_secret: "cs_test_secret", url: "https://checkout.test/session/cs_test")
+      end
+      fake_checkout = OpenStruct.new(sessions: fake_session_resource)
+      fake_client = Object.new
+      fake_client.define_singleton_method(:v1) { OpenStruct.new(checkout: fake_checkout) }
+
+      original_new = Stripe::StripeClient.singleton_class.instance_method(:new)
+      Stripe::StripeClient.singleton_class.send(:define_method, :new) do |*args, **kwargs, &block|
+        fake_client
+      end
+
+      begin
+        assert_enqueued_with(job: CheckoutSessionExpirationJob, args: [ previous_session.id ]) do
+          post checkout_url
+        end
+      ensure
+        Stripe::StripeClient.singleton_class.send(:define_method, :new, original_new)
+      end
+    end
+
+    assert_response :success
+  end
+
   test "create uses configured payment method types" do
     user = users(:one)
     sign_in user
