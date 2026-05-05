@@ -84,6 +84,7 @@ class Product < ApplicationRecord
 
   def clear_stripe_product_cache!
     Rails.cache.delete(stripe_product_cache_key) if stripe_product_id.present?
+    update_column(:stripe_product_cache, {}) if persisted?
   end
 
   private
@@ -110,5 +111,6 @@ class Product < ApplicationRecord
     return unless stripe_product_id_in_database.present?
 
     Rails.cache.delete("stripe_product:#{stripe_product_id_in_database}")
+    self.stripe_product_cache = {}
   end
 end

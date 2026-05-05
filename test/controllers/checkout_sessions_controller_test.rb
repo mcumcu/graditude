@@ -100,7 +100,7 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "creates a new checkout session after enqueuing expiration for previous open sessions" do
+  test "expires previous open checkout sessions before creating a new session" do
     user = users(:one)
     sign_in user
 
@@ -126,6 +126,15 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
     stripe_price = OpenStruct.new(unit_amount: 3000, currency: "usd")
 
     stub_stripe_product_and_price_retrieve(stripe_product, stripe_price) do
+      expire_called = false
+      expired_id = nil
+      original_expire = Stripe::Checkout::Session.method(:expire)
+      Stripe::Checkout::Session.define_singleton_method(:expire) do |id, params = {}|
+        expired_id = id
+        expire_called = true
+        OpenStruct.new(id: id, status: "expired", to_hash: { "id" => id, "status" => "expired" })
+      end
+
       called_with = nil
       fake_session_resource = Object.new
       fake_session_resource.define_singleton_method(:create) do |attrs|
@@ -142,15 +151,19 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
       end
 
       begin
-        assert_enqueued_with(job: CheckoutSessionExpirationJob, args: [ previous_session.id ]) do
-          post checkout_url
-        end
+        post checkout_url
       ensure
         Stripe::StripeClient.singleton_class.send(:define_method, :new, original_new)
+        Stripe::Checkout::Session.define_singleton_method(:expire, original_expire)
       end
-    end
 
-    assert_response :success
+      assert_response :success
+      assert_equal true, expire_called
+      assert_equal "cs_prior_test", expired_id
+      assert_equal "expired", previous_session.reload.status
+      assert_equal 0, enqueued_jobs.count { |job| job[:job] == CheckoutSessionExpirationJob && job[:args] == [ previous_session.id ] }
+      assert_equal "cs_test", JSON.parse(response.body)["sessionId"]
+    end
   end
 
   test "create uses configured payment method types" do

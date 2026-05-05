@@ -88,4 +88,45 @@ class ProductTest < ActiveSupport::TestCase
       Stripe::Product.define_singleton_method(:retrieve, original_retrieve.to_proc)
     end
   end
+
+  test "clear_stripe_product_cache! removes both Rails cache and persisted stripe_product_cache" do
+    product = Product.create!(stripe_product_id: "prod_test_clear", stripe_product_cache: { "id" => "prod_test_clear", "name" => "Old Product" })
+
+    assert_equal({ "id" => "prod_test_clear", "name" => "Old Product" }, product.reload.stripe_product_cache)
+
+    deleted = false
+    original_delete = Rails.cache.method(:delete)
+    Rails.cache.define_singleton_method(:delete) do |key|
+      deleted = true
+    end
+
+    begin
+      product.clear_stripe_product_cache!
+    ensure
+      Rails.cache.define_singleton_method(:delete, original_delete.to_proc)
+    end
+
+    assert_equal true, deleted
+    assert_equal({}, product.reload.stripe_product_cache)
+  end
+
+  test "changing stripe_product_id clears old cache and persisted stripe_product_cache" do
+    product = Product.create!(stripe_product_id: "old_id", stripe_product_cache: { "id" => "old_id", "name" => "Old Product" })
+    assert_equal({ "id" => "old_id", "name" => "Old Product" }, product.reload.stripe_product_cache)
+
+    deleted_key = nil
+    original_delete = Rails.cache.method(:delete)
+    Rails.cache.define_singleton_method(:delete) do |key|
+      deleted_key = key
+    end
+
+    begin
+      product.update!(stripe_product_id: "new_id")
+    ensure
+      Rails.cache.define_singleton_method(:delete, original_delete.to_proc)
+    end
+
+    assert_equal({}, product.reload.stripe_product_cache)
+    assert_equal "stripe_product:old_id", deleted_key
+  end
 end

@@ -167,7 +167,7 @@ class CheckoutSessionsController < ApplicationController
 
   def expire_existing_checkout_sessions(cart)
     cart.checkout_sessions.open.where.not(stripe_session_id: nil).find_each do |checkout_session|
-      CheckoutSessionExpirationJob.perform_later(checkout_session.id)
+      checkout_session.expire_in_stripe!
     end
   end
 

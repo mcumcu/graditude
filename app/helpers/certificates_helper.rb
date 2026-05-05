@@ -36,11 +36,10 @@ module CertificatesHelper
     template_name = template.to_s.presence || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder")
     @product_for_template ||= {}
     @product_for_template[template_name] ||= begin
-      Product.where.not(stripe_product_id: nil).find_by(title: PRODUCT_TITLE_BY_TEMPLATE[template_name]) ||
-        Product.where.not(stripe_product_id: nil)
-               .where("title ILIKE ?", "%#{template_name.titleize}% Graduation Certificate%")
-               .order(:title)
-               .first
+      products = Product.where.not(stripe_product_id: nil).to_a
+      exact_match = products.find { |product| product.title == PRODUCT_TITLE_BY_TEMPLATE[template_name] }
+      exact_match || products.sort_by { |product| product.title.to_s.downcase }
+                             .find { |product| product.title.to_s.downcase.include?("#{template_name.titleize.downcase} graduation certificate") }
     end
   end
 
