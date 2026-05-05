@@ -1,13 +1,4 @@
 module CertificatesHelper
-  PRODUCT_TITLE_BY_TEMPLATE = {
-    "boulder" => "Boulder Graduation Certificate",
-    "westtown" => "Westtown Graduation Certificate"
-  }.freeze
-
-  def checkout_price_id_for_template(template)
-    product_for_template(template)&.stripe_price_id
-  end
-
   def formatted_stripe_price(product)
     return unless product&.stripe_price
 
@@ -26,14 +17,6 @@ module CertificatesHelper
     when "JPY" then "¥"
     else "#{currency&.upcase} "
     end
-  end
-
-  def add_to_cart_product_id_for_template(template)
-    product_for_template(template)&.id
-  end
-
-  def product_for_template(template)
-    products_for_template(template).first
   end
 
   def products_for_template(template)

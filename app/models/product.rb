@@ -76,6 +76,13 @@ class Product < ApplicationRecord
     stripe_product_data&.fetch("default_price", nil)
   end
 
+  def self.for_certificate_template(template)
+    template_name = template.to_s.presence || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder")
+    where.not(stripe_product_id: nil).to_a
+         .select { |product| product.certificate_template_names.map(&:downcase).include?(template_name.downcase) }
+         .sort_by { |product| product.title.to_s.downcase }
+  end
+
   def update_cached_stripe_product!(stripe_product_hash)
     return unless stripe_product_hash.is_a?(Hash)
 

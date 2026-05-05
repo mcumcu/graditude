@@ -89,6 +89,45 @@ class ProductTest < ActiveSupport::TestCase
     end
   end
 
+  test "for_certificate_template filters by template and returns products sorted by title" do
+    product_a = Product.create!(
+      stripe_product_id: "prod_a",
+      stripe_product_cache: {
+        "id" => "prod_a",
+        "name" => "Zed Certificate",
+        "description" => "Zed description",
+        "metadata" => { "certificate_templates" => "boulder" },
+        "default_price" => "price_a"
+      }
+    )
+
+    product_b = Product.create!(
+      stripe_product_id: "prod_b",
+      stripe_product_cache: {
+        "id" => "prod_b",
+        "name" => "Alpha Certificate",
+        "description" => "Alpha description",
+        "metadata" => { "certificate_templates" => "boulder,westtown" },
+        "default_price" => "price_b"
+      }
+    )
+
+    Product.create!(
+      stripe_product_id: "prod_c",
+      stripe_product_cache: {
+        "id" => "prod_c",
+        "name" => "Westtown Certificate",
+        "description" => "Westtown description",
+        "metadata" => { "certificate_templates" => "westtown" },
+        "default_price" => "price_c"
+      }
+    )
+
+    results = Product.for_certificate_template("boulder")
+
+    assert_equal [ product_b, product_a ], results
+  end
+
   test "clear_stripe_product_cache! removes both Rails cache and persisted stripe_product_cache" do
     product = Product.create!(stripe_product_id: "prod_test_clear", stripe_product_cache: { "id" => "prod_test_clear", "name" => "Old Product" })
 

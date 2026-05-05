@@ -6,9 +6,9 @@
   <div class="flex flex-col justify-center items-center gap-8">
     <h1 class="font-headline text-3xl">Certificate for <%= @certificate.honoree_name %></h1>
     <% @products.each do |product| %>
-      <% formatted_price = Rails.cache.fetch("products/#{product.cache_key_with_version}/formatted_stripe_price") do %>
-        <%= formatted_stripe_price(product) %>
-      <% end %>
+      <% formatted_price = Rails.cache.fetch("products/#{product.cache_key_with_version}/formatted_stripe_price") do
+           formatted_stripe_price(product)
+         end %>
       <div class="flex flex-row justify-between items-center gap-8 w-full">
         <div class="text-base font-medium text-gray-700 dark:text-gray-300">
           <%= product.title %> <%= formatted_price %>
