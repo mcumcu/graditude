@@ -34,14 +34,13 @@ module CertificatesHelper
 
   def product_for_template(template)
     template_name = template.to_s.presence || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder")
-    # Product.find_by(title: PRODUCT_TITLE_BY_TEMPLATE[template_name]) ||
-    # Product.where("title ILIKE ?", "%#{template_name.titleize}% Graduation Certificate%")
-    #        .order(:title)
-    #        .first ||
-    all = Product.where.not(stripe_product_id: nil)
-
-    all.find do |product|
-      product.certificate_template_names.include?(template_name)
+    @product_for_template ||= {}
+    @product_for_template[template_name] ||= begin
+      Product.where.not(stripe_product_id: nil).find_by(title: PRODUCT_TITLE_BY_TEMPLATE[template_name]) ||
+        Product.where.not(stripe_product_id: nil)
+               .where("title ILIKE ?", "%#{template_name.titleize}% Graduation Certificate%")
+               .order(:title)
+               .first
     end
   end
 
