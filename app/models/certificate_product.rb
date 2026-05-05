@@ -11,16 +11,15 @@ class CertificateProduct < ApplicationRecord
   validates :quantity, numericality: { only_integer: true, greater_than: 0 }
 
   def stripe_price(reload: false)
-    @stripe_price = nil if reload
-    @stripe_price ||= Stripe::Price.retrieve(stripe_price_id)
+    product.prices.find_or_create_by!(stripe_price_id: stripe_price_id).stripe_price(reload: reload)
   end
 
   def unit_amount_cents
-    stripe_price.unit_amount
+    stripe_price&.fetch("unit_amount", nil)
   end
 
   def currency
-    stripe_price.currency
+    stripe_price&.fetch("currency", nil)
   end
 
   def total_cents

@@ -1,10 +1,11 @@
 module CertificatesHelper
   def formatted_stripe_price(product)
-    return unless product&.stripe_price
+    price = product&.stripe_price
+    return unless price
 
     number_to_currency(
-      product.stripe_price.unit_amount / 100.0,
-      unit: currency_symbol(product.stripe_price.currency),
+      price.fetch("unit_amount", 0).to_i / 100.0,
+      unit: currency_symbol(price.fetch("currency", "")),
       precision: 2
     )
   end

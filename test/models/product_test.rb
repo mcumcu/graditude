@@ -55,6 +55,46 @@ class ProductTest < ActiveSupport::TestCase
     end
   end
 
+  test "default_price creates a cached Price record for the product default price" do
+    stripe_product = OpenStruct.new(
+      id: "prod_test_default",
+      name: "Stripe Product Name",
+      description: "Stripe product description",
+      metadata: { "certificate_templates" => "boulder" },
+      default_price: "price_test_default",
+      to_hash: {
+        "id" => "prod_test_default",
+        "name" => "Stripe Product Name",
+        "description" => "Stripe product description",
+        "metadata" => { "certificate_templates" => "boulder" },
+        "default_price" => "price_test_default"
+      }
+    )
+
+    original_retrieve = Stripe::Product.method(:retrieve)
+    Stripe::Product.define_singleton_method(:retrieve) { |_id| stripe_product }
+    original_price_retrieve = Stripe::Price.method(:retrieve)
+    Stripe::Price.define_singleton_method(:retrieve) do |price_id|
+      OpenStruct.new(id: price_id, unit_amount: 2700, currency: "usd", to_hash: { "id" => price_id, "unit_amount" => 2700, "currency" => "usd" })
+    end
+
+    product = Product.create!(stripe_product_id: "prod_test_default")
+    Rails.cache.delete(product.send(:stripe_product_cache_key))
+
+    price_record = product.default_price
+
+    assert_equal product, price_record.product
+    assert_equal "price_test_default", price_record.stripe_price_id
+    assert_equal 2700, product.stripe_price_amount_cents
+  ensure
+    if original_retrieve
+      Stripe::Product.define_singleton_method(:retrieve, original_retrieve.to_proc)
+    end
+    if original_price_retrieve
+      Stripe::Price.define_singleton_method(:retrieve, original_price_retrieve.to_proc)
+    end
+  end
+
   test "stripe_product_data caches stripe product payload in stripe_product_cache and Rails cache" do
     product = Product.create!(stripe_product_id: "prod_test_cache")
     stripe_product = OpenStruct.new(
@@ -163,6 +203,26 @@ class ProductTest < ActiveSupport::TestCase
 
     assert_equal true, deleted
     assert_equal({}, product.reload.stripe_product_cache)
+  end
+
+  test "clear_stripe_product_cache! also clears the default price cache when the product default price changes" do
+    product = Product.create!(
+      stripe_product_id: "prod_test_price_clear_default",
+      stripe_product_cache: {
+        "id" => "prod_test_price_clear_default",
+        "name" => "Product With Price",
+        "metadata" => { "certificate_templates" => "boulder" },
+        "default_price" => "price_old"
+      }
+    )
+
+    price = product.prices.create!(stripe_price_id: "price_old", stripe_price_cache: { "unit_amount" => 2500, "currency" => "usd" })
+    Rails.cache.write(price.send(:stripe_price_cache_key), price.stripe_price_cache)
+
+    product.clear_stripe_product_cache!
+
+    assert_nil Rails.cache.read(price.send(:stripe_price_cache_key))
+    assert_equal({}, price.reload.stripe_price_cache)
   end
 
   test "changing stripe_product_id clears old cache and persisted stripe_product_cache" do
