@@ -11,20 +11,20 @@
             <% @cart.certificate_products.includes(:product, :certificate).each do |item| %>
               <li class="flex py-6">
                 <div class="border border-gray-200/50 rounded-lg shadow-sm shrink-0 bg-white">
-                  <%= image_tag "#{item.certificate.template}.png", alt: "#{item.product.title} thumbnail", class: "h-24 w-24 rounded-md object-contain sm:h-32 sm:w-32" %>
+                  <%= image_tag "#{item.certificate.template}.png", alt: "#{item.product.stripe_name} thumbnail", class: "h-24 w-24 rounded-md object-contain sm:h-32 sm:w-32" %>
                 </div>
 
                 <div class="ml-4 flex flex-1 flex-col sm:ml-6">
                   <div>
                     <div class="flex justify-between">
                       <h3 class="text-lg">
-                        <span class="font-medium"><%= item.product.title %></span>
+                        <span class="font-medium"><%= item.product.stripe_name %></span>
                       </h3>
 
                       <p class="ml-4 text-sm"><%= number_to_currency(item.total_cents / 100.0, unit: "$", precision: 2) %></p>
                     </div>
 
-                    <p class="mt-1 text-sm">For <%= item.certificate.honoree_name %>. <%= item.product.description %> </p>
+                    <p class="mt-1 text-sm">For <%= item.certificate.honoree_name %>. <%= item.product.stripe_description %> </p>
 
                   </div>
 

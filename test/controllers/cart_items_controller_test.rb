@@ -4,21 +4,37 @@ class CartItemsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:one)
     sign_in @user
-    @product = Product.create!(title: "Graduation Gift", description: "Ceremony edition", price_cents: 3000, currency: "USD", details: {})
+    @product = Product.create!(stripe_product_id: "prod_test")
   end
 
-  test "create adds item to cart when price map exists" do
-    StripePriceMap.create!(product: @product, stripe_price_id: "price_test")
+  test "create adds item to cart when Stripe name and default_price exist" do
+    stripe_product = OpenStruct.new(
+      name: "Graduation Gift",
+      description: "Ceremony edition",
+      metadata: {},
+      default_price: "price_test_default",
+      to_hash: {
+        "id" => "prod_test",
+        "name" => "Graduation Gift",
+        "description" => "Ceremony edition",
+        "metadata" => {},
+        "default_price" => "price_test_default"
+      }
+    )
 
-    assert_difference("CertificateProduct.count") do
-      post cart_items_url, params: { product_id: @product.id, certificate_id: certificates(:one).id, quantity: 1 }
+    stub_stripe_product_retrieve(stripe_product) do
+      assert_difference("CertificateProduct.count") do
+        post cart_items_url, params: { product_id: @product.id, certificate_id: certificates(:one).id, quantity: 1 }
+      end
     end
 
     assert_redirected_to cart_path
     assert_equal "Added to cart.", flash[:notice]
   end
 
-  test "create redirects with alert when no price map exists for product" do
+  test "create redirects with alert when no Stripe product default price exists for product" do
+    @product.update!(stripe_product_id: nil)
+
     assert_no_difference("CertificateProduct.count") do
       post cart_items_url, params: { product_id: @product.id, certificate_id: certificates(:one).id }
     end
@@ -27,7 +43,9 @@ class CartItemsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "This product is not currently available for purchase.", flash[:alert]
   end
 
-  test "create returns unprocessable entity as JSON when no price map exists" do
+  test "create returns unprocessable entity as JSON when no Stripe product default price exists" do
+    @product.update!(stripe_product_id: nil)
+
     post cart_items_url,
       params: { product_id: @product.id, certificate_id: certificates(:one).id },
       as: :json
@@ -37,10 +55,24 @@ class CartItemsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "create redirects with error when cart item is invalid" do
-    StripePriceMap.create!(product: @product, stripe_price_id: "price_test")
+    stripe_product = OpenStruct.new(
+      name: "Graduation Gift",
+      description: "Ceremony edition",
+      metadata: {},
+      default_price: "price_test_default",
+      to_hash: {
+        "id" => "prod_test",
+        "name" => "Graduation Gift",
+        "description" => "Ceremony edition",
+        "metadata" => {},
+        "default_price" => "price_test_default"
+      }
+    )
 
-    assert_no_difference("CertificateProduct.count") do
-      post cart_items_url, params: { product_id: @product.id, certificate_id: certificates(:one).id, quantity: -1 }
+    stub_stripe_product_retrieve(stripe_product) do
+      assert_no_difference("CertificateProduct.count") do
+        post cart_items_url, params: { product_id: @product.id, certificate_id: certificates(:one).id, quantity: -1 }
+      end
     end
 
     assert_redirected_to cart_path
@@ -48,9 +80,8 @@ class CartItemsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "destroy removes item and redirects to cart" do
-    price_map = StripePriceMap.create!(product: @product, stripe_price_id: "price_test")
     cart = Cart.open_for(@user)
-    cart_item = cart.certificate_products.create!(product: @product, certificate: certificates(:one), stripe_price_map: price_map, quantity: 1)
+    cart_item = cart.certificate_products.create!(product: @product, certificate: certificates(:one), stripe_price_id: "price_test", quantity: 1)
 
     assert_difference("CertificateProduct.count", -1) do
       delete cart_item_url(cart_item)

@@ -49,15 +49,61 @@ bin/rails runner 'require "fileutils"; ctrl = CertificatesController.new; params
 
 This application supports a Stripe Checkout integration using Rails controllers and Stimulus.
 
-Required environment variables:
+Client-side Stripe JS is loaded through Importmaps:
+
+```bash
+bin/importmap pin @stripe/stripe-js
+```
+
+A Stimulus controller can import the wrapper and initialize Stripe with `loadStripe`:
+
+```js
+import { Controller } from "@hotwired/stimulus"
+import { loadStripe } from "@stripe/stripe-js"
+
+export default class extends Controller {
+  async connect() {
+    const stripe = await loadStripe("your_publishable_key")
+    // Initialize Elements or Checkout here
+  }
+}
+```
+
+Stripe.js is loaded from `js.stripe.com` via the Stripe JS wrapper. Do not bundle the raw `stripe.js` file into our own assets or host it ourselves.
+
+This integration also forwards dynamic per-item display data to Checkout using `line_items.price_data.product_data.*`, so item name, description, and image can be overridden at runtime while Stripe price behavior remains unchanged.
+
+If you use a Content Security Policy (CSP), whitelist:
+
+* `https://js.stripe.com`
+* `https://api.stripe.com`
+
+Required Stripe-related environment variables:
 
 * `STRIPE_KEY` — Stripe secret key stored on the server only.
 * `STRIPE_KEY_PUB` — Stripe publishable key exposed to the browser.
+* `STRIPE_WEBHOOK_SECRET` — Stripe webhook signing secret used to verify incoming webhook payloads.
 
-Make sure `STRIPE_KEY` is kept out of source control and use test keys for local development. Add both keys to your `.env.local` or local environment.
+Make sure `STRIPE_KEY` and `STRIPE_WEBHOOK_SECRET` are kept out of source control; use sandbox values for local development. Add these keys to your `.env.local`.
 
-Do not commit the Stripe secret key to source control!
-For Fly.io production, set _both_ secrets with `fly secrets set STRIPE_KEY=... STRIPE_KEY_PUB=...` do not commit them in `fly.toml`.
+Do not commit the Stripe secrets to source control!
+For Fly.io production, set all Stripe secrets with `fly secrets set STRIPE_KEY=... STRIPE_KEY_PUB=... STRIPE_WEBHOOK_SECRET=...`; do not commit them in `fly.toml`.
+
+Stripe webhook endpoint:
+
+* `POST /stripe/webhook` — receives Stripe event notifications
+* The app verifies `Stripe-Signature` using `ENV["STRIPE_WEBHOOK_SECRET"]`
+* Invalid signatures are intentionally returned as `200 OK` so Stripe continues delivery
+
+Supported Stripe webhook event types:
+
+* `checkout.session.completed`
+* `checkout.session.async_payment_succeeded`
+* `checkout.session.expired`
+* `checkout.session.async_payment_failed`
+* `product.created`
+* `product.updated`
+* `product.deleted`
 
 Routes:
 

@@ -46,4 +46,19 @@ class CheckoutSession < ApplicationRecord
   def complete_order!
     cart&.complete_order!(self)
   end
+
+  def expire_in_stripe!
+    return unless stripe_session_id.present? && open?
+
+    stripe_session = Stripe::Checkout::Session.expire(
+      stripe_session_id,
+      { idempotency_key: expire_idempotency_key }
+    )
+
+    update!(status: :expired, raw: raw_hash.deep_merge(stripe_session_expired: stripe_session.to_hash))
+  end
+
+  def expire_idempotency_key
+    "checkout_session_expiration:#{id}"
+  end
 end
