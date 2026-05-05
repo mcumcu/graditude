@@ -89,7 +89,7 @@ class ProductTest < ActiveSupport::TestCase
     end
   end
 
-  test "for_certificate_template filters by template and returns products sorted by title" do
+  test "for_certificate_template filters by template and returns products sorted by price descending" do
     product_a = Product.create!(
       stripe_product_id: "prod_a",
       stripe_product_cache: {
@@ -123,9 +123,25 @@ class ProductTest < ActiveSupport::TestCase
       }
     )
 
+    original_price_retrieve = Stripe::Price.method(:retrieve)
+    Stripe::Price.define_singleton_method(:retrieve) do |price_id|
+      case price_id
+      when "price_a"
+        OpenStruct.new(unit_amount: 5000)
+      when "price_b"
+        OpenStruct.new(unit_amount: 3000)
+      when "price_c"
+        OpenStruct.new(unit_amount: 1000)
+      else
+        raise "Unexpected price_id: #{price_id}"
+      end
+    end
+
     results = Product.for_certificate_template("boulder")
 
-    assert_equal [ product_b, product_a ], results
+    assert_equal [ product_a, product_b ], results
+  ensure
+    Stripe::Price.define_singleton_method(:retrieve, original_price_retrieve.to_proc)
   end
 
   test "clear_stripe_product_cache! removes both Rails cache and persisted stripe_product_cache" do
