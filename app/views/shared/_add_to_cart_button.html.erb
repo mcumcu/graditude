@@ -1,0 +1,13 @@
+<% already_in_cart = product_in_cart?(product_id, certificate: certificate) %>
+
+<% if already_in_cart %>
+  <%= link_to "Already in cart", cart_path, class: "w-full min-w-48 text-gray-700 dark:text-gray-100 lg:w-auto text-center rounded-full px-3 py-2 bg-gray-300 dark:bg-gray-600 inline-block font-medium hover:text-gray-900 dark:hover:text-white" %>
+<% else %>
+  <%= form_with(url: cart_items_path, method: :post, local: true) do |f| %>
+    <%= f.hidden_field :product_id, value: product_id %>
+    <%= f.hidden_field :certificate_id, value: certificate.id %>
+    <%= f.hidden_field :quantity, value: 1 %>
+
+    <%= f.submit "Add to cart", class: "w-full min-w-48 text-background dark:text-background lg:w-auto text-center rounded-full px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium hover:cursor-pointer" %>
+  <% end %>
+<% end %>

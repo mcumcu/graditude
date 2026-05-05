@@ -33,13 +33,16 @@ module CertificatesHelper
   end
 
   def product_for_template(template)
+    products_for_template(template).first
+  end
+
+  def products_for_template(template)
     template_name = template.to_s.presence || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder")
-    @product_for_template ||= {}
-    @product_for_template[template_name] ||= begin
+    @products_for_template ||= {}
+    @products_for_template[template_name] ||= begin
       products = Product.where.not(stripe_product_id: nil).to_a
-      exact_match = products.find { |product| product.title == PRODUCT_TITLE_BY_TEMPLATE[template_name] }
-      exact_match || products.sort_by { |product| product.title.to_s.downcase }
-                             .find { |product| product.title.to_s.downcase.include?("#{template_name.titleize.downcase} graduation certificate") }
+      products.select { |product| product.certificate_template_names.map(&:downcase).include?(template_name.downcase) }
+              .sort_by { |product| product.title.to_s.downcase }
     end
   end
 
@@ -47,5 +50,11 @@ module CertificatesHelper
     return false unless Current.user
 
     Current.user.open_cart&.certificate_products&.exists?(certificate_id: certificate.id)
+  end
+
+  def product_in_cart?(product_id, certificate:)
+    return false unless Current.user
+
+    Current.user.open_cart&.certificate_products&.exists?(product_id: product_id, certificate_id: certificate.id)
   end
 end

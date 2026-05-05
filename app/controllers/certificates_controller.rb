@@ -13,6 +13,7 @@ class CertificatesController < ApplicationController
 
   # GET /certificates/1 or /certificates/1.json
   def show
+    @products = helpers.products_for_template(@certificate.template)
   end
 
   # GET /certificates/new
