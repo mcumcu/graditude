@@ -78,15 +78,32 @@ If you use a Content Security Policy (CSP), whitelist:
 * `https://js.stripe.com`
 * `https://api.stripe.com`
 
-Required environment variables:
+Required Stripe-related environment variables:
 
 * `STRIPE_KEY` — Stripe secret key stored on the server only.
 * `STRIPE_KEY_PUB` — Stripe publishable key exposed to the browser.
+* `STRIPE_WEBHOOK_SECRET` — Stripe webhook signing secret used to verify incoming webhook payloads.
 
-Make sure `STRIPE_KEY` is kept out of source control and use test keys for local development. Add both keys to your `.env.local` or local environment.
+Make sure `STRIPE_KEY` and `STRIPE_WEBHOOK_SECRET` are kept out of source control; use sandbox values for local development. Add these keys to your `.env.local`.
 
-Do not commit the Stripe secret key to source control!
-For Fly.io production, set _both_ secrets with `fly secrets set STRIPE_KEY=... STRIPE_KEY_PUB=...` do not commit them in `fly.toml`.
+Do not commit the Stripe secrets to source control!
+For Fly.io production, set all Stripe secrets with `fly secrets set STRIPE_KEY=... STRIPE_KEY_PUB=... STRIPE_WEBHOOK_SECRET=...`; do not commit them in `fly.toml`.
+
+Stripe webhook endpoint:
+
+* `POST /stripe/webhook` — receives Stripe event notifications
+* The app verifies `Stripe-Signature` using `ENV["STRIPE_WEBHOOK_SECRET"]`
+* Invalid signatures are intentionally returned as `200 OK` so Stripe continues delivery
+
+Supported Stripe webhook event types:
+
+* `checkout.session.completed`
+* `checkout.session.async_payment_succeeded`
+* `checkout.session.expired`
+* `checkout.session.async_payment_failed`
+* `product.created`
+* `product.updated`
+* `product.deleted`
 
 Routes:
 
