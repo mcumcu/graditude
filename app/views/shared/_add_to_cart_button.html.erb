@@ -1,4 +1,9 @@
-<% already_in_cart = product_in_cart?(product_id, certificate: certificate) %>
+<% already_in_cart =
+     if local_assigns.key?(:cart_product_ids) && !cart_product_ids.nil?
+       cart_product_ids.include?(product_id)
+     else
+       product_in_cart?(product_id, certificate: certificate)
+     end %>
 
 <% if already_in_cart %>
   <%= link_to "Already in cart", cart_path, class: "w-full min-w-48 text-gray-700 dark:text-gray-100 lg:w-auto text-center rounded-full px-3 py-2 bg-gray-300 dark:bg-gray-600 inline-block font-medium hover:text-gray-900 dark:hover:text-white" %>
