@@ -49,12 +49,18 @@ module CertificatesHelper
   def certificate_in_cart?(certificate)
     return false unless Current.user
 
-    Current.user.open_cart&.certificate_products&.exists?(certificate_id: certificate.id)
+    cart = Current.user.open_cart
+    return false unless cart
+
+    cart.certificate_products.exists?(certificate_id: certificate.id)
   end
 
   def product_in_cart?(product_id, certificate:)
     return false unless Current.user
 
-    Current.user.open_cart&.certificate_products&.exists?(product_id: product_id, certificate_id: certificate.id)
+    cart = Current.user.open_cart
+    return false unless cart
+
+    cart.certificate_products.exists?(product_id: product_id, certificate_id: certificate.id)
   end
 end
