@@ -129,7 +129,7 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
       expire_called = false
       expired_id = nil
       original_expire = Stripe::Checkout::Session.method(:expire)
-      Stripe::Checkout::Session.define_singleton_method(:expire) do |id, params = {}|
+      Stripe::Checkout::Session.define_singleton_method(:expire) do |id, params = {}, opts = {}|
         expired_id = id
         expire_called = true
         OpenStruct.new(id: id, status: "expired", to_hash: { "id" => id, "status" => "expired" })
