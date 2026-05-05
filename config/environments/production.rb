@@ -48,7 +48,7 @@ Rails.application.configure do
 
   # Replace the default in-process memory cache store with a durable Redis cache.
   config.cache_store = :redis_cache_store, {
-    url: ENV.fetch("REDIS_URL"),
+    url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/1" },
     namespace: "graditude_cache",
     expires_in: 2.hours,
     reconnect_attempts: 1
