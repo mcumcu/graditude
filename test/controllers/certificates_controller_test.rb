@@ -122,6 +122,60 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     assert_select "form[action='#{cart_items_path}']", 0
   end
 
+  test "should render multiple products with independent cart state" do
+    product_one = Product.create!(stripe_product_id: "prod_one")
+    product_two = Product.create!(stripe_product_id: "prod_two")
+
+    product_one.update_column(:stripe_product_cache, {
+      "id" => "prod_one",
+      "name" => "Boulder Standard",
+      "description" => "A solid certificate product",
+      "metadata" => { "certificate_templates" => "boulder" },
+      "default_price" => "price_one"
+    })
+    product_two.update_column(:stripe_product_cache, {
+      "id" => "prod_two",
+      "name" => "Boulder Premium",
+      "description" => "A premium certificate product",
+      "metadata" => { "certificate_templates" => "boulder" },
+      "default_price" => "price_two"
+    })
+
+    cart = Cart.open_for(users(:one))
+    CertificateProduct.create!(
+      cart: cart,
+      certificate: @certificate,
+      product: product_one,
+      stripe_price_id: "price_one",
+      quantity: 1,
+      status: "pending"
+    )
+
+    original_price_retrieve = Stripe::Price.method(:retrieve)
+    Stripe::Price.define_singleton_method(:retrieve) do |price_id|
+      case price_id
+      when "price_one"
+        OpenStruct.new(unit_amount: 2500, currency: "usd")
+      when "price_two"
+        OpenStruct.new(unit_amount: 3000, currency: "usd")
+      else
+        raise "Unexpected price_id: #{price_id}"
+      end
+    end
+
+    get certificate_url(@certificate)
+
+    assert_response :success
+    assert_select "div.flex.flex-row.justify-between.items-center.gap-8.w-full", 2
+    assert_match %r{Boulder Standard.*\$25\.00}m, response.body
+    assert_match %r{Boulder Premium.*\$30\.00}m, response.body
+    assert_select "a[href='#{cart_path}']", text: "Already in cart", minimum: 1
+    assert_select "input[name='product_id'][value='#{product_two.id}']", 1
+    assert_select "input[name='product_id'][value='#{product_one.id}']", 0
+  ensure
+    Stripe::Price.define_singleton_method(:retrieve, original_price_retrieve)
+  end
+
   test "should get edit" do
     get edit_certificate_url(@certificate)
     assert_response :success

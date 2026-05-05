@@ -1,19 +1,11 @@
 module CertificatesHelper
-  PRODUCT_TITLE_BY_TEMPLATE = {
-    "boulder" => "Boulder Graduation Certificate",
-    "westtown" => "Westtown Graduation Certificate"
-  }.freeze
-
-  def checkout_price_id_for_template(template)
-    product_for_template(template)&.stripe_price_id
-  end
-
   def formatted_stripe_price(product)
-    return unless product&.stripe_price
+    price = product&.stripe_price
+    return unless price
 
     number_to_currency(
-      product.stripe_price.unit_amount / 100.0,
-      unit: currency_symbol(product.stripe_price.currency),
+      price.fetch("unit_amount", 0).to_i / 100.0,
+      unit: currency_symbol(price.fetch("currency", "")),
       precision: 2
     )
   end
@@ -28,24 +20,31 @@ module CertificatesHelper
     end
   end
 
-  def add_to_cart_product_id_for_template(template)
-    product_for_template(template)&.id
-  end
-
-  def product_for_template(template)
+  def products_for_template(template)
     template_name = template.to_s.presence || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder")
-    @product_for_template ||= {}
-    @product_for_template[template_name] ||= begin
+    @products_for_template ||= {}
+    @products_for_template[template_name] ||= begin
       products = Product.where.not(stripe_product_id: nil).to_a
-      exact_match = products.find { |product| product.title == PRODUCT_TITLE_BY_TEMPLATE[template_name] }
-      exact_match || products.sort_by { |product| product.title.to_s.downcase }
-                             .find { |product| product.title.to_s.downcase.include?("#{template_name.titleize.downcase} graduation certificate") }
+      products.select { |product| product.certificate_template_names.map(&:downcase).include?(template_name.downcase) }
+              .sort_by { |product| product.title.to_s.downcase }
     end
   end
 
   def certificate_in_cart?(certificate)
     return false unless Current.user
 
-    Current.user.open_cart&.certificate_products&.exists?(certificate_id: certificate.id)
+    cart = Current.user.open_cart
+    return false unless cart
+
+    cart.certificate_products.exists?(certificate_id: certificate.id)
+  end
+
+  def product_in_cart?(product_id, certificate:)
+    return false unless Current.user
+
+    cart = Current.user.open_cart
+    return false unless cart
+
+    cart.certificate_products.exists?(product_id: product_id, certificate_id: certificate.id)
   end
 end

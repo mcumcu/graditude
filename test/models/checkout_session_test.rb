@@ -7,16 +7,16 @@ class CheckoutSessionTest < ActiveSupport::TestCase
     stripe_session = OpenStruct.new(id: "cs_model_expire", status: "expired", to_hash: { "id" => "cs_model_expire", "status" => "expired" })
 
     original_expire = Stripe::Checkout::Session.method(:expire)
-    captured_params = nil
+    captured_opts = nil
 
-    Stripe::Checkout::Session.define_singleton_method(:expire) do |_id, params = {}|
-      captured_params = params
+    Stripe::Checkout::Session.define_singleton_method(:expire) do |_id, _params = {}, opts = {}|
+      captured_opts = opts
       stripe_session
     end
 
     checkout_session.expire_in_stripe!
 
-    assert_equal "checkout_session_expiration:#{checkout_session.id}", captured_params[:idempotency_key]
+    assert_equal "checkout_session_expiration:#{checkout_session.id}", captured_opts[:idempotency_key]
     assert_equal "expired", checkout_session.reload.status
     assert_equal "cs_model_expire", checkout_session.raw_hash.dig("stripe_session_expired", "id")
   ensure

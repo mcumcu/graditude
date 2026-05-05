@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_05_05_010000) do
+ActiveRecord::Schema[8.0].define(version: 2026_05_05_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -71,6 +71,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_05_010000) do
     t.index ["stripe_session_id"], name: "index_checkout_sessions_on_stripe_session_id", unique: true
   end
 
+  create_table "prices", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "product_id", null: false
+    t.string "stripe_price_id", null: false
+    t.jsonb "stripe_price_cache", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_prices_on_product_id"
+    t.index ["stripe_price_id"], name: "index_prices_on_stripe_price_id", unique: true
+  end
+
   create_table "products", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -106,5 +116,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_05_010000) do
   add_foreign_key "checkout_session_certificates", "certificates"
   add_foreign_key "checkout_session_certificates", "checkout_sessions"
   add_foreign_key "checkout_sessions", "carts"
+  add_foreign_key "prices", "products"
   add_foreign_key "sessions", "users"
 end
