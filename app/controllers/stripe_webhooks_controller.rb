@@ -9,8 +9,10 @@ class StripeWebhooksController < ApplicationController
 
     handle_event(event)
     head :ok
-  rescue JSON::ParserError, Stripe::SignatureVerificationError => error
+  rescue JSON::ParserError => error
     render json: { error: error.message }, status: :bad_request
+  rescue Stripe::SignatureVerificationError
+    head :ok
   end
 
   private
@@ -69,8 +71,6 @@ class StripeWebhooksController < ApplicationController
       "expired"
     when "checkout.session.async_payment_failed"
       "failed"
-    when "checkout.session.canceled"
-      "canceled"
     else
       nil
     end

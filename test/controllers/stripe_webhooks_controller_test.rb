@@ -80,6 +80,22 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
     Stripe::Webhook.define_singleton_method(:construct_event, original_construct_event)
   end
 
+  test "invalid webhook signature still returns success" do
+    checkout_session = CheckoutSession.create!(status: :open, items: [ { price_id: "price_test", quantity: 1 } ], raw: {}, stripe_session_id: "cs_test_invalid_signature")
+
+    original_construct_event = Stripe::Webhook.method(:construct_event)
+    Stripe::Webhook.define_singleton_method(:construct_event) do |_payload, _sig_header, _secret|
+      raise Stripe::SignatureVerificationError.new("Invalid signature", "bad_sig")
+    end
+
+    post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "bad_sig" }, params: "{}"
+
+    assert_response :success
+    assert_equal "open", checkout_session.reload.status
+  ensure
+    Stripe::Webhook.define_singleton_method(:construct_event, original_construct_event)
+  end
+
   test "async payment succeeded webhook updates checkout session status" do
     checkout_session = CheckoutSession.create!(status: :open, items: [ { price_id: "price_test", quantity: 1 } ], raw: {}, stripe_session_id: "cs_test_async")
     event = OpenStruct.new(
