@@ -182,7 +182,7 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "div.fixed"
     assert_select "div.absolute"
-    assert_select "button[onclick=\"window.location='/certificates'\"]", text: "✖︎"
+    assert_select "button[onclick=\"window.location='#{certificate_path(@certificate)}'\"]", text: "✖︎"
     assert_select "form[action=\"/certificates/#{@certificate.id}\"]"
   end
 
