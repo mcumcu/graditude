@@ -16,7 +16,7 @@ class CheckoutSessionTest < ActiveSupport::TestCase
 
     checkout_session.expire_in_stripe!
 
-    assert_equal "checkout_session_expiration:#{checkout_session.id}", captured_opts[:idempotency_key]
+    assert_equal "checkout_session_expiration:#{checkout_session.id}", captured_opts[:headers]["Idempotency-Key"]
     assert_equal "expired", checkout_session.reload.status
     assert_equal "cs_model_expire", checkout_session.raw_hash.dig("stripe_session_expired", "id")
   ensure
