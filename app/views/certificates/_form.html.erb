@@ -99,7 +99,6 @@
     <%= form.submit "Save", class: "w-full min-w-48 sm:w-auto text-center rounded-md px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium cursor-pointer" %>
 
     <% if close_action %>
-      <p class="text-content"><%= close_action %></p>
       <button type="button" onclick="<%= close_action %>" class="w-full min-w-48 text-background dark:text-background sm:w-auto text-center rounded-md px-3 py-2 bg-secondary/80 hover:bg-secondary inline-block font-medium">Close</button>
     <% end %>
   </div>
