@@ -13,6 +13,20 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     assert User.exists?(email_address: "new@example.com")
   end
 
+  test "new session page uses referer for close button when present" do
+    get new_session_url, headers: { "HTTP_REFERER" => "/landing" }
+
+    assert_response :success
+    assert_select "button[onclick=\"window.location='/landing'\"]", text: "✖︎"
+  end
+
+  test "new signup page uses referer for close button when present" do
+    get new_signup_url, headers: { "HTTP_REFERER" => "/landing" }
+
+    assert_response :success
+    assert_select "button[onclick=\"window.location='/landing'\"]", text: "✖︎"
+  end
+
   test "creates a magic link for an existing user" do
     user = users(:one)
 

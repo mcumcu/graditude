@@ -22,7 +22,7 @@ class CertificatesController < ApplicationController
       user: Current.user
     ).last
 
-    attrs = existing_certificate ? existing_certificate.data.except("honoree_name") : {}
+    attrs = existing_certificate ? existing_certificate.data : {}
 
     @certificate = Certificate.new(attrs)
   end

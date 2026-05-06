@@ -1,4 +1,4 @@
-<%= render "shared/modal_wrapper", dialog_id: "session-form", title: "Sign up" do %>
+<%= render "shared/modal_wrapper", dialog_id: "session-form", title: "Sign up", close_path: request.referer || root_path do %>
   <%= render "sessions/email_form",
     dialog_id: "session-form",
     title: "Sign up",

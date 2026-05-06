@@ -13,7 +13,17 @@
 <% end %>
 
 <% content_for :hero_cta do %>
-  <%= link_to @landing_cta_text, @landing_cta_path, id: "hero-cta", class: "inline-flex items-center justify-center rounded-full bg-black text-white dark:bg-white dark:text-black px-8 py-4 text-lg font-bold text-gray-950 shadow-lg shadow-gray-950/10 transition hover:bg-indigo-800 dark:hover:bg-indigo-200" %>
+  <div data-controller="hero-modal">
+    <button data-action="hero-modal#open" command="show-modal" commandfor="certificate-form" type="button" id="hero-cta" class="inline-flex items-center justify-center rounded-full bg-black text-background dark:bg-white dark:text-black px-8 py-4 text-lg font-bold shadow-lg shadow-black/10 transition hover:bg-indigo-800 dark:hover:bg-indigo-200">
+      Get Started
+    </button>
+
+    <div data-hero-modal-target="modal" hidden>
+      <%= render "shared/modal_wrapper", dialog_id: "certificate-form", title: "Create a Certificate", close_path: root_path do |close_action| %>
+        <%= render "certificates/form", certificate: Certificate.new, close_path: root_path %>
+      <% end %>
+    </div>
+  </div>
 <% end %>
 
 <% content_for :hero_info do %>
