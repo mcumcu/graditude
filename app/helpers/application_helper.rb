@@ -27,6 +27,14 @@ module ApplicationHelper
     }
   end
 
+  def modal_close_action(close_path = nil)
+    if close_path
+      "window.location='#{j close_path}'"
+    else
+      "if (history.length > 1) { history.back() } else { window.location='#{j root_path}' }"
+    end
+  end
+
   def stripe_test_mode?
     publishable = ENV["STRIPE_KEY_PUB"].to_s
     secret = ENV["STRIPE_KEY"].to_s

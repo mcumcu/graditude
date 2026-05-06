@@ -39,7 +39,18 @@ class CheckoutSessionsController < ApplicationController
       metadata: {
         checkout_session_id: checkout_session.id,
         cart_id: cart.id
-      }
+      },
+      shipping_options: [
+        {
+          shipping_rate: "shr_1TU55nBAkUp5qaORbGtZjdSN" # Free shipping option, configured in Stripe dashboard
+        },
+        {
+          shipping_rate: "shr_1TT5vPBAkUp5qaORepowTn3R" # Ground shipping option, configured in Stripe dashboard
+        },
+        {
+          shipping_rate: "shr_1TT5wCBAkUp5qaORNhlwDO5Y" # Express shipping option, configured in Stripe dashboard
+        }
+      ]
     }
     session_params[:shipping_options] = checkout_shipping_options if checkout_shipping_options.any?
 

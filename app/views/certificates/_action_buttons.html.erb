@@ -1,5 +1,5 @@
 <div data-controller="visibility">
-  <%= render "form_modal", certificate: certificate %>
+  <%= render "form_modal", certificate: certificate, close_path: certificate_path(certificate) %>
 
   <div class="flex flex-col md:flex-row justify-center gap-8 p-8 md:p-0" data-visibility-target="hideable">
     <% if show_edit %>
