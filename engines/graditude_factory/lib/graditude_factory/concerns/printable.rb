@@ -41,12 +41,13 @@ module GraditudeFactory
       # @param data [Boolean] When true, return an HTML data URL instead of a file path
       # @return [String, nil] Path to the generated PNG or data URL string
       def render_certificate_png(pdf_path, png_path, data: false)
-        page = PDFToImage.open(pdf_path).first
+        png = PDFToImage.open(pdf_path).first
 
-        return nil unless page
+        return nil unless png
 
         FileUtils.mkdir_p(File.dirname(png_path))
-        page.resize("1024").save(png_path)
+
+        png.resize("1024").save(png_path)
 
         if data
           png_data = File.binread(png_path)
