@@ -84,6 +84,65 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "should not show delete button when certificate is in cart" do
+    user = users(:one)
+    cart = Cart.open_for(user)
+    product = Product.create!(stripe_product_id: "prod_test")
+
+    CertificateProduct.create!(
+      cart: cart,
+      certificate: @certificate,
+      product: product,
+      stripe_price_id: "price_test_cart",
+      quantity: 1,
+      status: "pending"
+    )
+
+    stripe_product = OpenStruct.new(
+      id: "prod_test",
+      name: "Boulder Graduation Certificate",
+      description: "A presentation-ready certificate",
+      metadata: { "certificate_templates" => "boulder,westtown" },
+      default_price: "price_test_default",
+      to_hash: {
+        "id" => "prod_test",
+        "name" => "Boulder Graduation Certificate",
+        "description" => "A presentation-ready certificate",
+        "metadata" => { "certificate_templates" => "boulder,westtown" },
+        "default_price" => "price_test_default"
+      }
+    )
+    stripe_price = OpenStruct.new(unit_amount: 2500, currency: "usd")
+
+    stub_stripe_product_and_price_retrieve(stripe_product, stripe_price) do
+      get certificate_url(@certificate)
+    end
+
+    assert_response :success
+    assert_select "button", text: "✖︎ Delete", count: 0
+  end
+
+  test "should not destroy certificate when it is in cart" do
+    cart = Cart.open_for(users(:one))
+    product = Product.create!(stripe_product_id: "prod_delete_test")
+
+    CertificateProduct.create!(
+      cart: cart,
+      certificate: @certificate,
+      product: product,
+      stripe_price_id: "price_delete_test",
+      quantity: 1,
+      status: "pending"
+    )
+
+    assert_no_difference("Certificate.count") do
+      delete certificate_url(@certificate)
+    end
+
+    assert_redirected_to certificate_url(@certificate)
+    assert_equal "Cannot delete this certificate while it is associated with a cart item.", flash[:alert]
+  end
+
   test "should show already in cart link when certificate is already in cart" do
     product = Product.create!(stripe_product_id: "prod_test")
     cart = Cart.open_for(users(:one))
@@ -192,6 +251,13 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
 
     @certificate.reload
     assert_equal "Updated Grad", @certificate.graduate_name
+  end
+
+  test "should return inline preview data url" do
+    get preview_certificate_url(@certificate)
+
+    assert_response :success
+    assert_match %r{\Aurl\('data:image/png;base64,[A-Za-z0-9+/]+=*'\)\z}, @response.body
   end
 
   test "should destroy certificate" do

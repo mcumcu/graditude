@@ -75,6 +75,32 @@ class PrintableTest < ActiveSupport::TestCase
     File.delete(dummy.temp_pdf_path("penn")) if dummy&.temp_pdf_path("penn")&.exist?
   end
 
+  test "render_certificate_png uses a unique tempfile for data URL generation" do
+    dummy = PrintableDummy.new
+    pdf_path = dummy.temp_pdf_path("data_url_test").to_s
+    png_path = dummy.temp_png_path("data_url_test").to_s
+    File.delete(png_path) if File.exist?(png_path)
+    temp_paths = []
+
+    fake_page = Object.new
+    fake_page.define_singleton_method(:resize) { |*_args| self }
+    fake_page.define_singleton_method(:save) do |path|
+      File.binwrite(path, "PNG")
+    end
+
+    original_pdf_open = PDFToImage.method(:open)
+
+    PDFToImage.define_singleton_method(:open) do |*_args|
+      [ fake_page ]
+    end
+
+    result = dummy.render_certificate_png(pdf_path, png_path, data: true)
+    assert_match %r{\Aurl\('data:image/png;base64,[A-Za-z0-9+/]+=*'\)\z}, result
+    assert_not File.exist?(png_path)
+  ensure
+    PDFToImage.define_singleton_method(:open, original_pdf_open)
+  end
+
   test "blank_certificate_png_path uses default template when no template is provided" do
     dummy = PrintableDummy.new
     captured = {}

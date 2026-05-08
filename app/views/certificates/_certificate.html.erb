@@ -1,18 +1,18 @@
-  <div style="background-image: url('<%= asset_path("#{certificate.template || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder")}.png") %>'); background-size: cover; background-position: center; background-repeat: no-repeat;" class="
-    rounded-lg
-    h-[360] w-[480]
-    md:h-[395.5] md:w-[512]
-    lg:h-[527.3125] lg:w-[682.65625]
-    xl:h-[659.140625] xl:w-[853.328125]
-    2xl:h-[791] 2xl:w-[1024]
-    mx-auto
-    shadow-xl dark:shadow-none
-    mb-4
-  ">
-    <img
-      alt="Your certificate"
-      class="rounded-lg"
-      data-controller="preview"
-      data-preview-src-value="<%= preview_certificate_path(certificate, format: :png) %>"
-    />
-  </div>
+  <div
+    data-controller="preview"
+    data-preview-src-value="<%= preview_certificate_path(certificate) %>"
+    role="img"
+    aria-label="Your certificate preview"
+    style="background-image: url('<%= asset_path("#{certificate.template || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder")}.png") %>'); background-size: cover; background-position: center; background-repeat: no-repeat;"
+    class="
+      rounded-lg
+      h-[360] w-[480]
+      md:h-[395.5] md:w-[512]
+      lg:h-[527.3125] lg:w-[682.65625]
+      xl:h-[659.140625] xl:w-[853.328125]
+      2xl:h-[791] 2xl:w-[1024]
+      mx-auto
+      shadow-xl dark:shadow-none
+      mb-4
+    "
+  ></div>

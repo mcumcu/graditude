@@ -67,6 +67,14 @@ class CertificatesController < ApplicationController
 
   # DELETE /certificates/1 or /certificates/1.json
   def destroy
+    if @certificate.certificate_products.exists?
+      respond_to do |format|
+        format.html { redirect_to certificate_path(@certificate), alert: "Cannot delete this certificate while it is associated with a cart item." }
+        format.json { render json: { error: "Cannot delete certificate while it is in the cart." }, status: :unprocessable_entity }
+      end
+      return
+    end
+
     @certificate.destroy!
 
     respond_to do |format|
@@ -76,9 +84,12 @@ class CertificatesController < ApplicationController
   end
 
   def preview
-    respond_to do |format|
-      format.pdf
-      format.png
+    data_url = rerender_png_data_url
+
+    if data_url
+      render plain: data_url
+    else
+      head :not_found
     end
   end
 

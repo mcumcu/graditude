@@ -37,7 +37,7 @@ module Printable
   end
 
   # Legacy method: render PNG from the certificate template
-  def rerender_png_path
+  def rerender_png_path(data: false)
     template_name = @certificate&.template.presence || default_certificate_template
     params = @certificate&.data || default_params
     doc = make_certificate_document(template_name, params)
@@ -46,7 +46,11 @@ module Printable
     doc.render_file(pdf_path)
 
     png_path = temp_png_path(@certificate&.id || "_blank").to_s
-    render_certificate_png(pdf_path, png_path)
+    render_certificate_png(pdf_path, png_path, data: data)
+  end
+
+  def rerender_png_data_url
+    rerender_png_path(data: true)
   end
 
   def make_certificate_document(template_name, params = {})

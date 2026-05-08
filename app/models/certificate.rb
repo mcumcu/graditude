@@ -13,6 +13,7 @@ class Certificate < ApplicationRecord
   }.freeze
 
   belongs_to :user
+  has_many :certificate_products, dependent: :restrict_with_error
   has_many :checkout_session_certificates, dependent: :destroy
   has_many :checkout_sessions, through: :checkout_session_certificates
 
