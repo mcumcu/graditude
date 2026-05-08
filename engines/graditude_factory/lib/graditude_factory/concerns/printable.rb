@@ -2,6 +2,7 @@
 
 require "fileutils"
 require "base64"
+require "tempfile"
 
 module GraditudeFactory
   module Concerns
@@ -47,15 +48,18 @@ module GraditudeFactory
 
         FileUtils.mkdir_p(File.dirname(png_path))
 
-        png.resize("1024").save(png_path)
-
         if data
-          png_data = File.binread(png_path)
-          encoded = Base64.strict_encode64(png_data)
-          "url('data:image/png;base64,#{encoded}')"
-        else
-          png_path
+          return Tempfile.create([ "preview", ".png" ], File.dirname(png_path)) do |tempfile|
+            tempfile.binmode
+            png.resize("1024").save(tempfile.path)
+            tempfile.rewind
+            encoded = Base64.strict_encode64(tempfile.read)
+            "url('data:image/png;base64,#{encoded}')"
+          end
         end
+
+        png.resize("1024").save(png_path)
+        png_path
       end
 
       # Temporary directory for PDFs

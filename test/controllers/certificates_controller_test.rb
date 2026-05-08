@@ -122,6 +122,27 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     assert_select "button", text: "✖︎ Delete", count: 0
   end
 
+  test "should not destroy certificate when it is in cart" do
+    cart = Cart.open_for(users(:one))
+    product = Product.create!(stripe_product_id: "prod_delete_test")
+
+    CertificateProduct.create!(
+      cart: cart,
+      certificate: @certificate,
+      product: product,
+      stripe_price_id: "price_delete_test",
+      quantity: 1,
+      status: "pending"
+    )
+
+    assert_no_difference("Certificate.count") do
+      delete certificate_url(@certificate)
+    end
+
+    assert_redirected_to certificate_url(@certificate)
+    assert_equal "Cannot delete this certificate while it is associated with a cart item.", flash[:alert]
+  end
+
   test "should show already in cart link when certificate is already in cart" do
     product = Product.create!(stripe_product_id: "prod_test")
     cart = Cart.open_for(users(:one))
