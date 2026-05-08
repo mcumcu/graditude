@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "fileutils"
+require "base64"
 
 module GraditudeFactory
   module Concerns
@@ -37,16 +38,23 @@ module GraditudeFactory
       # Render a PNG from a PDF
       # @param pdf_path [String] Path to the PDF file
       # @param png_path [String] Path where PNG should be saved
-      # @return [String] Path to the generated PNG
-      def render_certificate_png(pdf_path, png_path)
+      # @param data [Boolean] When true, return an HTML data URL instead of a file path
+      # @return [String, nil] Path to the generated PNG or data URL string
+      def render_certificate_png(pdf_path, png_path, data: false)
         page = PDFToImage.open(pdf_path).first
 
-        if page
-          FileUtils.mkdir_p(File.dirname(png_path))
-          page.resize("1024").save(png_path)
-        end
+        return nil unless page
 
-        png_path
+        FileUtils.mkdir_p(File.dirname(png_path))
+        page.resize("1024").save(png_path)
+
+        if data
+          png_data = File.binread(png_path)
+          encoded = Base64.strict_encode64(png_data)
+          "url('data:image/png;base64,#{encoded}')"
+        else
+          png_path
+        end
       end
 
       # Temporary directory for PDFs

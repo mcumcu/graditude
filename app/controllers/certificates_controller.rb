@@ -76,9 +76,18 @@ class CertificatesController < ApplicationController
   end
 
   def preview
-    respond_to do |format|
-      format.pdf
-      format.png
+    if request.format.pdf?
+      respond_to do |format|
+        format.pdf
+      end
+      return
+    end
+
+    data_url = rerender_png_data_url
+    if data_url
+      render plain: data_url
+    else
+      head :not_found
     end
   end
 

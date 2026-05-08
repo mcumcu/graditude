@@ -1,13 +1,11 @@
 class DocumentsController < ApplicationController
-  include GraditudeFactory::Concerns::Printable
+  include Printable
 
   def index
     @params = default_certificate_params
 
     respond_to do |format|
-      format.html
-      format.pdf
-      format.png
+      format.png { render plain: rerender_png_data_url }
     end
   end
 end

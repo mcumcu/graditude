@@ -194,6 +194,13 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Updated Grad", @certificate.graduate_name
   end
 
+  test "should return inline preview data url" do
+    get preview_certificate_url(@certificate)
+
+    assert_response :success
+    assert_match %r{\Aurl\('data:image/png;base64,[A-Za-z0-9+/]+=*'\)\z}, @response.body
+  end
+
   test "should destroy certificate" do
     assert_difference("Certificate.count", -1) do
       delete certificate_url(@certificate)
