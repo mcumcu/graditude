@@ -1,0 +1,8 @@
+<% content_for :title do %>
+  Affiliate Application
+<% end %>
+
+<%= render "shared/modal_wrapper", dialog_id: "affiliate-application", title: "Affiliate Application", close_path: root_path do |close_action| %>
+  <%= render "shared/flash_messages" %>
+  <%= render "form", application: @application, close_path: root_path %>
+<% end %>

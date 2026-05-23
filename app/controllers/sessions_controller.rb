@@ -16,7 +16,16 @@ class SessionsController < ApplicationController
       return
     end
 
-    user = User.find_or_create_by!(email_address: email_address)
+    user = User.find_by(email_address: email_address)
+    created = false
+
+    unless user
+      user = User.new(email_address: email_address)
+      created = true
+      user.save!
+    end
+
+    session.delete(:affiliate_referral_token) if created
     MagicLinkMailer.sign_in(user).deliver_later
 
     redirect_to new_session_path, notice: "Check your inbox for a sign-in link"
@@ -25,6 +34,7 @@ class SessionsController < ApplicationController
   def authenticate
     user = User.find_by_magic_link_token!(params[:token])
     start_new_session_for user
+    accept_pending_affiliate_invitation_for(user)
     redirect_to after_authentication_url, notice: "Signed in."
   rescue ActiveSupport::MessageVerifier::InvalidSignature, ActiveSupport::MessageVerifier::InvalidMessage, ActiveRecord::RecordNotFound
     redirect_to new_session_path, alert: "That sign-in link is invalid or has expired"
@@ -34,4 +44,31 @@ class SessionsController < ApplicationController
     terminate_session
     redirect_to new_session_path, notice: "Signed out"
   end
+
+  private
+    def accept_pending_affiliate_invitation_for(user)
+      invitation_id = session.delete(:pending_affiliate_invitation_id)
+      return if invitation_id.blank?
+
+      invitation = AffiliateInvitation.find_by(id: invitation_id)
+      if invitation.nil?
+        flash[:alert] = "That invitation is no longer valid."
+        return
+      end
+
+      if invitation.accepted?
+        if invitation.accepted_by == user
+          flash[:info] = "Invitation already accepted. You can complete your affiliate application."
+        else
+          flash[:alert] = "That invitation has already been used."
+        end
+        return
+      end
+
+      if invitation.accept!(user)
+        flash[:info] = "Invitation accepted. You can complete your affiliate application."
+      else
+        flash[:alert] = "That invitation does not match your email address."
+      end
+    end
 end

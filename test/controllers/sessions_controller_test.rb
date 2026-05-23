@@ -49,6 +49,20 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     assert cookies["session_id"].present?
   end
 
+  test "creates a referred user when a referral token is present" do
+    referrer = users(:one)
+    referrer.update!(affiliate_status: "approved")
+    referral_token = referrer.referral_token
+
+    get root_url(ref: referral_token)
+
+    post session_url, params: { email_address: "referred@example.com" }
+
+    referred_user = User.find_by(email_address: "referred@example.com")
+    assert_equal referrer, referred_user.referred_by
+    assert_not_nil referred_user.referred_at
+  end
+
   test "rejects an invalid magic link" do
     get authenticate_session_url(token: "invalid-token")
 

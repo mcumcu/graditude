@@ -1,0 +1,28 @@
+<% content_for :title do %>
+  Affiliate Application
+<% end %>
+
+<div class="mx-auto w-full max-w-2xl px-6 py-16">
+  <h1 class="text-3xl font-bold mb-6">Affiliate Application</h1>
+
+  <%= render "shared/flash_messages" %>
+
+  <% if @application %>
+    <div class="rounded-lg border border-black/10 dark:border-white/10 p-6 bg-background-secondary dark:bg-background">
+      <p class="text-lg font-medium">Status: <%= @application.status.titleize %></p>
+      <p class="text-content-muted mt-2">Submitted on <%= @application.submitted_at&.to_date %></p>
+
+      <% if @application.approved? %>
+        <p class="mt-4">You are approved as an affiliate.</p>
+        <%= link_to "View your affiliate link", affiliate_path, class: "inline-flex mt-4 rounded-full px-4 py-3 bg-primary hover:bg-indigo-700 text-background font-medium" %>
+      <% elsif @application.rejected? %>
+        <p class="mt-4">Your application was not approved at this time.</p>
+      <% else %>
+        <p class="mt-4">Thanks for applying. We will reach out soon.</p>
+      <% end %>
+    </div>
+  <% else %>
+    <p>You do not have an application on file.</p>
+    <%= link_to "Apply now", new_affiliate_application_path, class: "inline-flex mt-4 rounded-full px-4 py-3 bg-primary hover:bg-indigo-700 text-background font-medium" %>
+  <% end %>
+</div>
