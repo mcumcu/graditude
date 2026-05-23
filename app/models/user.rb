@@ -7,7 +7,7 @@ class User < ApplicationRecord
   has_many :affiliate_invitations_sent, class_name: "AffiliateInvitation", foreign_key: :invited_by_id, dependent: :nullify
   has_one :affiliate_invitation, class_name: "AffiliateInvitation", foreign_key: :accepted_by_id, dependent: :nullify
   has_one :affiliate_application, dependent: :destroy
-  has_many :referrals, class_name: "User", foreign_key: :referred_by_user_id, dependent: :nullify
+  has_many :referrals, class_name: "User", foreign_key: :referred_by_id, dependent: :nullify
   belongs_to :referred_by, class_name: "User", optional: true
   belongs_to :affiliate_approved_by, class_name: "User", optional: true
 
