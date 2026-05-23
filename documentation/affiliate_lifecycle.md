@@ -14,7 +14,7 @@ sequenceDiagram
   participant Visitor
 
   rect rgb(245,245,245)
-  Note over Admin,User: Invitation  Application  Approval/Reject
+  Note over Admin,User: Invitation - Application - Approval/Reject
   Admin->>Invite: create (console)\nstatus=pending
   Invite->>App: invitation_token
   Candidate->>App: GET /affiliate/invitations/:token
@@ -48,7 +48,7 @@ sequenceDiagram
   end
 
   rect rgb(245,245,245)
-  Note over Affiliate,User: Referral capture  Attribution
+  Note over Affiliate,User: Referral capture - Attribution
   Affiliate->>Visitor: share referral URL (?ref=token)
   Visitor->>App: GET /?ref=token
   App->>User: find_referrer_by_token

@@ -16,14 +16,8 @@ class SessionsController < ApplicationController
       return
     end
 
-    user = User.find_by(email_address: email_address)
-    created = false
-
-    unless user
-      user = User.new(email_address: email_address)
-      created = true
-      user.save!
-    end
+    user = User.find_or_create_by!(email_address: email_address)
+    created = user.previously_new_record?
 
     session.delete(:affiliate_referral_token) if created
     MagicLinkMailer.sign_in(user).deliver_later
@@ -67,6 +61,10 @@ class SessionsController < ApplicationController
 
       if invitation.accept!(user)
         flash[:info] = "Invitation accepted. You can complete your affiliate application."
+      elsif invitation.revoked?
+        flash[:alert] = "That invitation has been revoked."
+      elsif invitation.expired?
+        flash[:alert] = "That invitation has expired."
       else
         flash[:alert] = "That invitation does not match your email address."
       end

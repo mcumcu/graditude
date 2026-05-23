@@ -56,8 +56,6 @@ Rails.application.configure do
 
   app_url = ENV["APP_URL"].presence
 
-  puts "APP_URL: #{app_url}"
-
   if app_url
     app_url = "https://#{app_url}" unless app_url.include?("://")
     parsed_url = URI.parse(app_url)

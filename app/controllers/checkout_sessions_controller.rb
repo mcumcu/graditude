@@ -153,13 +153,14 @@ class CheckoutSessionsController < ApplicationController
     if item[:price_id].present?
       stripe_price = Price.find_or_create_by!(stripe_price_id: item[:price_id]).stripe_price_data
       product = Product.find(item[:product_id])
-      product_data = product.stripe_product_data.slice(
+      product_data = (product.stripe_product_data || {}).slice(
         "name",
         "description",
         "metadata",
         "tax_code",
         "images"
       ).compact
+      product_data["images"] = [ checkout_item_image_url(item[:certificate_template]) ]
 
       price_data = stripe_price.slice(
         "currency",
@@ -173,14 +174,9 @@ class CheckoutSessionsController < ApplicationController
         price_data["unit_amount"] = stripe_price["unit_amount"]
       end
 
-      puts item[:certificate_template]
-      puts checkout_item_image_url(item[:certificate_template])
-
       {
         price_data: price_data.deep_symbolize_keys.merge(
-          product_data: product_data.merge(
-            images: [ checkout_item_image_url(item[:certificate_template]) ]
-          )
+          product_data: product_data.deep_symbolize_keys
         ),
         quantity: item[:quantity]
       }
