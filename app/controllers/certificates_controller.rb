@@ -10,12 +10,16 @@ class CertificatesController < ApplicationController
   # GET /certificates or /certificates.json
   def index
     @certificates = Certificate.where(user: Current.user)
+
+    redirect_to certificate_path(@certificates.first) if @certificates.count == 1
   end
 
   # GET /certificates/1 or /certificates/1.json
   def show
     @products = Product.for_certificate_template(@certificate.template)
-    @cart_product_ids = Current.user.open_cart&.certificate_products&.where(certificate_id: @certificate.id)&.pluck(:product_id) || []
+    cart_items = Current.user.open_cart&.certificate_products&.where(certificate_id: @certificate.id)
+    @cart_product_ids = cart_items&.pluck(:product_id) || []
+    @cart_items_by_product_id = cart_items&.pluck(:product_id, :id)&.to_h || {}
   end
 
   # GET /certificates/new

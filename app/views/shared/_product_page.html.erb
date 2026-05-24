@@ -7,33 +7,37 @@
 <% price_label = local_assigns.fetch(:price_label, price_label_for(products)) %>
 <% show_details = local_assigns.fetch(:show_details, true) %>
 
-<main>
-  <div class="mx-auto max-w-7xl px-4 pt-16 pb-24 sm:px-6 lg:grid lg:grid-cols-2 lg:gap-x-10 lg:px-8">
-    <div class="lg:max-w-lg lg:self-end">
+<main class="mx-auto w-full max-w-7xl px-4 lg-px-12 py-4">
+  <%= render "shared/flash_messages" %>
+
+  <div class="w-full lg:grid lg:grid-cols-2 lg:gap-x-10 space-y-10">
+    <div class="lg:self-end gap-4 flex flex-col">
       <nav aria-label="Breadcrumb">
         <ol role="list" class="flex items-center space-x-2 text-sm text-content-muted">
           <li>
             <div class="flex items-center">
-              <%= link_to "Home", root_path, class: "font-medium text-content-muted hover:text-primary" %>
+              <%= link_to "Graditude", root_path, class: "font-medium text-content-muted hover:text-primary" %>
               <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="ml-2 size-5 shrink-0 text-content-muted">
                 <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
               </svg>
             </div>
           </li>
+
           <li>
             <div class="flex items-center">
-              <%= link_to "Certificate gift", product_path, class: "font-medium text-content-muted hover:text-primary" %>
+              <%= link_to controller_name.humanize, (@certificate ? certificate_path(@certificate) : product_path), class: "font-medium text-content-muted hover:text-primary" %>
             </div>
           </li>
         </ol>
       </nav>
 
-      <div class="mt-4">
-        <p class="text-xs uppercase tracking-[0.3em] text-content-muted"><%= eyebrow %></p>
+      <div>
+        <p class="text-sm uppercase tracking-[0.3em] text-content-muted"><%= eyebrow %></p>
+
         <h1 class="mt-4 text-3xl font-bold tracking-tight text-primary sm:text-4xl"><%= heading %></h1>
       </div>
 
-      <section aria-labelledby="information-heading" class="mt-4">
+      <section aria-labelledby="information-heading">
         <h2 id="information-heading" class="sr-only">Product information</h2>
 
         <div class="flex flex-wrap items-center gap-4">
@@ -59,23 +63,20 @@
             Personalize the names, degree, and message, then choose a framed or unframed finish that fits your gifting moment.
           </p>
         </div>
-
-        <div class="mt-6 flex items-center">
-          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5 shrink-0 text-success">
-            <path d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" fill-rule="evenodd" />
-          </svg>
-          <p class="ml-2 text-sm text-content-muted">In stock and ready to ship</p>
-        </div>
       </section>
     </div>
 
-    <div class="mt-10 lg:col-start-2 lg:row-span-2 lg:mt-0 lg:self-center">
+    <div class="lg:col-start-2 lg:row-span-2 lg:mt-0 lg:self-center">
       <div class="rounded-2xl border border-primary/10 bg-background-secondary p-6 shadow-lg">
         <%= image_html %>
       </div>
+
+      <div class="mt-8">
+        <%= render partial: "action_buttons", locals: {certificate: @certificate, show_edit: true} %>
+      </div>
     </div>
 
-    <div class="mt-10 lg:col-start-1 lg:row-start-2 lg:max-w-lg lg:self-start">
+    <div class="lg:col-start-1 lg:row-start-2 lg:self-start">
       <%= options_html %>
     </div>
   </div>

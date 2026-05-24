@@ -1,15 +1,23 @@
 <div data-controller="visibility">
   <%= render "form_modal", certificate: certificate, close_path: certificate_path(certificate) %>
 
-  <div class="flex flex-col md:flex-row justify-center gap-8 p-8 md:p-0" data-visibility-target="hideable">
+  <div class="flex flex-col gap-4 py-4 md:flex-row md:items-center md:gap-4 md:py-0" data-visibility-target="hideable">
     <% if show_edit %>
-      <button command="show-modal" commandfor="certificate-form" class="w-full min-w-48 text-background dark:text-background lg:w-auto text-center rounded-full px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium hover:cursor-pointer">Edit</button>
+      <div class="w-full md:flex-1">
+        <button command="show-modal" commandfor="certificate-form" class="w-full text-background dark:text-background text-center rounded-full px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium hover:cursor-pointer">Edit</button>
+      </div>
     <% end %>
 
-    <%= link_to "New", product_path, class: "w-full min-w-48 text-background dark:text-background lg:w-auto text-center rounded-full px-3 py-2 bg-secondary/80 hover:bg-secondary inline-block font-medium" %>
+    <div class="w-full md:flex-1">
+      <%= link_to "New", product_path, class: "w-full text-background dark:text-background text-center rounded-full px-3 py-2 bg-secondary/80 hover:bg-secondary inline-block font-medium" %>
+    </div>
 
     <% unless certificate_in_cart?(certificate) %>
-      <%= button_to "✖︎ Delete", certificate, method: :delete, class: "w-full min-w-48 text-background dark:text-background lg:w-auto text-center rounded-full px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium hover:cursor-pointer", data: { turbo_confirm: "Are you sure?" } %>
+      <%= button_to "✖︎ Delete", certificate,
+        method: :delete,
+        class: "w-full text-background dark:text-background text-center rounded-full px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium hover:cursor-pointer",
+        form: { class: "w-full md:flex-1" },
+        data: { turbo_confirm: "Are you sure?" } %>
     <% end %>
   </div>
 </div>

@@ -1,0 +1,22 @@
+<%= turbo_stream.replace "flash-messages" do %>
+  <%= render "shared/flash_messages" %>
+<% end %>
+
+<%= turbo_stream.replace "cart-nav-desktop" do %>
+  <%= render "landing/cart_nav_link", mobile: false %>
+<% end %>
+
+<%= turbo_stream.replace "cart-nav-mobile" do %>
+  <%= render "landing/cart_nav_link", mobile: true %>
+<% end %>
+
+<% Array(@products).each do |product| %>
+  <%= turbo_stream.replace "product-card-#{product.id}" do %>
+    <%= render "shared/format_card",
+      product: product,
+      input_name: @input_name,
+      preferred_format: @preferred_format,
+      cart_product_ids: @cart_product_ids,
+      cart_items_by_product_id: @cart_items_by_product_id %>
+  <% end %>
+<% end %>

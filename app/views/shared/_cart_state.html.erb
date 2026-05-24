@@ -1,0 +1,6 @@
+<% cart_state_token = local_assigns.fetch(:cart_state_token) %>
+
+<div
+  id="cart-state"
+  data-controller="cart-state"
+  data-cart-state-token-value="<%= cart_state_token %>"></div>

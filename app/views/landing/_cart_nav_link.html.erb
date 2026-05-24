@@ -1,0 +1,17 @@
+<% mobile = local_assigns.fetch(:mobile, false) %>
+<% link_class = local_assigns.fetch(:link_class, navbar_link_class(mobile: mobile)) %>
+<% container_id = mobile ? "cart-nav-mobile" : "cart-nav-desktop" %>
+
+<% hidden_class = cart_items_count.positive? ? nil : "hidden" %>
+<% animation_class = cart_items_count.positive? ? "opacity-0 motion-safe:transition-opacity motion-safe:duration-200 motion-safe:ease-out" : nil %>
+<% data_attrs = cart_items_count.positive? ? { controller: "fade-in" } : {} %>
+
+<%= link_to cart_path,
+  id: container_id,
+  class: [link_class, hidden_class, animation_class].compact.join(" "),
+  data: data_attrs do %>
+  <span>Cart</span>
+  <span class="ml-2 inline-flex items-center rounded-full bg-content-muted px-2.5 py-0.5 text-sm font-bold text-white">
+    <%= cart_items_count %>
+  </span>
+<% end %>

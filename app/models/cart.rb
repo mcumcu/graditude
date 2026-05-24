@@ -44,6 +44,12 @@ class Cart < ApplicationRecord
     certificate_products.includes(:product).sum { |item| item.total_cents }
   end
 
+  def state_token
+    latest_item_update = certificate_products.maximum(:updated_at)&.to_i || 0
+    items_count = certificate_products.count
+    "#{id}-#{items_count}-#{latest_item_update}"
+  end
+
   def complete_order!(checkout_session)
     transaction do
       update!(status: :completed)
