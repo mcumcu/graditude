@@ -22,6 +22,10 @@ Rails.application.routes.draw do
   get "session/authenticate/*token" => "sessions#authenticate", as: :authenticate_session
   resources :passwords, param: :token
 
+  resource :affiliate, only: [ :show ]
+  resource :affiliate_application, only: [ :new, :create, :show ]
+  get "affiliate/invitations/:token" => "affiliate_invitations#show", as: :affiliate_invitation
+
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check

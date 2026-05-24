@@ -1,0 +1,54 @@
+<%
+  close_path = local_assigns[:close_path]
+  close_action = modal_close_action(close_path)
+%>
+
+<%= form_with(model: application, url: affiliate_application_path, class: "contents flex flex-col gap-6") do |form| %>
+  <% if application.errors.any? %>
+    <div id="error_explanation" 
+      class="transition-opacity duration-500 ease-out py-2 px-4 bg-error mb-6 text-background text-lg rounded-full w-full inline-block shadow-sm"
+    >
+      <h2><%= pluralize(application.errors.count, "error") %> prohibited this application from being submitted:</h2>
+
+      <ul class="list-disc ml-6">
+        <% application.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= render "shared/field_row",
+    form: form,
+    attribute: :display_name,
+    label_text: "Display name",
+    field_html: form.text_field(:display_name, class: form_input_classes(application, :display_name), placeholder: "How should we address you?") %>
+
+  <%= render "shared/field_row",
+    form: form,
+    attribute: :audience,
+    label_text: "Audience",
+    field_html: form.text_area(:audience, class: "h-28 #{form_input_classes(application, :audience)}", placeholder: "Who do you plan to share your referral link with?") %>
+
+  <%= render "shared/field_row",
+    form: form,
+    attribute: :promotion_method,
+    label_text: "Promotion method",
+    field_html: form.text_area(:promotion_method, class: "h-28 #{form_input_classes(application, :promotion_method)}", placeholder: "How will you promote the program?") %>
+
+  <%= render "shared/field_row",
+    form: form,
+    attribute: :notes,
+    label_text: "Notes",
+    field_html: form.text_area(:notes, class: "h-28 #{form_input_classes(application, :notes)}", placeholder: "Anything else we should know? (optional)"),
+    hint: "Optional"
+  %>
+
+  <div class="flex flex-col md:flex-row justify-center gap-8 my-8 text-background dark:text-background">
+    <%= form.submit "Submit application", class: "w-full min-w-48 sm:w-auto text-center rounded-md px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium cursor-pointer" %>
+
+    <% if close_action %>
+      <button type="button" onclick="<%= close_action %>" class="w-full min-w-48 text-background dark:text-background sm:w-auto text-center rounded-md px-3 py-2 bg-secondary/80 hover:bg-secondary inline-block font-medium">Close</button>
+    <% end %>
+  </div>
+<% end %>

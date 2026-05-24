@@ -151,11 +151,37 @@ class CheckoutSessionsController < ApplicationController
 
   def build_checkout_line_item(item)
     if item[:price_id].present?
+      stripe_price = Price.find_or_create_by!(stripe_price_id: item[:price_id]).stripe_price_data
+      product = Product.find(item[:product_id])
+      product_data = (product.stripe_product_data || {}).slice(
+        "name",
+        "description",
+        "metadata",
+        "tax_code",
+        "images"
+      ).compact
+      product_data["images"] = [ checkout_item_image_url(item[:certificate_template]) ]
+
+      price_data = stripe_price.slice(
+        "currency",
+        "recurring",
+        "tax_behavior"
+      ).compact
+
+      if stripe_price["unit_amount_decimal"].present?
+        price_data["unit_amount_decimal"] = stripe_price["unit_amount_decimal"]
+      elsif stripe_price["unit_amount"].present?
+        price_data["unit_amount"] = stripe_price["unit_amount"]
+      end
+
       {
-        price: item[:price_id],
+        price_data: price_data.deep_symbolize_keys.merge(
+          product_data: product_data.deep_symbolize_keys
+        ),
         quantity: item[:quantity]
       }
     else
+      # this branch should be deprecated in favor of pre-configured Stripe Price IDs
       {
         price_data: {
           currency: item[:currency],

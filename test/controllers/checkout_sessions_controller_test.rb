@@ -91,9 +91,11 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
       assert_includes called_with[:cancel_url], "/checkout/cancel?session_id={CHECKOUT_SESSION_ID}"
 
       first_line_item = called_with[:line_items].first
-      assert_equal "price_test", first_line_item[:price]
+      assert_nil first_line_item[:price]
       assert_equal 2, first_line_item[:quantity]
-      assert_nil first_line_item[:price_data]
+      assert_equal "usd", first_line_item[:price_data][:currency]
+      assert_equal 3000, first_line_item[:price_data][:unit_amount]
+      assert_match %r{\Ahttp://www.example.com/assets/.*\.png\z}, first_line_item[:price_data][:product_data][:images].first
 
       assert_equal "cs_test", JSON.parse(response.body)["sessionId"]
       assert_equal "https://checkout.test/session/cs_test", JSON.parse(response.body)["url"]

@@ -118,3 +118,23 @@ To run the checkout controller tests:
 bundle exec rails test test/controllers/checkout_sessions_controller_test.rb
 ```
 
+## Affiliate Invitations (Fly)
+
+Lifecycle diagram: [documentation/affiliate_lifecycle.md](documentation/affiliate_lifecycle.md).
+
+Send an affiliate invitation email via Fly (replace the email as needed):
+
+```bash
+fly console -a graditude-polished-fog-4608 -C "/rails/bin/rails runner 'inv = AffiliateInvitation.create!(email_address: %q(mcu@mac.com)); AffiliateInvitationMailer.invite(inv).deliver_now'"
+```
+
+Interactive console option:
+
+```bash
+fly console -a graditude-polished-fog-4608
+```
+
+```ruby
+inv = AffiliateInvitation.create!(email_address: "info@example.com")
+AffiliateInvitationMailer.invite(inv).deliver_later
+```
