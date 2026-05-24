@@ -6,6 +6,8 @@
       <button command="show-modal" commandfor="certificate-form" class="w-full min-w-48 text-background dark:text-background lg:w-auto text-center rounded-full px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium hover:cursor-pointer">Edit</button>
     <% end %>
 
+    <%= link_to "New", product_path, class: "w-full min-w-48 text-background dark:text-background lg:w-auto text-center rounded-full px-3 py-2 bg-secondary/80 hover:bg-secondary inline-block font-medium" %>
+
     <% unless certificate_in_cart?(certificate) %>
       <%= button_to "✖︎ Delete", certificate, method: :delete, class: "w-full min-w-48 text-background dark:text-background lg:w-auto text-center rounded-full px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium hover:cursor-pointer", data: { turbo_confirm: "Are you sure?" } %>
     <% end %>

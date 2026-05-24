@@ -1,0 +1,84 @@
+<% content_for :title, "Graditude Certificates" %>
+
+<% preferred_format = @preferred_format.presence %>
+<% certificates = Current.user ? Current.user.certificates.limit(2).to_a : [] %>
+<% certificate_count = certificates.length %>
+<% single_certificate = certificate_count == 1 ? certificates.first : nil %>
+<% requires_selection = certificate_count == 1 %>
+<% cart_product_ids = if single_certificate
+                        Current.user.open_cart&.certificate_products&.where(certificate_id: single_certificate.id)&.pluck(:product_id) || []
+                      else
+                        []
+                      end %>
+<% form_url = if certificate_count == 1
+                cart_items_path
+              elsif certificate_count > 1
+                certificates_path
+              else
+                new_certificate_path
+              end %>
+<% form_method = certificate_count == 1 ? :post : :get %>
+<% input_name = certificate_count == 1 ? :product_id : :preferred_format %>
+
+<% image_html = capture do %>
+  <%= image_tag "#{@template}.png", alt: "Graditude certificate preview", class: "aspect-square w-full rounded-xl object-contain" %>
+<% end %>
+
+<% options_html = capture do %>
+  <section aria-labelledby="options-heading">
+    <h2 id="options-heading" class="sr-only">Certificate options</h2>
+
+    <%= form_with url: form_url,
+                  method: form_method,
+                  class: "space-y-6",
+                  data: { controller: "format-selector", format_selector_requires_selection_value: requires_selection } do %>
+      <% if single_certificate %>
+        <%= hidden_field_tag :certificate_id, single_certificate.id %>
+      <% end %>
+      <fieldset>
+        <legend class="text-sm font-medium text-content">Choose a format</legend>
+        <% if @products.any? %>
+          <%= render "shared/format_cards",
+            products: @products,
+            input_name: input_name,
+            preferred_format: preferred_format,
+            cart_product_ids: cart_product_ids %>
+        <% else %>
+          <div class="mt-3 rounded-xl border border-primary/10 bg-background-secondary p-4 text-sm text-content-muted">
+            Product options are being prepared. Please check back soon.
+          </div>
+        <% end %>
+      </fieldset>
+
+      <div class="space-y-3">
+        <% if certificate_count == 1 %>
+          <%= submit_tag "Add to cart",
+            class: "flex w-full items-center justify-center rounded-full bg-primary px-8 py-3 text-base font-semibold text-background shadow-sm transition hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed",
+            data: { format_selector_target: "submit" },
+            disabled: preferred_format.blank? %>
+          <p class="text-sm text-content-muted">
+            We will add your saved certificate to the cart with the selected format.
+          </p>
+        <% elsif certificate_count > 1 %>
+          <%= link_to "Show my certificates", certificates_path, class: "flex w-full items-center justify-center rounded-full bg-primary px-8 py-3 text-base font-semibold text-background shadow-sm transition hover:bg-primary/80" %>
+          <p class="text-sm text-content-muted">
+            Choose the certificate you want to add before checkout.
+          </p>
+        <% else %>
+          <% button_label = Current.user ? "Customize your certificate" : "Sign in to customize" %>
+          <%= submit_tag button_label, class: "flex w-full items-center justify-center rounded-full bg-primary px-8 py-3 text-base font-semibold text-background shadow-sm transition hover:bg-primary/80" %>
+          <p class="text-sm text-content-muted">
+            <%= Current.user ? "Next, you will personalize the certificate details." : "Sign in is required to save your certificate." %>
+          </p>
+        <% end %>
+        <%= link_to "See the fine details", "#details", class: "inline-flex text-sm font-semibold text-content-muted hover:text-primary" %>
+      </div>
+    <% end %>
+  </section>
+<% end %>
+
+<%= render "shared/product_page",
+  template: @template,
+  products: @products,
+  image_html: image_html,
+  options_html: options_html %>

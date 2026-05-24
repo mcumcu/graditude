@@ -4,6 +4,7 @@ class CertificatesController < ApplicationController
   rescue_from ActionController::ParameterMissing, with: :missing_certificate_params
 
   before_action :set_certificate, only: %i[ show edit update destroy preview ]
+  before_action :set_preferred_format, only: %i[ show new create edit ]
   before_action :options_for_nouns, only: %i[ index edit new create show ]
 
   # GET /certificates or /certificates.json
@@ -14,6 +15,7 @@ class CertificatesController < ApplicationController
   # GET /certificates/1 or /certificates/1.json
   def show
     @products = Product.for_certificate_template(@certificate.template)
+    @cart_product_ids = Current.user.open_cart&.certificate_products&.where(certificate_id: @certificate.id)&.pluck(:product_id) || []
   end
 
   # GET /certificates/new
@@ -37,7 +39,10 @@ class CertificatesController < ApplicationController
 
     respond_to do |format|
       if @certificate.save
-        format.html { redirect_to @certificate, notice: "Certificate for #{@certificate.honoree_name} was created" }
+        format.html do
+          redirect_to certificate_path(@certificate, preferred_format: @preferred_format),
+                      notice: "Certificate for #{@certificate.honoree_name} was created"
+        end
         format.json { render :show, status: :created, location: @certificate }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -120,5 +125,9 @@ class CertificatesController < ApplicationController
 
     def options_for_nouns
       @options_for_nouns ||= %w[Love Support Guidance Mentorship Patience]
+    end
+
+    def set_preferred_format
+      @preferred_format = params[:preferred_format].presence
     end
 end

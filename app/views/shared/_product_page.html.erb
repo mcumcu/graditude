@@ -1,0 +1,187 @@
+<% template_name = local_assigns[:template].presence || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder") %>
+<% products = local_assigns.fetch(:products, []) %>
+<% heading = local_assigns.fetch(:heading, "Graditude Certificate") %>
+<% eyebrow = local_assigns.fetch(:eyebrow, "Gift from the graduate") %>
+<% image_html = local_assigns.fetch(:image_html, "") %>
+<% options_html = local_assigns.fetch(:options_html, "") %>
+<% price_label = local_assigns.fetch(:price_label, price_label_for(products)) %>
+<% show_details = local_assigns.fetch(:show_details, true) %>
+
+<main>
+  <div class="mx-auto max-w-7xl px-4 pt-16 pb-24 sm:px-6 lg:grid lg:grid-cols-2 lg:gap-x-10 lg:px-8">
+    <div class="lg:max-w-lg lg:self-end">
+      <nav aria-label="Breadcrumb">
+        <ol role="list" class="flex items-center space-x-2 text-sm text-content-muted">
+          <li>
+            <div class="flex items-center">
+              <%= link_to "Home", root_path, class: "font-medium text-content-muted hover:text-primary" %>
+              <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="ml-2 size-5 shrink-0 text-content-muted">
+                <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
+              </svg>
+            </div>
+          </li>
+          <li>
+            <div class="flex items-center">
+              <%= link_to "Certificate gift", product_path, class: "font-medium text-content-muted hover:text-primary" %>
+            </div>
+          </li>
+        </ol>
+      </nav>
+
+      <div class="mt-4">
+        <p class="text-xs uppercase tracking-[0.3em] text-content-muted"><%= eyebrow %></p>
+        <h1 class="mt-4 text-3xl font-bold tracking-tight text-primary sm:text-4xl"><%= heading %></h1>
+      </div>
+
+      <section aria-labelledby="information-heading" class="mt-4">
+        <h2 id="information-heading" class="sr-only">Product information</h2>
+
+        <div class="flex flex-wrap items-center gap-4">
+          <p class="text-lg font-semibold text-primary sm:text-xl"><%= price_label %></p>
+
+          <div class="flex items-center gap-2 border-l border-primary/10 pl-4">
+            <div class="flex items-center text-primary/30">
+              <% 5.times do %>
+                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5 shrink-0">
+                  <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" fill-rule="evenodd" />
+                </svg>
+              <% end %>
+            </div>
+            <p class="text-sm text-content-muted">No reviews yet</p>
+          </div>
+        </div>
+
+        <div class="mt-4 space-y-4 text-base text-content">
+          <p>
+            A gratitude certificate from the graduate to the parents, mentors, coaches, and benefactors who helped them reach this moment.
+          </p>
+          <p>
+            Personalize the names, degree, and message, then choose a framed or unframed finish that fits your gifting moment.
+          </p>
+        </div>
+
+        <div class="mt-6 flex items-center">
+          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5 shrink-0 text-success">
+            <path d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" fill-rule="evenodd" />
+          </svg>
+          <p class="ml-2 text-sm text-content-muted">In stock and ready to ship</p>
+        </div>
+      </section>
+    </div>
+
+    <div class="mt-10 lg:col-start-2 lg:row-span-2 lg:mt-0 lg:self-center">
+      <div class="rounded-2xl border border-primary/10 bg-background-secondary p-6 shadow-lg">
+        <%= image_html %>
+      </div>
+    </div>
+
+    <div class="mt-10 lg:col-start-1 lg:row-start-2 lg:max-w-lg lg:self-start">
+      <%= options_html %>
+    </div>
+  </div>
+
+  <% if show_details %>
+    <div id="details" class="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
+      <section aria-labelledby="details-heading">
+        <div class="flex flex-col items-center text-center">
+          <h2 id="details-heading" class="text-3xl font-bold tracking-tight text-primary sm:text-4xl">The fine details</h2>
+          <p class="mt-3 max-w-3xl text-lg text-content">
+            Thoughtful typography, balanced layout, and a premium print finish make each certificate worthy of the people who supported the graduate.
+          </p>
+        </div>
+
+        <% detail_templates = Certificate::TEMPLATE_VALUES %>
+        <% detail_images = detail_templates.reject { |name| name == template_name } %>
+        <% detail_images = detail_images.presence || [template_name, template_name] %>
+        <div class="mt-16 grid grid-cols-1 gap-y-16 lg:grid-cols-2 lg:gap-x-8">
+          <div>
+            <%= image_tag "#{detail_images[0]}.png", alt: "Certificate layout detail", class: "aspect-3/2 w-full rounded-xl bg-background-secondary object-contain p-6" %>
+            <p class="mt-6 text-base text-content-muted">
+              Customize the graduate name, honoree, degree, and message to capture the exact gratitude that should be preserved.
+            </p>
+          </div>
+          <div>
+            <%= image_tag "#{detail_images[1]}.png", alt: "Certificate presentation detail", class: "aspect-3/2 w-full rounded-xl bg-background-secondary object-contain p-6" %>
+            <p class="mt-6 text-base text-content-muted">
+              Choose framed for a ready-to-display presentation or unframed for flexible gifting and future framing.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="policy-heading" class="mt-16 lg:mt-24">
+        <h2 id="policy-heading" class="sr-only">Our policies</h2>
+        <div class="grid grid-cols-1 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-x-8">
+          <div class="rounded-2xl border border-primary/10 bg-background-secondary p-5">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" class="h-10 w-10 text-primary/70">
+              <path d="M12 3 4 7v10l8 4 8-4V7l-8-4Z" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="m4 7 8 4 8-4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <h3 class="mt-4 text-base font-semibold text-primary">Premium print</h3>
+            <p class="mt-2 text-sm text-content-muted">Archival-quality printing with crisp typography and clean layout.</p>
+          </div>
+          <div class="rounded-2xl border border-primary/10 bg-background-secondary p-5">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" class="h-10 w-10 text-primary/70">
+              <path d="M3 12h18" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M7 12 3 8m4 4-4 4" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M21 12V8a4 4 0 0 0-4-4H7" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <h3 class="mt-4 text-base font-semibold text-primary">Reliable delivery</h3>
+            <p class="mt-2 text-sm text-content-muted">Trackable shipping with delivery updates to your inbox.</p>
+          </div>
+          <div class="rounded-2xl border border-primary/10 bg-background-secondary p-5">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" class="h-10 w-10 text-primary/70">
+              <path d="M12 22s7-4.5 7-10.5a7 7 0 1 0-14 0C5 17.5 12 22 12 22Z" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="m9 12 2 2 4-4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <h3 class="mt-4 text-base font-semibold text-primary">Support you can reach</h3>
+            <p class="mt-2 text-sm text-content-muted">Email support@thegraditude.com for any order questions.</p>
+          </div>
+          <div class="rounded-2xl border border-primary/10 bg-background-secondary p-5">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" class="h-10 w-10 text-primary/70">
+              <path d="M12 3v5m0 8v5" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M5 12h5m4 0h5" stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="12" cy="12" r="8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <h3 class="mt-4 text-base font-semibold text-primary">Thoughtful gifting</h3>
+            <p class="mt-2 text-sm text-content-muted">Designed to honor the people who supported the graduate.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section aria-labelledby="reviews-heading" class="bg-background-secondary/40">
+      <div class="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:grid lg:grid-cols-12 lg:gap-x-8 lg:px-8 lg:py-28">
+        <div class="lg:col-span-4">
+          <h2 id="reviews-heading" class="text-2xl font-bold tracking-tight text-primary">Customer reviews</h2>
+
+          <div class="mt-3 flex items-center">
+            <div class="flex items-center text-primary/30">
+              <% 5.times do %>
+                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-5 shrink-0">
+                  <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" fill-rule="evenodd" />
+                </svg>
+              <% end %>
+            </div>
+            <p class="ml-2 text-sm text-content-muted">No reviews yet</p>
+          </div>
+
+          <div class="mt-6 rounded-2xl border border-primary/10 bg-background-secondary p-6">
+            <h3 class="text-lg font-semibold text-primary">Be the first to share</h3>
+            <p class="mt-2 text-sm text-content-muted">
+              Your notes help other graduates choose the right way to say thank you.
+            </p>
+            <%= mail_to "support@thegraditude.com", "Email support", class: "mt-4 inline-flex items-center justify-center rounded-full border border-primary/20 px-4 py-2 text-sm font-semibold text-primary transition hover:border-primary/40" %>
+          </div>
+        </div>
+
+        <div class="mt-16 lg:col-span-7 lg:col-start-6 lg:mt-0">
+          <h3 class="sr-only">Recent notes</h3>
+          <div class="rounded-2xl border border-primary/10 bg-background-secondary p-10 text-center text-content-muted">
+            No reviews yet. Your certificate could be the first story we share.
+          </div>
+        </div>
+      </div>
+    </section>
+  <% end %>
+</main>

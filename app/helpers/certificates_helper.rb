@@ -20,6 +20,43 @@ module CertificatesHelper
     end
   end
 
+  def price_label_for(products)
+    priced_products = Array(products).select { |product| product.stripe_price_amount_cents.present? }
+    return "Pricing available at checkout" if priced_products.empty?
+
+    cheapest = priced_products.min_by(&:stripe_price_amount_cents)
+    formatted = formatted_stripe_price(cheapest)
+    return "Pricing available at checkout" unless formatted.present?
+
+    multiple_prices = priced_products.map(&:stripe_price_amount_cents).uniq.length > 1
+    multiple_prices ? "From #{formatted}" : formatted
+  end
+
+  def product_variant_label(product)
+    format = product_variant_format(product)
+    return "Framed" if format == "framed"
+    return "Unframed" if format == "unframed"
+
+    "Certificate"
+  end
+
+  def product_variant_format(product)
+    return if product.nil?
+
+    metadata = product.stripe_metadata.to_h.transform_keys { |key| key.to_s.downcase }
+    value = metadata["format"] || metadata["framed"] || metadata["frame"]
+    normalized = value.to_s.downcase
+
+    return "framed" if %w[framed frame true yes 1].include?(normalized)
+    return "unframed" if %w[unframed false no 0].include?(normalized)
+
+    name = [ product.title, product.description ].compact.join(" ").downcase
+    return "unframed" if name.include?("unframed") || name.include?("no frame")
+    return "framed" if name.include?("framed") || name.include?("frame")
+
+    nil
+  end
+
   def products_for_template(template)
     template_name = template.to_s.presence || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder")
     @products_for_template ||= {}

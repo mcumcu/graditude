@@ -1,0 +1,12 @@
+<% template_name = certificate.template.presence || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder") %>
+<% classes = local_assigns.fetch(:class, "aspect-square w-full rounded-xl") %>
+<% aria_label = local_assigns.fetch(:aria_label, "Certificate preview") %>
+
+<div
+  data-controller="preview"
+  data-preview-src-value="<%= preview_certificate_path(certificate) %>"
+  role="img"
+  aria-label="<%= aria_label %>"
+  style="background-image: url('<%= asset_path("#{template_name}.png") %>'); background-size: contain; background-position: center; background-repeat: no-repeat;"
+  class="<%= classes %>"
+></div>

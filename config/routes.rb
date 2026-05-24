@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   post "stripe/webhook" => "stripe_webhooks#receive"
   get "checkout/success" => "checkout_sessions#success", as: :checkout_success
   get "checkout/cancel" => "checkout_sessions#cancel", as: :checkout_cancel
+  get "product" => "products#show", as: :product
 
   resource :cart, only: [ :show ]
   resources :cart_items, only: [ :create, :destroy ]

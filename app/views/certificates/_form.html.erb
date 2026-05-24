@@ -4,6 +4,9 @@
 %>
 
 <%= form_with(model: certificate, class: "contents flex flex-col gap-6", data: { turbo: false }) do |form| %>
+  <% if @preferred_format.present? %>
+    <%= hidden_field_tag :preferred_format, @preferred_format %>
+  <% end %>
   <% if certificate.errors.any? %>
     <div id="error_explanation" class="bg-error/20 text-error px-3 py-2 font-medium rounded-md mt-3">
       <h2><%= pluralize(certificate.errors.count, "error") %> prohibited this certificate from being saved:</h2>
@@ -15,6 +18,10 @@
       </ul>
     </div>
   <% end %>
+
+  <p class="text-sm text-gray-600 dark:text-gray-300">
+    Next, you will see a preview and choose framed or unframed before adding to cart.
+  </p>
 
   <div class="flex flex-col lg:flex-row gap-4">
     <div class="flex flex-col w-full">
