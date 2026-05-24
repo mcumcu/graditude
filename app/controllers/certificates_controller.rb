@@ -78,7 +78,7 @@ class CertificatesController < ApplicationController
   def destroy
     if @certificate.destroy
       respond_to do |format|
-        format.html { redirect_to certificates_path, alert: "Certificate for #{@certificate.honoree_name} was deleted", status: :see_other }
+        format.html { redirect_to certificates_path, notice: "Certificate for #{@certificate.honoree_name} was deleted", status: :see_other }
         format.json { head :no_content }
       end
     else
