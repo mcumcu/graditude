@@ -10,8 +10,10 @@
   <%= render "landing/cart_nav_link", mobile: true %>
 <% end %>
 
-<%= turbo_stream.replace "cart-contents" do %>
-  <%= render "carts/cart_contents", cart: @cart %>
+<% if params[:source] == "cart" %>
+  <%= turbo_stream.replace "cart-contents" do %>
+    <%= render "carts/cart_contents", cart: @cart %>
+  <% end %>
 <% end %>
 
 <%= turbo_stream.replace "product-card-#{@product.id}" do %>
