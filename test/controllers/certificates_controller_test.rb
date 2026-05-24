@@ -16,13 +16,25 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
 
     assert_not_nil cookies["session_id"], "expected signed session cookie to be present after sign_in"
 
+    create_additional_certificate_for(users(:one), honoree_name: "Honoree Extra")
     get certificates_url
     assert_response :success
   end
 
   test "should get index" do
+    create_additional_certificate_for(users(:one), honoree_name: "Honoree Extra")
     get certificates_url
     assert_response :success
+  end
+
+  test "index only shows current user's certificates" do
+    create_additional_certificate_for(users(:one), honoree_name: "Honoree Extra")
+    get certificates_url
+    assert_response :success
+
+    assert_select "h3", text: "Honoree One"
+    assert_select "h3", text: "Honoree Extra"
+    assert_select "h3", text: "Honoree Two", count: 0
   end
 
   test "should get new" do
@@ -31,7 +43,7 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "div.fixed"
     assert_select "div.absolute"
-    assert_select "button[onclick=\"window.location='/certificates'\"]", text: "✖︎"
+    assert_select "a[aria-label='Close dialog'][href='#{certificates_path}']", text: "✖︎"
     assert_select "form[action=\"/certificates\"]"
   end
 
@@ -50,6 +62,23 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     new_certificate = Certificate.order(created_at: :desc).first
     assert_redirected_to certificate_url(new_certificate)
     assert_equal @certificate.user_id, new_certificate.user_id
+  end
+
+  test "should create certificate with preferred format" do
+    assert_difference("Certificate.count") do
+      post certificates_url, params: {
+        preferred_format: "pdf",
+        certificate: {
+          graduate_name: "Preferred Grad",
+          honoree_name: "Preferred Honoree",
+          degree: "Bachelor of Arts",
+          presented_on: "2026-05-15"
+        }
+      }
+    end
+
+    new_certificate = Certificate.order(created_at: :desc).first
+    assert_redirected_to certificate_url(new_certificate, preferred_format: "pdf")
   end
 
   test "should return bad request when certificate params are missing" do
@@ -119,7 +148,7 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :success
-    assert_select "button", text: "✖︎ Delete", count: 0
+    assert_select "button[disabled]", text: "Delete", count: 1
   end
 
   test "should not destroy certificate when it is in cart" do
@@ -140,7 +169,7 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to certificate_url(@certificate)
-    assert_equal "Cannot delete this certificate while it is associated with a cart item.", flash[:alert]
+    assert_equal "Remove this certificate from your cart before deleting it.", flash[:alert]
   end
 
   test "should show already in cart link when certificate is already in cart" do
@@ -177,8 +206,8 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :success
-    assert_select "a[href='#{cart_path}']", text: "Already in cart"
-    assert_select "form[action='#{cart_items_path}']", 0
+    assert_select "a[title='Remove from cart']", count: 1
+    assert_select "input[name='product_id']", 0
   end
 
   test "should render multiple products with independent cart state" do
@@ -225,10 +254,8 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     get certificate_url(@certificate)
 
     assert_response :success
-    assert_select "div.flex.flex-row.justify-between.items-center.gap-8.w-full", 2
-    assert_match %r{Boulder Standard.*\$25\.00}m, response.body
-    assert_match %r{Boulder Premium.*\$30\.00}m, response.body
-    assert_select "a[href='#{cart_path}']", text: "Already in cart", minimum: 1
+    assert_select "[data-product-card]", 2
+    assert_select "a[title='Remove from cart']", count: 1
     assert_select "input[name='product_id'][value='#{product_two.id}']", 1
     assert_select "input[name='product_id'][value='#{product_one.id}']", 0
   ensure
@@ -241,7 +268,7 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "div.fixed"
     assert_select "div.absolute"
-    assert_select "button[onclick=\"window.location='#{certificate_path(@certificate)}'\"]", text: "✖︎"
+    assert_select "a[aria-label='Close dialog'][href='#{certificate_path(@certificate)}']", text: "✖︎"
     assert_select "form[action=\"/certificates/#{@certificate.id}\"]"
   end
 
@@ -253,11 +280,59 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Updated Grad", @certificate.graduate_name
   end
 
+  test "should not set notice when certificate update has no changes" do
+    patch certificate_url(@certificate), params: { certificate: { graduate_name: @certificate.graduate_name } }
+
+    assert_redirected_to certificate_url(@certificate)
+    assert_nil flash[:notice]
+  end
+
   test "should return inline preview data url" do
     get preview_certificate_url(@certificate)
 
     assert_response :success
     assert_match %r{\Aurl\('data:image/png;base64,[A-Za-z0-9+/]+=*'\)\z}, @response.body
+  end
+
+  test "should return not found when preview is unavailable" do
+    CertificatesController.class_eval do
+      alias_method :original_rerender_png_data_url_for_test, :rerender_png_data_url
+
+      def rerender_png_data_url
+        nil
+      end
+    end
+
+    get preview_certificate_url(@certificate)
+
+    assert_response :not_found
+  ensure
+    CertificatesController.class_eval do
+      if method_defined?(:original_rerender_png_data_url_for_test)
+        alias_method :rerender_png_data_url, :original_rerender_png_data_url_for_test
+        remove_method :original_rerender_png_data_url_for_test
+      end
+    end
+  end
+
+  test "should return json error when certificate is in cart" do
+    cart = Cart.open_for(users(:one))
+    product = Product.create!(stripe_product_id: "prod_delete_json")
+
+    CertificateProduct.create!(
+      cart: cart,
+      certificate: @certificate,
+      product: product,
+      stripe_price_id: "price_delete_json",
+      quantity: 1,
+      status: "pending"
+    )
+
+    delete certificate_url(@certificate, format: :json)
+
+    assert_response :unprocessable_entity
+    payload = JSON.parse(response.body)
+    assert_equal "Remove this certificate from your cart before deleting it.", payload["error"]
   end
 
   test "should destroy certificate" do
@@ -266,5 +341,24 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to certificates_url
+  end
+
+  test "should destroy certificate with json response" do
+    delete certificate_url(@certificate, format: :json)
+
+    assert_response :no_content
+    assert_equal "", response.body
+  end
+
+  private
+
+  def create_additional_certificate_for(user, honoree_name: "Honoree Extra")
+    Certificate.create!(
+      user: user,
+      graduate_name: "Extra Graduate",
+      honoree_name: honoree_name,
+      degree: "Bachelor of Arts",
+      presented_on: "2026-05-15"
+    )
   end
 end

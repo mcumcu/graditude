@@ -4,16 +4,22 @@ class CertificatesController < ApplicationController
   rescue_from ActionController::ParameterMissing, with: :missing_certificate_params
 
   before_action :set_certificate, only: %i[ show edit update destroy preview ]
+  before_action :set_preferred_format, only: %i[ show new create edit ]
   before_action :options_for_nouns, only: %i[ index edit new create show ]
 
   # GET /certificates or /certificates.json
   def index
     @certificates = Certificate.where(user: Current.user)
+
+    redirect_to certificate_path(@certificates.first) if @certificates.count == 1
   end
 
   # GET /certificates/1 or /certificates/1.json
   def show
     @products = Product.for_certificate_template(@certificate.template)
+    cart_items = Current.user.open_cart&.certificate_products&.where(certificate_id: @certificate.id)
+    @cart_product_ids = cart_items&.pluck(:product_id) || []
+    @cart_items_by_product_id = cart_items&.pluck(:product_id, :id)&.to_h || {}
   end
 
   # GET /certificates/new
@@ -37,7 +43,10 @@ class CertificatesController < ApplicationController
 
     respond_to do |format|
       if @certificate.save
-        format.html { redirect_to @certificate, notice: "Certificate for #{@certificate.honoree_name} was created" }
+        format.html do
+          redirect_to certificate_path(@certificate, preferred_format: @preferred_format),
+                      notice: "Certificate for #{@certificate.honoree_name} was created"
+        end
         format.json { render :show, status: :created, location: @certificate }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -67,19 +76,17 @@ class CertificatesController < ApplicationController
 
   # DELETE /certificates/1 or /certificates/1.json
   def destroy
-    if @certificate.certificate_products.exists?
+    if @certificate.destroy
       respond_to do |format|
-        format.html { redirect_to certificate_path(@certificate), alert: "Cannot delete this certificate while it is associated with a cart item." }
-        format.json { render json: { error: "Cannot delete certificate while it is in the cart." }, status: :unprocessable_entity }
+        format.html { redirect_to certificates_path, notice: "Certificate for #{@certificate.honoree_name} was deleted", status: :see_other }
+        format.json { head :no_content }
       end
-      return
-    end
-
-    @certificate.destroy!
-
-    respond_to do |format|
-      format.html { redirect_to certificates_path, alert: "Certificate for #{@certificate.honoree_name} was deleted", status: :see_other }
-      format.json { head :no_content }
+    else
+      message = @certificate.errors.full_messages.to_sentence.presence || "Unable to delete this certificate."
+      respond_to do |format|
+        format.html { redirect_to certificate_path(@certificate), alert: message }
+        format.json { render json: { error: message }, status: :unprocessable_entity }
+      end
     end
   end
 
@@ -120,5 +127,9 @@ class CertificatesController < ApplicationController
 
     def options_for_nouns
       @options_for_nouns ||= %w[Love Support Guidance Mentorship Patience]
+    end
+
+    def set_preferred_format
+      @preferred_format = params[:preferred_format].presence
     end
 end

@@ -1,0 +1,74 @@
+<% product = local_assigns.fetch(:product) %>
+<% input_name = local_assigns.fetch(:input_name, :preferred_format).to_sym %>
+<% preferred_format = local_assigns[:preferred_format] %>
+<% cart_product_ids = Array(local_assigns.fetch(:cart_product_ids, [])) %>
+<% cart_items_by_product_id = local_assigns.fetch(:cart_items_by_product_id, {}) %>
+<% cart_items_count = local_assigns.fetch(:cart_items_count, 0) %>
+<% form_id = local_assigns[:form_id] %>
+
+<% label = product_variant_label(product) %>
+<% format_value = product_variant_format(product) || label.to_s.downcase %>
+<%
+  option_value = if input_name == :product_id
+    product.id
+  else
+    format_value.presence || "format-#{product.id}"
+  end
+%>
+<% matches_preference = preferred_format.present? && [option_value.to_s, format_value.to_s, "format-#{product.id}"].include?(preferred_format.to_s) %>
+<% checked = matches_preference %>
+<% in_cart = cart_product_ids.include?(product.id) %>
+<% card_classes = in_cart ? "border-success/40 opacity-50" : "border-primary/10 hover:border-primary/30" %>
+<% frame_id = "product-card-#{product.id}" %>
+<% cart_item_id = cart_items_by_product_id[product.id] %>
+<% multi_select = local_assigns.fetch(:multi_select, false) %>
+<% input_action = multi_select ? "change->format-selector#update" : "click->format-selector#toggle change->format-selector#update" %>
+<% single_item = cart_items_count.to_i == 1 %>
+
+<%= turbo_frame_tag frame_id, class: "block w-full opacity-0 transition-opacity duration-200", data: { controller: "fade-in", product_card: true } do %>
+  <% if in_cart %>
+    <div class="group relative flex h-full w-full rounded-xl border bg-background-secondary p-4 shadow-sm transition <%= card_classes %>">
+      <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="absolute right-3 top-3 size-6 text-success">
+        <path d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" fill-rule="evenodd" />
+      </svg>
+      <div class="flex flex-1 flex-col">
+        <span class="block text-base font-semibold text-primary"><%= label %></span>
+        <span class="mt-1 block text-sm text-content-muted"><%= product.description.presence || "A premium Graditude certificate ready to gift." %></span>
+        <div class="mt-auto flex items-center justify-end gap-2">
+          <% if cart_item_id.present? %>
+            <%= render "shared/minus_icon_button",
+              path: cart_item_path(cart_item_id, input_name: input_name, preferred_format: preferred_format),
+              turbo_frame: (single_item ? "_top" : frame_id),
+              turbo_stream: !single_item %>
+          <% end %>
+          <span class="text-right text-base font-semibold text-primary"><%= formatted_stripe_price(product) || "Pricing unavailable" %></span>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <label class="group relative flex h-full w-full cursor-pointer rounded-xl border bg-background-secondary p-4 shadow-sm transition <%= card_classes %>">
+      <% if multi_select %>
+        <%= check_box_tag "product_ids[]", product.id, checked, form: form_id, class: "peer sr-only", data: { format_selector_target: "input", action: input_action } %>
+      <% else %>
+        <%= radio_button_tag input_name, option_value, checked, form: form_id, class: "peer sr-only", data: { format_selector_target: "input", action: input_action } %>
+      <% end %>
+      <%# gray plus sign %>
+      <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="absolute right-3 top-3 size-6 text-primary/30 peer-checked:invisible">
+        <path d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z" clip-rule="evenodd" fill-rule="evenodd" />
+      </svg>
+
+      <%# green check mark %>
+      <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="absolute right-3 top-3 invisible size-6 text-primary/50 peer-checked:visible">
+        <path d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" fill-rule="evenodd" />
+      </svg>
+
+      <div class="flex flex-1 flex-col">
+        <span class="block text-base font-semibold text-primary"><%= label %></span>
+        <span class="mt-1 block text-sm text-content-muted"><%= product.description.presence || "Museum-grade print and ready-to-gift presentation." %></span>
+        <span class="mt-auto block text-right text-base font-semibold text-primary"><%= formatted_stripe_price(product) || "Pricing available" %></span>
+      </div>
+
+      <span class="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-transparent peer-checked:ring-primary/40"></span>
+    </label>
+  <% end %>
+<% end %>

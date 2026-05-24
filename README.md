@@ -125,7 +125,7 @@ Lifecycle diagram: [documentation/affiliate_lifecycle.md](documentation/affiliat
 Send an affiliate invitation email via Fly (replace the email as needed):
 
 ```bash
-fly console -a graditude-polished-fog-4608 -C "/rails/bin/rails runner 'inv = AffiliateInvitation.create!(email_address: %q(mcu@mac.com)); AffiliateInvitationMailer.invite(inv).deliver_now'"
+fly console -a graditude-polished-fog-4608 -C "/rails/bin/rails runner 'inv = AffiliateInvitation.create!(email_address: %q(info@thegraditude.com)); AffiliateInvitationMailer.invite(inv).deliver_now'"
 ```
 
 Interactive console option:
@@ -135,6 +135,6 @@ fly console -a graditude-polished-fog-4608
 ```
 
 ```ruby
-inv = AffiliateInvitation.create!(email_address: "info@example.com")
+inv = AffiliateInvitation.create!(email_address: "info@thegraditude.com")
 AffiliateInvitationMailer.invite(inv).deliver_later
 ```

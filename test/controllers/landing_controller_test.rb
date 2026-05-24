@@ -11,4 +11,12 @@ class LandingControllerTest < ActionDispatch::IntegrationTest
     assert_select "#hero-cta"
     assert_select "#hero-image"
   end
+
+  test "should render landing copy and cta path" do
+    get root_url
+    assert_response :success
+
+    assert_select "#hero-copy", text: /Celebrate your graduation/
+    assert_select "#hero-cta[href='#{product_path}']", text: "Explore the certificate"
+  end
 end

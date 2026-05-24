@@ -2,29 +2,48 @@
   Certificate Preview
 <% end %>
 
-<div class="mx-auto flex flex-col gap-8 pt-6">
-  <div class="flex flex-col justify-center items-center gap-8">
-    <h1 class="font-headline text-3xl">Certificate for <%= @certificate.honoree_name %></h1>
-    <% @products.each do |product| %>
-      <% formatted_price = Rails.cache.fetch("products/#{product.cache_key_with_version}/formatted_stripe_price") do
-           formatted_stripe_price(product)
-         end %>
-      <div class="flex flex-row justify-between items-center gap-8 w-full">
-        <div class="text-base font-medium text-gray-700 dark:text-gray-300">
-          <%= product.title %> <%= formatted_price %>
-        </div>
+<% preferred_format = @preferred_format %>
+<% total_cart_items_count = cart_items_count %>
 
-        <div>
-          <%= render "shared/add_to_cart_button", certificate: @certificate, product_id: product.id %>
-        </div>
-      </div>
-    <% end %>
-  </div>
+<% image_html = capture do %>
+  <%= render "preview_image", certificate: @certificate, class: "aspect-4/3 w-full rounded-xl" %>
+<% end %>
 
-  <%= render "shared/flash_messages" %>
+<% options_html = format_options_form(
+  form_url: cart_items_path,
+  form_method: :post,
+  requires_selection: true,
+  products: @products,
+  input_name: :product_id,
+  preferred_format: preferred_format,
+  cart_product_ids: @cart_product_ids,
+  cart_items_by_product_id: @cart_items_by_product_id,
+  cart_items_count: total_cart_items_count,
+  certificate_id: @certificate.id,
+  quantity: 1
+) do %>
+  <%= submit_tag "Add to cart",
+    class: "flex w-full items-center justify-center rounded-full bg-primary px-8 py-3 text-base font-semibold text-background shadow-sm transition hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed mt-6",
+    data: { format_selector_target: "submit", action: "click->format-selector#submitOrNavigate" },
+    disabled: preferred_format.blank? %>
+  <p
+    class="text-sm text-content-muted mt-6"
+    data-format-selector-target="helperText"
+    data-helper-zero="Select one or more formats to add to the cart."
+    data-helper-one="Add the selected format to the cart."
+    data-helper-many="Add the selected formats to the cart."
+    data-helper-all="You've successfully cartmaxxed. Time to check out!"
+  >
+    Select one or more formats to add to the cart.
+  </p>
+<% end %>
 
-  <%= render @certificate %>
-
-  <%= render partial: "action_buttons", locals: {certificate: @certificate, show_edit: true} %>
-
-</div>
+<%= render "shared/product_page",
+  template_name: @certificate.template,
+  products: @products,
+  certificate: @certificate,
+  show_edit: true,
+  image_html: image_html,
+  options_html: options_html,
+  show_details: false
+%>

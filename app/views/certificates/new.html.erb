@@ -2,6 +2,8 @@
   Create a Certificate
 <% end %>
 
-<%= render "shared/modal_wrapper", dialog_id: "certificate-form", title: "Create a Certificate", close_path: certificates_path do |close_action| %>
-  <%= render "form", certificate: @certificate, close_path: certificates_path %>
+<% close_path = safe_close_path(params[:close_path].presence || request.referer, fallback: certificates_path) %>
+
+<%= render "shared/modal_wrapper", dialog_id: "certificate-form", title: "Create a Certificate", close_path: close_path do |close_action| %>
+  <%= render "form", certificate: @certificate, close_path: close_path %>
 <% end %>

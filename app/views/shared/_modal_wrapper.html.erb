@@ -1,24 +1,32 @@
 <%
-  close_path = local_assigns[:close_path]
-  close_action = modal_close_action(close_path)
+  close_path = safe_close_path(local_assigns[:close_path] || request.referer, fallback: root_path)
 %>
 
 <div class="fixed inset-0">
   <div class="absolute inset-0 bg-content/50"></div>
-  <div class="relative min-h-screen min-w-screen flex justify-center items-center p-4" onclick="<%= close_action %>">
-    <div class="relative p-8 rounded-lg shadow-lg text-content bg-background dark:bg-background-secondary w-full max-w-3xl" onclick="event.stopPropagation()">
+  <%= link_to close_path,
+    class: "absolute inset-0",
+    aria: { label: "Close dialog" },
+    data: { turbo_frame: "_top" } do %>
+    <span class="sr-only">Close dialog</span>
+  <% end %>
+  <div class="relative min-h-screen min-w-screen flex justify-center items-center p-4">
+    <div class="relative p-8 rounded-lg shadow-lg text-content bg-background dark:bg-background-secondary w-full max-w-3xl">
       <h2 class="mb-10 flex justify-between items-center">
         <span class="font-bold text-3xl">
           <%= title %>
         </span>
 
-        <button type="button" onclick="<%= close_action %>" class="text-2xl focus:ring-0 focus:ring-offset-0 focus:outline-none hover:cursor-pointer text-content-muted hover:text-content">
+        <%= link_to close_path,
+          class: "text-2xl focus:ring-0 focus:ring-offset-0 focus:outline-none hover:cursor-pointer text-content-muted hover:text-content",
+          aria: { label: "Close dialog" },
+          data: { turbo_frame: "_top" } do %>
           ✖︎
-        </button>
+        <% end %>
       </h2>
 
       <%# the actual form goes here %>
-      <%= yield close_action %>
+      <%= yield close_path %>
 
     </div>
   </div>

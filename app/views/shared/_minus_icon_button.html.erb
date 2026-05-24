@@ -1,0 +1,19 @@
+<% path = local_assigns.fetch(:path) %>
+<% turbo_frame = local_assigns.fetch(:turbo_frame, nil) %>
+<% turbo_stream = local_assigns.fetch(:turbo_stream, true) %>
+<% button_class = local_assigns.fetch(:button_class, "inline-flex items-center justify-center rounded-full size-4.5 border border-gray-300 text-gray-300 transition hover:border-gray-400 hover:text-gray-400 cursor-pointer") %>
+<% title = local_assigns.fetch(:title, "Remove from cart") %>
+<% aria_label = local_assigns.fetch(:aria_label, "Remove from cart") %>
+<% data_attrs = { turbo_method: :delete } %>
+<% data_attrs[:turbo_frame] = turbo_frame if turbo_frame.present? %>
+<% data_attrs[:turbo_stream] = true if turbo_stream %>
+
+<%= link_to path,
+  data: data_attrs,
+  class: button_class,
+  title: title,
+  aria: { label: aria_label } do %>
+  <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="size-6">
+    <path d="M5.75 10a.75.75 0 0 1 .75-.75h7a.75.75 0 0 1 0 1.5h-7A.75.75 0 0 1 5.75 10Z" />
+  </svg>
+<% end %>

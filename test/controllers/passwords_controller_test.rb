@@ -5,7 +5,7 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
     get new_password_url, headers: { "HTTP_REFERER" => "/landing" }
 
     assert_response :success
-    assert_select "button[onclick=\"window.location='/landing'\"]", text: "✖︎"
+    assert_select "a[aria-label='Close dialog'][href='/landing']", text: "✖︎"
   end
 
   test "edit password page uses referer for close button when present" do
@@ -19,7 +19,7 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
     get edit_password_url(token: "token"), headers: { "HTTP_REFERER" => "/landing" }
 
     assert_response :success
-    assert_select "button[onclick=\"window.location='/landing'\"]", text: "✖︎"
+    assert_select "a[aria-label='Close dialog'][href='/landing']", text: "✖︎"
   ensure
     if original
       User.singleton_class.define_method(:find_by_password_reset_token!, original)

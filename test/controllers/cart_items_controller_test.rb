@@ -28,7 +28,7 @@ class CartItemsControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
-    assert_redirected_to cart_path
+    assert_redirected_to certificates_path
     assert_equal "Added to cart.", flash[:notice]
   end
 

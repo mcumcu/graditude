@@ -1,0 +1,75 @@
+<% content_for :title, "Graditude Certificates" %>
+
+<% preferred_format = @preferred_format.presence %>
+<% certificates = Current.user ? Current.user.certificates.limit(2).to_a : [] %>
+<% certificate_count = certificates.length %>
+<% single_certificate = certificate_count == 1 ? certificates.first : nil %>
+<% requires_selection = certificate_count == 1 %>
+<% cart_items_relation = if single_certificate
+                          Current.user.open_cart&.certificate_products&.where(certificate_id: single_certificate.id)
+                        end %>
+<% cart_product_ids = cart_items_relation&.pluck(:product_id) || [] %>
+<% cart_items_by_product_id = cart_items_relation&.pluck(:product_id, :id)&.to_h || {} %>
+<% total_cart_items_count = cart_items_count %>
+<% form_url = if certificate_count == 1
+                cart_items_path
+              elsif certificate_count > 1
+                certificates_path
+              else
+                new_certificate_path
+              end %>
+<% form_method = certificate_count == 1 ? :post : :get %>
+<% input_name = certificate_count == 1 ? :product_id : :preferred_format %>
+
+<% image_html = capture do %>
+  <%= image_tag "#{@template}.png", alt: "Graditude certificate preview", class: "aspect-square w-full rounded-xl object-contain" %>
+<% end %>
+
+<% options_html = format_options_form(
+  form_url: form_url,
+  form_method: form_method,
+  requires_selection: requires_selection,
+  products: @products,
+  input_name: input_name,
+  preferred_format: preferred_format,
+  cart_product_ids: cart_product_ids,
+  cart_items_by_product_id: cart_items_by_product_id,
+  cart_items_count: total_cart_items_count,
+  multi_select: true,
+  certificate_id: single_certificate&.id
+) do %>
+  <% if certificate_count == 1 %>
+    <%= submit_tag "Add to cart",
+      class: "flex w-full items-center justify-center rounded-full bg-primary px-8 py-3 text-base font-semibold text-background shadow-sm transition hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed",
+      data: { format_selector_target: "submit", action: "click->format-selector#submitOrNavigate" },
+      disabled: preferred_format.blank? %>
+    <p
+      class="text-sm text-content-muted"
+      data-format-selector-target="helperText"
+      data-helper-zero="Select one or more formats to add to the cart."
+      data-helper-one="Add the selected format to the cart."
+      data-helper-many="Add the selected formats to the cart."
+      data-helper-all="You've successfully cartmaxxed. Time to check out!"
+    >
+      Select one or more formats to add to the cart.
+    </p>
+  <% elsif certificate_count > 1 %>
+    <%= link_to "Show my certificates", certificates_path, class: "flex w-full items-center justify-center rounded-full bg-primary px-8 py-3 text-base font-semibold text-background shadow-sm transition hover:bg-primary/80" %>
+    <p class="text-sm text-content-muted">
+      Choose the certificate you want to add before checkout.
+    </p>
+  <% else %>
+    <% button_label = Current.user ? "Customize your certificate" : "Sign in to customize" %>
+    <%= submit_tag button_label, class: "flex w-full items-center justify-center rounded-full bg-primary px-8 py-3 text-base font-semibold text-background shadow-sm transition hover:bg-primary/80" %>
+    <p class="text-sm text-content-muted">
+      <%= Current.user ? "Next, you will personalize the certificate details." : "Sign in is required to save your certificate." %>
+    </p>
+  <% end %>
+  <%= link_to "See the fine details", "#details", class: "inline-flex text-sm font-semibold text-content-muted hover:text-primary" %>
+<% end %>
+
+<%= render "shared/product_page",
+  template_name: @template,
+  products: @products,
+  image_html: image_html,
+  options_html: options_html %>

@@ -1,0 +1,28 @@
+<% title = certificate.honoree_name.presence || certificate.graduate_name.presence || "Certificate" %>
+<% detail_line = [certificate.degree.presence, certificate.presented_on.presence].compact.join(" - ") %>
+<% template_label = certificate.template.to_s.capitalize %>
+<% subtitle = detail_line.presence || "Template: #{template_label}" %>
+
+<div class="group relative">
+  <div class="relative">
+    <%= render "preview_image",
+      certificate: certificate,
+      class: "aspect-[4/3] w-full rounded-lg border border-primary/10 bg-background-secondary shadow-sm",
+      aria_label: "Certificate preview" %>
+    <div aria-hidden="true" class="absolute inset-0 flex items-end p-4 opacity-0 transition group-hover:opacity-100">
+      <div class="w-full rounded-md bg-background/80 px-4 py-2 text-center text-sm font-semibold text-primary shadow-sm backdrop-blur">
+        View certificate
+      </div>
+    </div>
+  </div>
+  <div class="mt-4 flex items-center justify-between space-x-6 text-base font-medium text-primary">
+    <h3 class="truncate">
+      <%= link_to certificate_path(certificate), class: "focus:outline-none" do %>
+        <span aria-hidden="true" class="absolute inset-0"></span>
+        <%= title %>
+      <% end %>
+    </h3>
+    <p class="text-sm font-semibold text-primary"><%= template_label %></p>
+  </div>
+  <p class="mt-1 text-sm text-content-muted"><%= subtitle %></p>
+</div>

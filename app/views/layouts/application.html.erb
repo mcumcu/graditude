@@ -33,6 +33,10 @@
 
   <body class="text-content font-sans dark:text-content-dark flex flex-col min-h-screen gap-8">
     <main class="flex flex-col grow">
+      <% if Current.user %>
+        <%= turbo_stream_from [Current.user, :cart_state] %>
+        <%= render "shared/cart_state", cart_state_token: cart_state_token %>
+      <% end %>
       <!-- Logo (for authenticated users) -->
       <div class="mx-auto md:w-2/3 w-full">
         <div aria-label="Global" class="flex lg:flex-1 -z-10 absolute">
