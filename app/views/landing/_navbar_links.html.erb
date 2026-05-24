@@ -18,6 +18,10 @@
 
 <%= render "landing/cart_nav_link", mobile: mobile, link_class: link_class %>
 
+<% if Current.user&.affiliate_approved? %>
+  <%= link_to "Affiliate", affiliate_path, class: link_class %>
+<% end %>
+
 <% if authenticated? %>
   <%= button_to "Sign out", session_path, method: :delete, data: { turbo_confirm: "Are you sure?" }, form: { class: "inline" }, class: link_class %>
 <% else %>

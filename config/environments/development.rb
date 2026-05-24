@@ -54,8 +54,23 @@ Rails.application.configure do
   #   port: 1025,
   # }
 
-  # Set localhost to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
+  app_url = ENV["APP_URL"].presence
+
+  if app_url
+    app_url = "https://#{app_url}" unless app_url.include?("://")
+    parsed_url = URI.parse(app_url)
+    config.action_mailer.default_url_options = {
+      host: parsed_url.host,
+      protocol: parsed_url.scheme
+    }
+    if parsed_url.port && parsed_url.port != parsed_url.default_port
+      config.action_mailer.default_url_options[:port] = parsed_url.port
+    end
+  else
+    config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
+  end
+
+  puts "action_mailer is using host: #{config.action_mailer.default_url_options[:protocol]}://#{config.action_mailer.default_url_options[:host]}"
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log

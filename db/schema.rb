@@ -10,10 +10,43 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_05_05_090000) do
+ActiveRecord::Schema[8.0].define(version: 2026_05_20_090200) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
+
+  create_table "affiliate_applications", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.uuid "affiliate_invitation_id"
+    t.uuid "reviewed_by_id"
+    t.string "status", default: "submitted", null: false
+    t.datetime "submitted_at"
+    t.datetime "reviewed_at"
+    t.string "display_name"
+    t.text "audience"
+    t.text "promotion_method"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["affiliate_invitation_id"], name: "index_affiliate_applications_on_affiliate_invitation_id"
+    t.index ["reviewed_by_id"], name: "index_affiliate_applications_on_reviewed_by_id"
+    t.index ["user_id"], name: "index_affiliate_applications_on_user_id", unique: true
+  end
+
+  create_table "affiliate_invitations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "email_address", null: false
+    t.uuid "invited_by_id"
+    t.uuid "accepted_by_id"
+    t.string "status", default: "pending", null: false
+    t.datetime "expires_at"
+    t.datetime "accepted_at"
+    t.datetime "revoked_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["accepted_by_id"], name: "index_affiliate_invitations_on_accepted_by_id", unique: true
+    t.index ["email_address"], name: "index_affiliate_invitations_on_email_address"
+    t.index ["invited_by_id"], name: "index_affiliate_invitations_on_invited_by_id"
+  end
 
   create_table "carts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "user_id", null: false
@@ -104,9 +137,23 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_05_090000) do
     t.string "password_digest"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "admin", default: false, null: false
+    t.string "affiliate_status", default: "none", null: false
+    t.uuid "referred_by_id"
+    t.datetime "referred_at"
+    t.uuid "affiliate_approved_by_id"
+    t.datetime "affiliate_approved_at"
+    t.index ["affiliate_approved_by_id"], name: "index_users_on_affiliate_approved_by_id"
+    t.index ["affiliate_status"], name: "index_users_on_affiliate_status"
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
+    t.index ["referred_by_id"], name: "index_users_on_referred_by_id"
   end
 
+  add_foreign_key "affiliate_applications", "affiliate_invitations"
+  add_foreign_key "affiliate_applications", "users"
+  add_foreign_key "affiliate_applications", "users", column: "reviewed_by_id"
+  add_foreign_key "affiliate_invitations", "users", column: "accepted_by_id"
+  add_foreign_key "affiliate_invitations", "users", column: "invited_by_id"
   add_foreign_key "carts", "users"
   add_foreign_key "certificate_products", "carts"
   add_foreign_key "certificate_products", "certificates"
@@ -118,4 +165,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_05_090000) do
   add_foreign_key "checkout_sessions", "carts"
   add_foreign_key "prices", "products"
   add_foreign_key "sessions", "users"
+  add_foreign_key "users", "users", column: "affiliate_approved_by_id"
+  add_foreign_key "users", "users", column: "referred_by_id"
 end
