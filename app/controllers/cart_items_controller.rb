@@ -97,15 +97,6 @@ class CartItemsController < ApplicationController
         format.html { redirect_to certificates_path, notice: "Added to cart." }
         format.json { render json: created_items.as_json(only: %i[id quantity status], methods: %i[total_cents]), status: :created }
       end
-    else
-      respond_to do |format|
-        format.turbo_stream do
-          flash.now[:alert] = cart_item.errors.full_messages.to_sentence
-          render turbo_stream: turbo_stream.replace("flash-messages", partial: "shared/flash_messages"), status: :unprocessable_entity
-        end
-        format.html { redirect_to cart_path, alert: cart_item.errors.full_messages.to_sentence }
-        format.json { render json: { errors: cart_item.errors.full_messages }, status: :unprocessable_entity }
-      end
     end
   end
 
