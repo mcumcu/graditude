@@ -10,7 +10,7 @@ class SharedModalWrapperTest < ActionView::TestCase
 
     assert_select "div.fixed"
     assert_select "div.absolute"
-    assert_select "button[onclick*='history.back()']", text: "✖︎"
+    assert_select "a[aria-label='Close dialog'][href='#{root_path}']", text: "✖︎"
     assert_match "Modal body content", rendered
   end
 
@@ -21,6 +21,6 @@ class SharedModalWrapperTest < ActionView::TestCase
       <% end %>
     ERB
 
-    assert_select "button[onclick=\"window.location='/prev-page'\"]", text: "✖︎"
+    assert_select "a[aria-label='Close dialog'][href='/prev-page']", text: "✖︎"
   end
 end

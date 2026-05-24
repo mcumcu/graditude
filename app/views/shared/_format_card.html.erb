@@ -21,7 +21,7 @@
 <% card_classes = in_cart ? "border-success/40 opacity-50" : "border-primary/10 hover:border-primary/30" %>
 <% frame_id = "product-card-#{product.id}" %>
 <% cart_item_id = cart_items_by_product_id[product.id] %>
-<% multi_select = input_name == :product_id %>
+<% multi_select = local_assigns.fetch(:multi_select, false) %>
 <% input_action = multi_select ? "change->format-selector#update" : "click->format-selector#toggle change->format-selector#update" %>
 <% single_item = cart_items_count.to_i == 1 %>
 

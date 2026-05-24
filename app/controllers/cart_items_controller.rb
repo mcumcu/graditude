@@ -94,7 +94,7 @@ class CartItemsController < ApplicationController
           @cart_product_ids = cart_items_relation.pluck(:product_id)
           @cart_items_by_product_id = cart_items_relation.pluck(:product_id, :id).to_h
         end
-        format.html { redirect_to cart_path, notice: "Added to cart." }
+        format.html { redirect_to certificates_path, notice: "Added to cart." }
         format.json { render json: created_items.as_json(only: %i[id quantity status], methods: %i[total_cents]), status: :created }
       end
     else
@@ -128,15 +128,19 @@ class CartItemsController < ApplicationController
         @cart_items_by_product_id = cart_items.pluck(:product_id, :id).to_h
       end
       format.html do
-        redirect_path = if @cart.certificate_products.exists?
-          cart_path
-        elsif Current.user.certificates.exists?
-          certificates_path
-        else
-          product_path
-        end
+        if params[:source] == "cart"
+          redirect_path = if @cart.certificate_products.exists?
+            cart_path
+          elsif Current.user.certificates.exists?
+            certificates_path
+          else
+            product_path
+          end
 
-        redirect_to redirect_path, notice: "Removed from cart."
+          redirect_to redirect_path, notice: "Removed from cart."
+        else
+          redirect_to cart_path, notice: "Removed from cart."
+        end
       end
       format.json { head :no_content }
     end

@@ -24,8 +24,8 @@ class Certificate < ApplicationRecord
 
   before_validation :set_default_template, on: :create
   before_validation :normalize_presented_on
-  before_destroy :ensure_not_in_open_cart
-  before_destroy :ensure_not_purchased
+  before_destroy :ensure_not_in_open_cart, prepend: true
+  before_destroy :ensure_not_purchased, prepend: true
 
   store_accessor(:data,
     :graduate_name,

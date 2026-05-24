@@ -16,20 +16,24 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
 
     assert_not_nil cookies["session_id"], "expected signed session cookie to be present after sign_in"
 
+    create_additional_certificate_for(users(:one), honoree_name: "Honoree Extra")
     get certificates_url
     assert_response :success
   end
 
   test "should get index" do
+    create_additional_certificate_for(users(:one), honoree_name: "Honoree Extra")
     get certificates_url
     assert_response :success
   end
 
   test "index only shows current user's certificates" do
+    create_additional_certificate_for(users(:one), honoree_name: "Honoree Extra")
     get certificates_url
     assert_response :success
 
     assert_select "h3", text: "Honoree One"
+    assert_select "h3", text: "Honoree Extra"
     assert_select "h3", text: "Honoree Two", count: 0
   end
 
@@ -39,7 +43,7 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "div.fixed"
     assert_select "div.absolute"
-    assert_select "button[onclick=\"window.location='/certificates'\"]", text: "✖︎"
+    assert_select "a[aria-label='Close dialog'][href='#{certificates_path}']", text: "✖︎"
     assert_select "form[action=\"/certificates\"]"
   end
 
@@ -144,7 +148,7 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :success
-    assert_select "button", text: "✖︎ Delete", count: 0
+    assert_select "button[disabled]", text: "Delete", count: 1
   end
 
   test "should not destroy certificate when it is in cart" do
@@ -165,7 +169,7 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to certificate_url(@certificate)
-    assert_equal "Cannot delete this certificate while it is associated with a cart item.", flash[:alert]
+    assert_equal "Remove this certificate from your cart before deleting it.", flash[:alert]
   end
 
   test "should show already in cart link when certificate is already in cart" do
@@ -202,7 +206,7 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :success
-    assert_select "a[href='#{cart_path}']", text: "Already in cart"
+    assert_select "a[title='Remove from cart']", count: 1
     assert_select "input[name='product_id']", 0
   end
 
@@ -251,7 +255,7 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "[data-product-card]", 2
-    assert_select "a[href='#{cart_path}']", text: "Already in cart", minimum: 1
+    assert_select "a[title='Remove from cart']", count: 1
     assert_select "input[name='product_id'][value='#{product_two.id}']", 1
     assert_select "input[name='product_id'][value='#{product_one.id}']", 0
   ensure
@@ -264,7 +268,7 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "div.fixed"
     assert_select "div.absolute"
-    assert_select "button[onclick=\"window.location='#{certificate_path(@certificate)}'\"]", text: "✖︎"
+    assert_select "a[aria-label='Close dialog'][href='#{certificate_path(@certificate)}']", text: "✖︎"
     assert_select "form[action=\"/certificates/#{@certificate.id}\"]"
   end
 
@@ -328,7 +332,7 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
     payload = JSON.parse(response.body)
-    assert_equal "Cannot delete certificate while it is in the cart.", payload["error"]
+    assert_equal "Remove this certificate from your cart before deleting it.", payload["error"]
   end
 
   test "should destroy certificate" do
@@ -344,5 +348,17 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :no_content
     assert_equal "", response.body
+  end
+
+  private
+
+  def create_additional_certificate_for(user, honoree_name: "Honoree Extra")
+    Certificate.create!(
+      user: user,
+      graduate_name: "Extra Graduate",
+      honoree_name: honoree_name,
+      degree: "Bachelor of Arts",
+      presented_on: "2026-05-15"
+    )
   end
 end

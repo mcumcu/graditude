@@ -4,6 +4,7 @@
 <% cart_product_ids = local_assigns.fetch(:cart_product_ids, []) %>
 <% cart_items_by_product_id = local_assigns.fetch(:cart_items_by_product_id, {}) %>
 <% cart_items_count = local_assigns.fetch(:cart_items_count, 0) %>
+<% multi_select = local_assigns.fetch(:multi_select, false) %>
 <% form_id = local_assigns[:form_id] %>
 
 <div class="mt-3 grid gap-4 grid-cols-1">
@@ -16,6 +17,7 @@
       cart_product_ids: cart_product_ids,
       cart_items_by_product_id: cart_items_by_product_id,
       cart_items_count: cart_items_count,
+      multi_select: multi_select,
       form_id: form_id
     } %>
 </div>
