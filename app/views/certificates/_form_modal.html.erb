@@ -7,21 +7,40 @@ e.g.: UI element to invoke this modal:
 
 <%
   close_path = local_assigns[:close_path]
-  close_action = modal_close_action(close_path)
+  close_to_current = close_path.present? && current_page?(close_path)
 %>
 
 <el-dialog>
   <dialog id="certificate-form" class="backdrop:bg-black/50 transition duration-200 data-closed:opacity-0" command="close" commandfor="certificate-form" >
     <el-dialog-panel class="fixed transition duration-200 data-closed:scale-70 data-closed:opacity-0">
-      <div class="min-h-screen min-w-screen flex justify-center items-center" onclick="<%= close_action %>">
-        <div class="p-8 bg-background rounded-lg shadow-lg">
+      <div class="relative min-h-screen min-w-screen flex justify-center items-center">
+        <% if close_path.present? && !close_to_current %>
+          <%= link_to close_path,
+            class: "absolute inset-0",
+            aria: { label: "Close dialog" },
+            data: { turbo_frame: "_top" } do %>
+            <span class="sr-only">Close dialog</span>
+          <% end %>
+        <% else %>
+          <button command="close" commandfor="certificate-form" type="button" class="absolute inset-0" aria-label="Close dialog"></button>
+        <% end %>
+        <div class="relative z-10 p-8 bg-background rounded-lg shadow-lg">
           <h2 class="mb-10 flex justify-between items-center">
             <span class="font-bold text-3xl">Edit certificate</span>
             
-            <button command="close" commandfor="certificate-form" type="button" class="text-2xl focus:ring-0 focus:ring-offset-0 focus:outline-none hover:cursor-pointer text-content-muted/70 hover:text-content-muted dark:text-content-muted/70 dark:hover:text-content-muted">✖︎</button>
+            <% if close_path.present? && !close_to_current %>
+              <%= link_to close_path,
+                class: "text-2xl focus:ring-0 focus:ring-offset-0 focus:outline-none hover:cursor-pointer text-content-muted/70 hover:text-content-muted dark:text-content-muted/70 dark:hover:text-content-muted",
+                aria: { label: "Close dialog" },
+                data: { turbo_frame: "_top" } do %>
+                ✖︎
+              <% end %>
+            <% else %>
+              <button command="close" commandfor="certificate-form" type="button" class="text-2xl focus:ring-0 focus:ring-offset-0 focus:outline-none hover:cursor-pointer text-content-muted/70 hover:text-content-muted dark:text-content-muted/70 dark:hover:text-content-muted">✖︎</button>
+            <% end %>
           </h2>
 
-          <%= render "form", certificate: certificate, close_path: close_path %>
+          <%= render "form", certificate: certificate, close_path: close_path, dialog_id: "certificate-form" %>
         </div>
       </div>
     </el-dialog-panel>
