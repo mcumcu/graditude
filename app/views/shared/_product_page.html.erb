@@ -6,6 +6,8 @@
 <% options_html = local_assigns.fetch(:options_html, "") %>
 <% price_label = local_assigns.fetch(:price_label, price_label_for(products)) %>
 <% show_details = local_assigns.fetch(:show_details, true) %>
+<% certificate = local_assigns[:certificate] %>
+<% show_edit = local_assigns.fetch(:show_edit, true) %>
 
 <main class="mx-auto w-full max-w-7xl px-4 lg-px-12 py-4">
   <%= render "shared/flash_messages" %>
@@ -71,9 +73,11 @@
         <%= image_html %>
       </div>
 
-      <div class="mt-8">
-        <%= render partial: "action_buttons", locals: {certificate: @certificate, show_edit: true} %>
-      </div>
+      <% if certificate.present? %>
+        <div class="mt-8">
+          <%= render "certificates/action_buttons", certificate: certificate, show_edit: show_edit %>
+        </div>
+      <% end %>
     </div>
 
     <div class="lg:col-start-1 lg:row-start-2 lg:self-start">

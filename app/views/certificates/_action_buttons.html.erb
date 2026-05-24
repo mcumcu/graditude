@@ -2,28 +2,35 @@
   <%= render "form_modal", certificate: certificate, close_path: certificate_path(certificate) %>
 
   <% in_cart = certificate_in_cart?(certificate) %>
+  <% purchased = certificate_purchased?(certificate) %>
+  <% delete_disabled = in_cart || purchased %>
+  <% button_class = "w-full text-center rounded-full px-3 py-2 inline-block font-medium text-content/50 border border-content/30 cursor-pointer" %>
+
   <div class="flex flex-col gap-4 py-4 md:flex-row md:items-center md:gap-4 md:py-0" data-visibility-target="hideable">
     <% if show_edit %>
       <div class="w-full md:flex-1">
-        <button command="show-modal" commandfor="certificate-form" class="w-full text-background dark:text-background text-center rounded-full px-3 py-2 bg-primary/80 hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark inline-block font-medium hover:cursor-pointer">Edit</button>
+        <button command="show-modal" commandfor="certificate-form" class="<%= button_class %>">
+          Edit
+        </button>
       </div>
     <% end %>
 
     <div class="w-full md:flex-1">
-      <%= link_to "New", product_path, class: "w-full text-background dark:text-background text-center rounded-full px-3 py-2 bg-secondary/80 hover:bg-secondary inline-block font-medium" %>
+      <%= link_to "New",
+        new_certificate_path(close_path: request.fullpath),
+        class: button_class  %>
     </div>
 
-    <%= button_to "✖︎ Delete", certificate,
+    <%= button_to "Delete", certificate,
       method: :delete,
-      disabled: in_cart,
+      disabled: delete_disabled,
       class: [
-        "w-full text-background dark:text-background text-center rounded-full px-3 py-2 bg-primary/80",
-        "inline-block font-medium",
-        in_cart ? "opacity-50 cursor-not-allowed" : "hover:bg-primary dark:bg-primary-dark/80 dark:hover:bg-primary-dark hover:cursor-pointer"
-      ].join(" "),
+        button_class,
+        delete_disabled ? "opacity-50 cursor-not-allowed" : nil
+      ].compact.join(" "),
       form: { class: "w-full md:flex-1" },
-      data: (in_cart ? {} : { turbo_confirm: "Are you sure?" }),
-      title: (in_cart ? "Remove this certificate from the cart to delete it." : nil),
-      aria: { disabled: in_cart } %>
+      data: (delete_disabled ? {} : { turbo_confirm: "Are you sure?" }),
+      title: (in_cart ? "Remove this certificate from the cart before deleting it." : (purchased ? "Purchased certificates cannot be deleted." : nil)),
+      aria: { disabled: delete_disabled } %>
   </div>
 </div>

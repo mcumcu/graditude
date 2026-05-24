@@ -6,7 +6,7 @@ e.g.: UI element to invoke this modal:
 -->
 
 <%
-  close_path = local_assigns[:close_path]
+  close_path = safe_close_path(local_assigns[:close_path], fallback: root_path)
   close_to_current = close_path.present? && current_page?(close_path)
 %>
 

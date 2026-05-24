@@ -35,6 +35,31 @@ module ApplicationHelper
     end
   end
 
+  def safe_close_path(path, fallback: root_path)
+    return fallback unless path.present?
+
+    begin
+      uri = URI.parse(path)
+    rescue URI::InvalidURIError
+      return fallback
+    end
+
+    if uri.host
+      return fallback unless uri.host == request.host
+      return fallback if request.port && uri.port && uri.port != request.port
+
+      sanitized = uri.path.to_s
+      sanitized += "?#{uri.query}" if uri.query.present?
+      sanitized += "##{uri.fragment}" if uri.fragment.present?
+      return sanitized.presence || fallback
+    end
+
+    return fallback unless path.start_with?("/")
+    return fallback if path.start_with?("//")
+
+    path
+  end
+
   def stripe_test_mode?
     publishable = ENV["STRIPE_KEY_PUB"].to_s
     secret = ENV["STRIPE_KEY"].to_s

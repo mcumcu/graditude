@@ -13,7 +13,7 @@ class Certificate < ApplicationRecord
   }.freeze
 
   belongs_to :user
-  has_many :certificate_products, dependent: :restrict_with_error
+  has_many :certificate_products, dependent: :destroy
   has_many :checkout_session_certificates, dependent: :destroy
   has_many :checkout_sessions, through: :checkout_session_certificates
 
@@ -24,6 +24,8 @@ class Certificate < ApplicationRecord
 
   before_validation :set_default_template, on: :create
   before_validation :normalize_presented_on
+  before_destroy :ensure_not_in_open_cart
+  before_destroy :ensure_not_purchased
 
   store_accessor(:data,
     :graduate_name,
@@ -73,5 +75,19 @@ class Certificate < ApplicationRecord
   def attribute_blank?(attribute)
     value = send(attribute)
     value.is_a?(Array) ? value.reject(&:blank?).blank? : value.blank?
+  end
+
+  def ensure_not_in_open_cart
+    return unless certificate_products.joins(:cart).where(carts: { status: "open" }).exists?
+
+    errors.add(:base, "Remove this certificate from your cart before deleting it.")
+    throw(:abort)
+  end
+
+  def ensure_not_purchased
+    return unless certificate_products.where(status: "purchased").exists?
+
+    errors.add(:base, "Cannot delete this certificate because it has been purchased.")
+    throw(:abort)
   end
 end

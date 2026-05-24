@@ -1,5 +1,5 @@
 <%
-  close_path = local_assigns[:close_path] || request.referer || root_path
+  close_path = safe_close_path(local_assigns[:close_path] || request.referer, fallback: root_path)
 %>
 
 <div class="fixed inset-0">

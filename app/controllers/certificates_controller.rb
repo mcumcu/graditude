@@ -76,19 +76,17 @@ class CertificatesController < ApplicationController
 
   # DELETE /certificates/1 or /certificates/1.json
   def destroy
-    if @certificate.certificate_products.exists?
+    if @certificate.destroy
       respond_to do |format|
-        format.html { redirect_to certificate_path(@certificate), alert: "Cannot delete this certificate while it is associated with a cart item." }
-        format.json { render json: { error: "Cannot delete certificate while it is in the cart." }, status: :unprocessable_entity }
+        format.html { redirect_to certificates_path, alert: "Certificate for #{@certificate.honoree_name} was deleted", status: :see_other }
+        format.json { head :no_content }
       end
-      return
-    end
-
-    @certificate.destroy!
-
-    respond_to do |format|
-      format.html { redirect_to certificates_path, alert: "Certificate for #{@certificate.honoree_name} was deleted", status: :see_other }
-      format.json { head :no_content }
+    else
+      message = @certificate.errors.full_messages.to_sentence.presence || "Unable to delete this certificate."
+      respond_to do |format|
+        format.html { redirect_to certificate_path(@certificate), alert: message }
+        format.json { render json: { error: message }, status: :unprocessable_entity }
+      end
     end
   end
 
