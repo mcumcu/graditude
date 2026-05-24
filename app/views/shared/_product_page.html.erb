@@ -1,4 +1,4 @@
-<% template_name = local_assigns[:template].presence || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder") %>
+<% template_name = local_assigns[:template_name].presence || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder") %>
 <% products = local_assigns.fetch(:products, []) %>
 <% heading = local_assigns.fetch(:heading, "Graditude Certificate") %>
 <% eyebrow = local_assigns.fetch(:eyebrow, "Gift from the graduate") %>
