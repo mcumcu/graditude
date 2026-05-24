@@ -4,6 +4,9 @@
   <% form_id = local_assigns.fetch(:form_id, "format-options-form") %>
   <% cart_items_count = local_assigns.fetch(:cart_items_count, 0) %>
   <% multi_select = local_assigns.fetch(:multi_select, false) %>
+  <% bind_frame_load = local_assigns.fetch(:bind_frame_load, false) %>
+  <% action_value = "turbo:submit-end->format-selector#update" %>
+  <% action_value = "#{action_value} turbo:frame-load->format-selector#update" if bind_frame_load %>
 
   <%= form_with url: form_url,
                 method: form_method,
@@ -13,7 +16,7 @@
                   controller: "format-selector",
                   format_selector_requires_selection_value: requires_selection,
                   format_selector_cart_url_value: cart_path,
-                  action: "turbo:submit-end->format-selector#update turbo:frame-load->format-selector#update"
+                  action: action_value
                 } do %>
     <% if certificate_id.present? %>
       <%= hidden_field_tag :certificate_id, certificate_id %>

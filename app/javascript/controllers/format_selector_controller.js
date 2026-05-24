@@ -1,5 +1,30 @@
 import { Controller } from "@hotwired/stimulus"
 
+const GLOBAL_LISTENERS_ATTACHED = "__formatSelectorGlobalListenersAttached"
+
+const refreshAllSelectors = () => {
+  if (!window.Stimulus) {
+    return
+  }
+
+  document.querySelectorAll("[data-controller~='format-selector']").forEach((element) => {
+    const controller = window.Stimulus.getControllerForElementAndIdentifier(element, "format-selector")
+    if (controller) {
+      controller.update()
+    }
+  })
+}
+
+const ensureGlobalListeners = () => {
+  if (window[GLOBAL_LISTENERS_ATTACHED]) {
+    return
+  }
+
+  window[GLOBAL_LISTENERS_ATTACHED] = true
+  document.addEventListener("turbo:after-stream-render", refreshAllSelectors)
+  document.addEventListener("turbo:frame-load", refreshAllSelectors)
+}
+
 // Enables or disables a submit button based on radio selection.
 export default class extends Controller {
   static targets = ["input", "submit", "helperText"]
@@ -9,20 +34,8 @@ export default class extends Controller {
   }
 
   connect() {
+    ensureGlobalListeners()
     this.update()
-    this.handleStreamRender = () => this.update()
-    this.handleFrameLoad = () => this.update()
-    document.addEventListener("turbo:after-stream-render", this.handleStreamRender)
-    document.addEventListener("turbo:frame-load", this.handleFrameLoad)
-  }
-
-  disconnect() {
-    if (this.handleStreamRender) {
-      document.removeEventListener("turbo:after-stream-render", this.handleStreamRender)
-    }
-    if (this.handleFrameLoad) {
-      document.removeEventListener("turbo:frame-load", this.handleFrameLoad)
-    }
   }
 
   toggle(event) {

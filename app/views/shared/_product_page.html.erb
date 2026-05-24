@@ -9,7 +9,7 @@
 <% certificate = local_assigns[:certificate] %>
 <% show_edit = local_assigns.fetch(:show_edit, true) %>
 
-<main class="mx-auto w-full max-w-7xl px-4 lg-px-12 py-4">
+<main class="mx-auto w-full max-w-7xl px-4 lg:px-12 py-4">
   <%= render "shared/flash_messages" %>
 
   <div class="w-full lg:grid lg:grid-cols-2 lg:gap-x-10 space-y-10">
@@ -27,7 +27,7 @@
 
           <li>
             <div class="flex items-center">
-              <%= link_to controller_name.humanize, (@certificate ? certificate_path(@certificate) : product_path), class: "font-medium text-content-muted hover:text-primary" %>
+              <%= link_to controller_name.humanize, (certificate.present? ? certificate_path(certificate) : product_path), class: "font-medium text-content-muted hover:text-primary" %>
             </div>
           </li>
         </ol>
