@@ -81,10 +81,11 @@ class CheckoutSessionsController < ApplicationController
 
   def show
     checkout_session = CheckoutSession.find(params[:id])
+    certificate_ids = checkout_session.certificate_products.distinct.pluck(:certificate_id)
     render json: checkout_session.as_json(
-      only: [ :id, :status, :stripe_session_id, :items ],
-      methods: [ :certificate_ids ]
+      only: [ :id, :status, :stripe_session_id, :items ]
     ).merge(
+      certificate_ids: certificate_ids,
       created_at: checkout_session.created_at.iso8601,
       updated_at: checkout_session.updated_at.iso8601
     )

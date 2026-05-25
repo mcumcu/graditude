@@ -1,7 +1,5 @@
 class CheckoutSession < ApplicationRecord
   belongs_to :cart, optional: true
-  has_many :checkout_session_certificates, dependent: :destroy
-  has_many :certificates, through: :checkout_session_certificates
   has_many :certificate_products, dependent: :nullify
 
   enum :status, {
