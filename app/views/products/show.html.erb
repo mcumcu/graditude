@@ -1,6 +1,9 @@
 <% content_for :title, "Graditude Certificates" %>
 
 <% preferred_format = @preferred_format.presence %>
+<% primary_product = if preferred_format.present?
+  @products.find { |product| product_variant_format(product) == preferred_format }
+end || @products.first %>
 <% certificates = Current.user ? Current.user.certificates.limit(2).to_a : [] %>
 <% certificate_count = certificates.length %>
 <% single_certificate = certificate_count == 1 ? certificates.first : nil %>
@@ -71,5 +74,6 @@
 <%= render "shared/product_page",
   template_name: @template,
   products: @products,
+  primary_product: primary_product,
   image_html: image_html,
   options_html: options_html %>

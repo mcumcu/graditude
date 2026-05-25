@@ -1,0 +1,189 @@
+<% preview_url = local_assigns.fetch(:preview_url, nil) %>
+
+<%= form_with model: @form, url: form_url, method: form_method, scope: :catalog_product,
+  class: "mt-8",
+  data: {
+    controller: "catalog-preview",
+    catalog_preview_url_value: preview_url
+  } do |form| %>
+  <% if @form.errors.any? %>
+    <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      <%= @form.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <div class="grid grid-cols-1 gap-10">
+    <div class="space-y-10">
+      <section class="space-y-4">
+        <h2 class="text-lg font-semibold text-primary">Hero copy</h2>
+        <div class="grid gap-4">
+          <div class="<%= field_row_classes %>">
+            <%= form.label :name, "Heading", class: form_label_classes %>
+            <%= form.text_field :name, class: form_input_classes(@form, :name), placeholder: "Graditude Certificate" %>
+          </div>
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="<%= field_row_classes %>">
+              <%= form.label :eyebrow, "Eyebrow", class: form_label_classes %>
+              <%= form.text_field :eyebrow, class: form_input_classes(@form, :eyebrow), placeholder: "Gift from the graduate" %>
+            </div>
+            <div class="<%= field_row_classes %>">
+              <%= form.label :tagline, "Tagline (alternate eyebrow)", class: form_label_classes %>
+              <%= form.text_field :tagline, class: form_input_classes(@form, :tagline) %>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <h2 class="text-lg font-semibold text-primary">Description</h2>
+        <div class="grid gap-4">
+          <div class="<%= field_row_classes %>">
+            <%= form.label :description, "Description paragraphs", class: form_label_classes %>
+            <%= form.text_area :description, class: form_input_classes(@form, :description), rows: 5, placeholder: "One paragraph per line break" %>
+            <p class="text-xs text-content-muted">Separate paragraphs with a blank line to mirror the product page.</p>
+          </div>
+          <div class="<%= field_row_classes %>">
+            <%= form.label :short_description, "Short description", class: form_label_classes %>
+            <%= form.text_field :short_description, class: form_input_classes(@form, :short_description), placeholder: "Museum-grade print and ready-to-gift presentation." %>
+          </div>
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <h2 class="text-lg font-semibold text-primary">Details</h2>
+        <div class="grid gap-4">
+          <div class="<%= field_row_classes %>">
+            <%= form.label :detail_intro, "Detail intro", class: form_label_classes %>
+            <%= form.text_area :detail_intro, class: form_input_classes(@form, :detail_intro), rows: 3 %>
+          </div>
+          <div class="<%= field_row_classes %>">
+            <%= form.label :attributes_text, "Detail bullets", class: form_label_classes %>
+            <%= form.text_area :attributes_text, class: form_input_classes(@form, :attributes_text), rows: 4, placeholder: "One bullet per line" %>
+          </div>
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <h2 class="text-lg font-semibold text-primary">Marketing features</h2>
+        <div class="<%= field_row_classes %>">
+          <%= form.label :marketing_features_text, "Feature list", class: form_label_classes %>
+          <%= form.text_area :marketing_features_text, class: form_input_classes(@form, :marketing_features_text), rows: 5, placeholder: "Premium print | Archival-quality printing" %>
+          <p class="text-xs text-content-muted">One feature per line. Use “Name | Description” to add a description.</p>
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <h2 class="text-lg font-semibold text-primary">Templates & media</h2>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="<%= field_row_classes %>">
+            <%= form.label :certificate_templates_text, "Certificate templates", class: form_label_classes %>
+            <%= form.text_area :certificate_templates_text, class: form_input_classes(@form, :certificate_templates_text), rows: 3, placeholder: "boulder, westtown" %>
+          </div>
+          <div class="<%= field_row_classes %>">
+            <%= form.label :variant_format, "Variant format", class: form_label_classes %>
+            <%= form.select :variant_format, [["", ""], ["Framed", "framed"], ["Unframed", "unframed"]], {}, class: form_input_classes(@form, :variant_format) %>
+          </div>
+        </div>
+        <div class="<%= field_row_classes %>">
+          <%= form.label :images_text, "Image URLs", class: form_label_classes %>
+          <%= form.text_area :images_text, class: form_input_classes(@form, :images_text), rows: 3, placeholder: "https://example.com/image.png" %>
+          <p class="text-xs text-content-muted">One URL per line. Stripe requires publicly accessible images.</p>
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <h2 class="text-lg font-semibold text-primary">Pricing</h2>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="<%= field_row_classes %>">
+            <%= form.label :price_amount, "Default price (in dollars)", class: form_label_classes %>
+            <%= form.text_field :price_amount, class: form_input_classes(@form, :price_amount), placeholder: "45.00" %>
+            <p class="text-xs text-content-muted">Leave blank to keep the current default price on update.</p>
+          </div>
+          <div class="<%= field_row_classes %>">
+            <%= form.label :currency, "Currency", class: form_label_classes %>
+            <%= form.text_field :currency, class: form_input_classes(@form, :currency), placeholder: "usd" %>
+          </div>
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <h2 class="text-lg font-semibold text-primary">Stripe settings</h2>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="flex items-center gap-3 rounded-xl border border-primary/10 bg-background-secondary px-4 py-3">
+            <%= form.check_box :active, class: "h-4 w-4 rounded border-primary/30 text-primary" %>
+            <div>
+              <%= form.label :active, "Active", class: "text-sm font-semibold text-primary" %>
+              <p class="text-xs text-content-muted">Inactive products stay in Stripe but are hidden from checkout.</p>
+            </div>
+          </div>
+          <div class="<%= field_row_classes %>">
+            <%= form.label :tax_code, "Tax code", class: form_label_classes %>
+            <%= form.text_field :tax_code, class: form_input_classes(@form, :tax_code), placeholder: "txcd_..." %>
+          </div>
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <h2 class="text-lg font-semibold text-primary">Advanced</h2>
+        <div class="grid gap-4">
+          <div class="<%= field_row_classes %>">
+            <%= form.label :extra_metadata_json, "Extra metadata JSON", class: form_label_classes %>
+            <%= form.text_area :extra_metadata_json, class: form_input_classes(@form, :extra_metadata_json), rows: 4, placeholder: '{"format": "framed"}' %>
+          </div>
+
+          <div class="<%= field_row_classes %>">
+            <%= form.label :extra_product_json, "Extra product JSON", class: form_label_classes %>
+            <%= form.text_area :extra_product_json, class: form_input_classes(@form, :extra_product_json), rows: 4, placeholder: '{"statement_descriptor": "GRADITUDE"}' %>
+            <p class="text-xs text-content-muted">Allowed keys: <%= ::Catalog::Providers::Stripe::EXTRA_PRODUCT_KEYS.join(", ") %>.</p>
+          </div>
+
+          <% if @product&.persisted? %>
+            <div class="<%= field_row_classes %> border rounded-lg border-red-200 bg-red-50 px-6 py-5">
+              <h2 class="text-base font-semibold text-red-600">Archive product</h2>
+              <p class="mt-1 text-sm text-red-600">Archive this product in Stripe. It will remain in Stripe but no longer appear for checkout.</p>
+              <div class="mt-4">
+                <%= link_to "Archive product",
+                  admin_catalog_product_path(@product),
+                  data: { turbo_method: :delete, turbo_confirm: "Archive this product in Stripe?" },
+                  class: "inline-flex items-center rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-500",
+                  role: "button" %>
+              </div>
+            </div>
+          <% end %>
+
+        </div>
+      </section>
+
+      <div class="flex flex-wrap gap-3 justify-between">
+        <div class="flex flex-wrap gap-3">
+          <%= form.submit "Save product", class: "inline-flex items-center rounded-full bg-primary px-6 py-2 text-sm font-semibold text-white hover:bg-primary/90 min-w-64" %>
+            <button type="button"
+              data-action="click->catalog-preview#open"
+              class="inline-flex items-center rounded-full border border-primary/20 px-6 py-2 text-sm font-semibold text-primary hover:border-primary/40">
+            Preview
+          </button>
+        </div>
+        <%= link_to "Back", admin_catalog_products_path, class: "inline-flex items-center rounded-full border border-primary/20 px-6 py-2 text-sm font-semibold text-primary" %>
+      </div>
+    </div>
+  </div>
+
+  <el-dialog>
+    <dialog id="catalog-preview" class="backdrop:bg-black/50 transition duration-200 data-closed:opacity-0" command="close" commandfor="catalog-preview" data-catalog-preview-target="dialog">
+      <el-dialog-panel class="fixed transition duration-200 data-closed:scale-70 data-closed:opacity-0">
+        <div class="relative min-h-screen min-w-screen flex justify-center items-center p-6">
+          <button command="close" commandfor="catalog-preview" type="button" class="absolute inset-0" aria-label="Close dialog"></button>
+          <div class="relative z-10 w-full max-w-6xl overflow-hidden rounded-2xl bg-background shadow-xl">
+            <div class="flex items-center justify-between border-b border-primary/10 px-6 py-4">
+              <h2 class="text-lg font-semibold text-primary">Product preview</h2>
+              <button command="close" commandfor="catalog-preview" type="button" class="text-2xl text-content-muted hover:text-primary">✖︎</button>
+            </div>
+            <div class="max-h-[80vh] overflow-y-auto" data-catalog-preview-target="content">
+              <div class="p-10 text-sm text-content-muted">Loading preview…</div>
+            </div>
+          </div>
+        </div>
+      </el-dialog-panel>
+    </dialog>
+  </el-dialog>
+<% end %>

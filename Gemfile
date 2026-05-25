@@ -59,6 +59,7 @@ group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "dockerfile-rails", ">= 1.7"
   gem "web-console"
+  gem "ruby-lsp", "~> 0.26.9"
 end
 
 group :test do
@@ -71,3 +72,4 @@ gem "stripe"
 gem "tailwindcss-ruby", "~> 4.2"
 gem "tailwindcss-rails", "~> 4.4"
 gem "postmark-rails"
+

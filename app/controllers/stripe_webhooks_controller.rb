@@ -23,6 +23,10 @@ class StripeWebhooksController < ApplicationController
       handle_product_event(event.data.object)
     when "product.deleted"
       handle_deleted_product_event(event.data.object)
+    when "price.created", "price.updated"
+      handle_price_event(event.data.object)
+    when "price.deleted"
+      handle_deleted_price_event(event.data.object)
     else
       handle_checkout_event(event)
     end
@@ -33,6 +37,7 @@ class StripeWebhooksController < ApplicationController
     return unless product
 
     product.update_cached_stripe_product!(product_object.to_hash)
+    Catalog::Broadcasts.product_updated(product)
   end
 
   def handle_deleted_product_event(product_object)
@@ -40,6 +45,31 @@ class StripeWebhooksController < ApplicationController
     return unless product
 
     product.clear_stripe_product_cache!
+    Catalog::Broadcasts.product_updated(product)
+  end
+
+  def handle_price_event(price_object)
+    price_hash = price_object.to_hash
+    price = Price.find_by(stripe_price_id: price_object.id)
+    product = price&.product
+
+    if price.nil?
+      product ||= Product.find_by(stripe_product_id: price_object.product)
+      price = product&.prices&.find_or_create_by!(stripe_price_id: price_object.id)
+    end
+
+    product&.clear_stripe_product_cache!
+    price&.update_cached_stripe_price!(price_hash)
+    Catalog::Broadcasts.product_updated(product) if product
+  end
+
+  def handle_deleted_price_event(price_object)
+    price = Price.find_by(stripe_price_id: price_object.id)
+    product = price&.product || Product.find_by(stripe_product_id: price_object.product)
+
+    price&.clear_stripe_price_cache!
+    product&.clear_stripe_product_cache!
+    Catalog::Broadcasts.product_updated(product) if product
   end
 
   def handle_checkout_event(event)

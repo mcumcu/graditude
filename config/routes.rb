@@ -13,6 +13,15 @@ Rails.application.routes.draw do
   resources :certificates
   get "certificates/:id/preview" => "certificates#preview", as: :preview_certificate
 
+  namespace :admin do
+    namespace :catalog do
+      resources :products, only: [ :index, :new, :create, :edit, :update, :destroy ] do
+        post :preview, on: :collection
+        post :preview, on: :member
+      end
+    end
+  end
+
   get "documents/index" => "documents#index"
   get "/up" => "health#up"
   get "/favicon.ico" => redirect("/favicon.svg")

@@ -148,4 +148,72 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
       Stripe::Webhook.define_singleton_method(:construct_event, original_construct_event.to_proc)
     end
   end
+
+  test "price.updated webhook refreshes stripe_price_cache" do
+    product = Product.create!(
+      stripe_product_id: "prod_price_webhook",
+      stripe_product_cache: { "id" => "prod_price_webhook", "default_price" => "price_webhook" }
+    )
+    price = product.prices.create!(stripe_price_id: "price_webhook", stripe_price_cache: { "unit_amount" => 1000, "currency" => "usd" })
+
+    price_object = OpenStruct.new(
+      id: "price_webhook",
+      product: "prod_price_webhook",
+      to_hash: { "id" => "price_webhook", "unit_amount" => 2500, "currency" => "usd", "product" => "prod_price_webhook" }
+    )
+    event = OpenStruct.new(
+      type: "price.updated",
+      data: OpenStruct.new(object: price_object),
+      to_hash: { "type" => "price.updated" }
+    )
+
+    original_construct_event = Stripe::Webhook.method(:construct_event)
+    Stripe::Webhook.define_singleton_method(:construct_event) do |_payload, _sig_header, _secret|
+      event
+    end
+
+    post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+
+    assert_response :success
+    assert_equal 2500, price.reload.stripe_price_cache["unit_amount"]
+    assert_equal({}, product.reload.stripe_product_cache)
+  ensure
+    if original_construct_event
+      Stripe::Webhook.define_singleton_method(:construct_event, original_construct_event.to_proc)
+    end
+  end
+
+  test "price.deleted webhook clears price cache" do
+    product = Product.create!(
+      stripe_product_id: "prod_price_deleted",
+      stripe_product_cache: { "id" => "prod_price_deleted", "default_price" => "price_deleted" }
+    )
+    price = product.prices.create!(stripe_price_id: "price_deleted", stripe_price_cache: { "unit_amount" => 1200, "currency" => "usd" })
+
+    price_object = OpenStruct.new(
+      id: "price_deleted",
+      product: "prod_price_deleted",
+      to_hash: { "id" => "price_deleted", "product" => "prod_price_deleted" }
+    )
+    event = OpenStruct.new(
+      type: "price.deleted",
+      data: OpenStruct.new(object: price_object),
+      to_hash: { "type" => "price.deleted" }
+    )
+
+    original_construct_event = Stripe::Webhook.method(:construct_event)
+    Stripe::Webhook.define_singleton_method(:construct_event) do |_payload, _sig_header, _secret|
+      event
+    end
+
+    post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+
+    assert_response :success
+    assert_equal({}, price.reload.stripe_price_cache)
+    assert_equal({}, product.reload.stripe_product_cache)
+  ensure
+    if original_construct_event
+      Stripe::Webhook.define_singleton_method(:construct_event, original_construct_event.to_proc)
+    end
+  end
 end

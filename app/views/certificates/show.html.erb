@@ -4,6 +4,9 @@
 
 <% preferred_format = @preferred_format %>
 <% total_cart_items_count = cart_items_count %>
+<% primary_product = if preferred_format.present?
+  @products.find { |product| product_variant_format(product) == preferred_format }
+end || @products.first %>
 
 <% image_html = capture do %>
   <%= render "preview_image", certificate: @certificate, class: "aspect-4/3 w-full rounded-xl" %>
@@ -41,6 +44,7 @@
 <%= render "shared/product_page",
   template_name: @certificate.template,
   products: @products,
+  primary_product: primary_product,
   certificate: @certificate,
   show_edit: true,
   image_html: image_html,

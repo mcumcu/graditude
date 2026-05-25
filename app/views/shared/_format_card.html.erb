@@ -33,7 +33,7 @@
       </svg>
       <div class="flex flex-1 flex-col">
         <span class="block text-base font-semibold text-primary"><%= label %></span>
-        <span class="mt-1 block text-sm text-content-muted"><%= product.description.presence || "A premium Graditude certificate ready to gift." %></span>
+        <span class="mt-1 block text-sm text-content-muted"><%= product.display_short_description %></span>
         <div class="mt-auto flex items-center justify-end gap-2">
           <% if cart_item_id.present? %>
             <%= render "shared/minus_icon_button",
@@ -64,7 +64,7 @@
 
       <div class="flex flex-1 flex-col">
         <span class="block text-base font-semibold text-primary"><%= label %></span>
-        <span class="mt-1 block text-sm text-content-muted"><%= product.description.presence || "Museum-grade print and ready-to-gift presentation." %></span>
+        <span class="mt-1 block text-sm text-content-muted"><%= product.display_short_description %></span>
         <span class="mt-auto block text-right text-base font-semibold text-primary"><%= formatted_stripe_price(product) || "Pricing available" %></span>
       </div>
 

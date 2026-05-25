@@ -244,4 +244,94 @@ class ProductTest < ActiveSupport::TestCase
     assert_equal({}, product.reload.stripe_product_cache)
     assert_equal "stripe_product:old_id", deleted_key
   end
+
+  test "display helpers use stripe metadata and description" do
+    product = Product.create!(
+      stripe_product_id: "prod_display",
+      stripe_product_cache: {
+        "name" => "Printed Graduation Certificate",
+        "description" => "First paragraph.\n\nSecond paragraph.",
+        "metadata" => {
+          "eyebrow" => "Celebrate the grad",
+          "short_description" => "Short from metadata.",
+          "detail_intro" => "Detail intro from metadata."
+        }
+      }
+    )
+
+    assert_equal "Printed Graduation Certificate", product.display_name
+    assert_equal "Celebrate the grad", product.display_eyebrow
+    assert_equal [ "First paragraph.", "Second paragraph." ], product.display_description_paragraphs
+    assert_equal "Short from metadata.", product.display_short_description
+    assert_equal "Detail intro from metadata.", product.display_detail_intro
+  end
+
+  test "display helpers normalize attributes and marketing features" do
+    product = Product.create!(
+      stripe_product_id: "prod_features",
+      stripe_product_cache: {
+        "attributes" => [ "Archival paper", " ", nil, "Premium finish" ],
+        "marketing_features" => [
+          { "name" => "Premium print" },
+          "Reliable delivery",
+          { "name" => "Support", "description" => "Email support" }
+        ]
+      }
+    )
+
+    assert_equal [ "Archival paper", "Premium finish" ], product.display_attributes
+    assert_equal [
+      { "name" => "Premium print" },
+      { "name" => "Reliable delivery" },
+      { "name" => "Support", "description" => "Email support" }
+    ], product.display_marketing_features
+  end
+
+  test "display helpers do not require stripe price lookups" do
+    product = Product.create!(
+      stripe_product_id: "prod_no_price_lookup",
+      stripe_product_cache: {
+        "name" => "Certificate",
+        "description" => "First paragraph.\n\nSecond paragraph.",
+        "metadata" => {}
+      }
+    )
+
+    original_price_retrieve = Stripe::Price.method(:retrieve)
+    Stripe::Price.define_singleton_method(:retrieve) { |_id| raise "price lookup should not be called" }
+
+    assert_equal "Certificate", product.display_name
+    assert_equal "First paragraph.", product.display_short_description
+  ensure
+    if original_price_retrieve
+      Stripe::Price.define_singleton_method(:retrieve, original_price_retrieve.to_proc)
+    end
+  end
+
+  test "catalog_data reloads price when amount missing" do
+    product = Product.create!(
+      stripe_product_id: "prod_price_reload",
+      stripe_product_cache: {
+        "id" => "prod_price_reload",
+        "name" => "Certificate",
+        "description" => "Description",
+        "metadata" => {},
+        "default_price" => "price_reload"
+      }
+    )
+    price = product.prices.create!(stripe_price_id: "price_reload", stripe_price_cache: {})
+
+    product.define_singleton_method(:default_price) { price }
+
+    calls = 0
+    price.define_singleton_method(:stripe_price_data) do |reload: false|
+      calls += 1
+      reload ? { "unit_amount" => 3900, "currency" => "usd" } : {}
+    end
+
+    data = product.catalog_data
+
+    assert_equal 3900, data[:default_price_amount_cents]
+    assert_equal 2, calls
+  end
 end

@@ -37,6 +37,12 @@ class Price < ApplicationRecord
     stripe_price_data&.fetch("currency", nil)
   end
 
+  def update_cached_stripe_price!(stripe_price_hash)
+    return unless stripe_price_hash.is_a?(Hash)
+
+    cache_stripe_price_data(stripe_price_hash)
+  end
+
   def clear_stripe_price_cache!
     Rails.cache.delete(stripe_price_cache_key) if stripe_price_id.present?
     update_column(:stripe_price_cache, {}) if persisted?
