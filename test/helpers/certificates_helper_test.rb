@@ -70,21 +70,21 @@ class CertificatesHelperTest < ActionView::TestCase
       stripe_product_id: "prod_alpha",
       stripe_product_cache: {
         "name" => "Alpha",
-        "metadata" => { "certificate_templates" => "boulder" }
+        "metadata" => { "certificate_templates" => "boulder", "format" => "framed" }
       }
     )
     product_beta = Product.create!(
       stripe_product_id: "prod_beta",
       stripe_product_cache: {
         "name" => "beta",
-        "metadata" => { "certificate_templates" => "boulder" }
+        "metadata" => { "certificate_templates" => "boulder", "format" => "framed" }
       }
     )
     Product.create!(
       stripe_product_id: "prod_other",
       stripe_product_cache: {
         "name" => "Gamma",
-        "metadata" => { "certificate_templates" => "westtown" }
+        "metadata" => { "certificate_templates" => "westtown", "format" => "framed" }
       }
     )
 
@@ -101,7 +101,7 @@ class CertificatesHelperTest < ActionView::TestCase
       stripe_product_id: "prod_default",
       stripe_product_cache: {
         "name" => "Default",
-        "metadata" => { "certificate_templates" => "boulder" }
+        "metadata" => { "certificate_templates" => "boulder", "format" => "framed" }
       }
     )
 

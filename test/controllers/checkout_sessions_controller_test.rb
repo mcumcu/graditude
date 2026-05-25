@@ -2,6 +2,21 @@ require "test_helper"
 require "ostruct"
 
 class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
+  setup do
+    ShippingRate.create!(
+      stripe_shipping_rate_id: "shr_framed_test",
+      stripe_shipping_rate_cache: {
+        "id" => "shr_framed_test",
+        "display_name" => "USPS Ground Advantage",
+        "fixed_amount" => { "amount" => 1850, "currency" => "usd" }
+      },
+      product_format: "framed",
+      billing_basis: "per_item",
+      active: true,
+      default_rate: true
+    )
+  end
+
   test "new renders checkout page for signed-in user" do
     user = users(:one)
     sign_in user
@@ -14,13 +29,13 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
       id: "prod_test",
       name: "Graduation Gift",
       description: "Ceremony edition",
-      metadata: {},
+      metadata: { "format" => "framed" },
       default_price: "price_test_default",
       to_hash: {
         "id" => "prod_test",
         "name" => "Graduation Gift",
         "description" => "Ceremony edition",
-        "metadata" => {},
+        "metadata" => { "format" => "framed" },
         "default_price" => "price_test_default"
       }
     )
@@ -47,13 +62,13 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
       id: "prod_test",
       name: "Graduation Gift",
       description: "Ceremony edition",
-      metadata: {},
+      metadata: { "format" => "framed" },
       default_price: "price_test_default",
       to_hash: {
         "id" => "prod_test",
         "name" => "Graduation Gift",
         "description" => "Ceremony edition",
-        "metadata" => {},
+        "metadata" => { "format" => "framed" },
         "default_price" => "price_test_default"
       }
     )
@@ -115,13 +130,13 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
       id: "prod_test",
       name: "Graduation Gift",
       description: "Ceremony edition",
-      metadata: {},
+      metadata: { "format" => "framed" },
       default_price: "price_test_default",
       to_hash: {
         "id" => "prod_test",
         "name" => "Graduation Gift",
         "description" => "Ceremony edition",
-        "metadata" => {},
+        "metadata" => { "format" => "framed" },
         "default_price" => "price_test_default"
       }
     )
@@ -183,13 +198,13 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
       id: "prod_test",
       name: "Graduation Gift",
       description: "Ceremony edition",
-      metadata: {},
+      metadata: { "format" => "framed" },
       default_price: "price_test_default",
       to_hash: {
         "id" => "prod_test",
         "name" => "Graduation Gift",
         "description" => "Ceremony edition",
-        "metadata" => {},
+        "metadata" => { "format" => "framed" },
         "default_price" => "price_test_default"
       }
     )
@@ -258,13 +273,13 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
       id: "prod_test",
       name: "Graduation Gift",
       description: "Ceremony edition",
-      metadata: {},
+      metadata: { "format" => "framed" },
       default_price: "price_test_default",
       to_hash: {
         "id" => "prod_test",
         "name" => "Graduation Gift",
         "description" => "Ceremony edition",
-        "metadata" => {},
+        "metadata" => { "format" => "framed" },
         "default_price" => "price_test_default"
       }
     )

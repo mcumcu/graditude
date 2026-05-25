@@ -13,23 +13,37 @@ class CheckoutSessionsController < ApplicationController
       return render json: { error: "cart is empty" }, status: :bad_request
     end
 
+    shipping_result = Shipping::Calculator.new(cart: cart).call
+    shipping_details = shipping_result.details
+    shipping_line_items = shipping_result.line_items
+
     raw_payload = {
       request: {
         ip: request.remote_ip,
         user_agent: request.user_agent,
         params: checkout_create_params.to_h
       },
-      items: items
+      items: items,
+      shipping: shipping_details
     }
 
     expire_existing_checkout_sessions(cart)
-    checkout_session = CheckoutSession.create!(status: :open, cart: cart, items: items, raw: raw_payload)
+    checkout_session = CheckoutSession.create!(
+      status: :open,
+      cart: cart,
+      items: items,
+      raw: raw_payload,
+      shipping_total_cents: shipping_result.total_cents,
+      shipping_currency: shipping_result.currency,
+      shipping_details: shipping_details
+    )
     cart.certificate_products.update_all(checkout_session_id: checkout_session.id)
 
+    line_items = items.map { |item| build_checkout_line_item(item) } + shipping_line_items
     session_params = {
       payment_method_types: checkout_payment_method_types,
       customer_email: Current.user.email_address,
-      line_items: items.map { |item| build_checkout_line_item(item) },
+      line_items: line_items,
       mode: "payment",
       billing_address_collection: "required",
       shipping_address_collection: { allowed_countries: checkout_shipping_countries },
@@ -52,14 +66,14 @@ class CheckoutSessionsController < ApplicationController
       #   }
       # ]
     }
-    session_params[:shipping_options] = checkout_shipping_options if checkout_shipping_options.any?
-
     session = stripe_client.v1.checkout.sessions.create(session_params)
 
     checkout_session.update!(stripe_session_id: session.id, raw: raw_payload.deep_merge(stripe_session: session.to_hash))
     CheckoutSessionReconciliationJob.set(wait: 1.minute).perform_later(checkout_session.id)
 
     render json: { sessionId: session.id, url: session.url }
+  rescue Shipping::Calculator::MissingRateError, Shipping::Calculator::MissingFormatError, Shipping::Calculator::CurrencyMismatchError => error
+    render json: { error: error.message }, status: :unprocessable_entity
   rescue Stripe::StripeError => error
     checkout_session&.update(status: :failed, raw: raw_payload.deep_merge(error: error.message))
     render json: { error: error.message }, status: :bad_gateway

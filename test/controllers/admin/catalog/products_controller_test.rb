@@ -96,7 +96,12 @@ class Admin::Catalog::ProductsControllerTest < ActionDispatch::IntegrationTest
 
     product = Product.create!(
       stripe_product_id: "prod_fake",
-      stripe_product_cache: { "id" => "prod_fake", "name" => "Old", "default_price" => "price_old" }
+      stripe_product_cache: {
+        "id" => "prod_fake",
+        "name" => "Old",
+        "default_price" => "price_old",
+        "metadata" => { "format" => "framed" }
+      }
     )
     product.prices.create!(stripe_price_id: "price_old", stripe_price_cache: { "unit_amount" => 1000, "currency" => "usd" })
 
@@ -120,7 +125,12 @@ class Admin::Catalog::ProductsControllerTest < ActionDispatch::IntegrationTest
 
     product = Product.create!(
       stripe_product_id: "prod_archive",
-      stripe_product_cache: { "id" => "prod_archive", "name" => "Archive Me", "active" => true }
+      stripe_product_cache: {
+        "id" => "prod_archive",
+        "name" => "Archive Me",
+        "active" => true,
+        "metadata" => { "format" => "framed" }
+      }
     )
 
     with_provider(@provider) do

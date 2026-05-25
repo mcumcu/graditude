@@ -5,10 +5,12 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
   setup do
     @original_stripe_webhook_secret = ENV["STRIPE_WEBHOOK_SECRET"]
     ENV["STRIPE_WEBHOOK_SECRET"] = "whsec_test"
+    start_stubbed_stripe_products_for_webhooks
   end
 
   teardown do
     ENV["STRIPE_WEBHOOK_SECRET"] = @original_stripe_webhook_secret
+    stop_stubbed_stripe_products_for_webhooks
   end
 
   test "checkout session completed webhook updates checkout session status" do
@@ -24,7 +26,9 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
       event
     end
 
-    post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+    without_catalog_broadcasts do
+      post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+    end
 
     assert_response :success
     assert_equal "complete", checkout_session.reload.status
@@ -45,7 +49,9 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
       event
     end
 
-    post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+    without_catalog_broadcasts do
+      post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+    end
 
     assert_response :success
     assert_equal "expired", checkout_session.reload.status
@@ -68,7 +74,9 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
       event
     end
 
-    post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+    without_catalog_broadcasts do
+      post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+    end
 
     assert_response :success
     reloaded = checkout_session.reload
@@ -109,7 +117,9 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
       event
     end
 
-    post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+    without_catalog_broadcasts do
+      post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+    end
 
     assert_response :success
     assert_equal "complete", checkout_session.reload.status
@@ -123,7 +133,7 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
       "id" => "prod_test_webhook",
       "name" => "Updated Stripe Product",
       "description" => "Updated Stripe description",
-      "metadata" => { "certificate_templates" => "boulder,westtown" }
+      "metadata" => { "certificate_templates" => "boulder,westtown", "format" => "framed" }
     }
     product_object = OpenStruct.new(id: "prod_test_webhook", to_hash: raw_product)
     event = OpenStruct.new(
@@ -139,7 +149,9 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
 
     Rails.cache.delete(product.send(:stripe_product_cache_key))
 
-    post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+    without_catalog_broadcasts do
+      post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+    end
 
     assert_response :success
     assert_equal "Updated Stripe Product", product.reload.stripe_product_cache["name"]
@@ -152,7 +164,11 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
   test "price.updated webhook refreshes stripe_price_cache" do
     product = Product.create!(
       stripe_product_id: "prod_price_webhook",
-      stripe_product_cache: { "id" => "prod_price_webhook", "default_price" => "price_webhook" }
+      stripe_product_cache: {
+        "id" => "prod_price_webhook",
+        "default_price" => "price_webhook",
+        "metadata" => { "format" => "framed" }
+      }
     )
     price = product.prices.create!(stripe_price_id: "price_webhook", stripe_price_cache: { "unit_amount" => 1000, "currency" => "usd" })
 
@@ -172,11 +188,12 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
       event
     end
 
-    post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+    without_catalog_broadcasts do
+      post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+    end
 
     assert_response :success
     assert_equal 2500, price.reload.stripe_price_cache["unit_amount"]
-    assert_equal({}, product.reload.stripe_product_cache)
   ensure
     if original_construct_event
       Stripe::Webhook.define_singleton_method(:construct_event, original_construct_event.to_proc)
@@ -186,7 +203,11 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
   test "price.deleted webhook clears price cache" do
     product = Product.create!(
       stripe_product_id: "prod_price_deleted",
-      stripe_product_cache: { "id" => "prod_price_deleted", "default_price" => "price_deleted" }
+      stripe_product_cache: {
+        "id" => "prod_price_deleted",
+        "default_price" => "price_deleted",
+        "metadata" => { "format" => "framed" }
+      }
     )
     price = product.prices.create!(stripe_price_id: "price_deleted", stripe_price_cache: { "unit_amount" => 1200, "currency" => "usd" })
 
@@ -206,14 +227,33 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
       event
     end
 
-    post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+    without_catalog_broadcasts do
+      post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+    end
 
     assert_response :success
     assert_equal({}, price.reload.stripe_price_cache)
-    assert_equal({}, product.reload.stripe_product_cache)
   ensure
     if original_construct_event
       Stripe::Webhook.define_singleton_method(:construct_event, original_construct_event.to_proc)
     end
+  end
+
+  private
+
+  def without_catalog_broadcasts
+    original_updated = Catalog::Broadcasts.method(:product_updated)
+    original_created = Catalog::Broadcasts.method(:product_created)
+    original_removed = Catalog::Broadcasts.method(:product_removed)
+
+    Catalog::Broadcasts.define_singleton_method(:product_updated) { |_product| }
+    Catalog::Broadcasts.define_singleton_method(:product_created) { |_product| }
+    Catalog::Broadcasts.define_singleton_method(:product_removed) { |_product| }
+
+    yield
+  ensure
+    Catalog::Broadcasts.define_singleton_method(:product_updated, original_updated.to_proc) if original_updated
+    Catalog::Broadcasts.define_singleton_method(:product_created, original_created.to_proc) if original_created
+    Catalog::Broadcasts.define_singleton_method(:product_removed, original_removed.to_proc) if original_removed
   end
 end

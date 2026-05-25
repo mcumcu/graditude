@@ -10,38 +10,38 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_05_20_090200) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_25_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
 
   create_table "affiliate_applications", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "user_id", null: false
     t.uuid "affiliate_invitation_id"
+    t.text "audience"
+    t.datetime "created_at", null: false
+    t.string "display_name"
+    t.text "notes"
+    t.text "promotion_method"
+    t.datetime "reviewed_at"
     t.uuid "reviewed_by_id"
     t.string "status", default: "submitted", null: false
     t.datetime "submitted_at"
-    t.datetime "reviewed_at"
-    t.string "display_name"
-    t.text "audience"
-    t.text "promotion_method"
-    t.text "notes"
-    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.uuid "user_id", null: false
     t.index ["affiliate_invitation_id"], name: "index_affiliate_applications_on_affiliate_invitation_id"
     t.index ["reviewed_by_id"], name: "index_affiliate_applications_on_reviewed_by_id"
     t.index ["user_id"], name: "index_affiliate_applications_on_user_id", unique: true
   end
 
   create_table "affiliate_invitations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.string "email_address", null: false
-    t.uuid "invited_by_id"
-    t.uuid "accepted_by_id"
-    t.string "status", default: "pending", null: false
-    t.datetime "expires_at"
     t.datetime "accepted_at"
-    t.datetime "revoked_at"
+    t.uuid "accepted_by_id"
     t.datetime "created_at", null: false
+    t.string "email_address", null: false
+    t.datetime "expires_at"
+    t.uuid "invited_by_id"
+    t.datetime "revoked_at"
+    t.string "status", default: "pending", null: false
     t.datetime "updated_at", null: false
     t.index ["accepted_by_id"], name: "index_affiliate_invitations_on_accepted_by_id", unique: true
     t.index ["email_address"], name: "index_affiliate_invitations_on_email_address"
@@ -49,10 +49,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_20_090200) do
   end
 
   create_table "carts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "user_id", null: false
-    t.string "status", default: "open", null: false
     t.datetime "created_at", null: false
+    t.string "status", default: "open", null: false
     t.datetime "updated_at", null: false
+    t.uuid "user_id", null: false
     t.index ["user_id", "status"], name: "index_carts_on_user_id_and_status", unique: true, where: "((status)::text = 'open'::text)"
     t.index ["user_id"], name: "index_carts_on_user_id"
   end
@@ -60,13 +60,13 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_20_090200) do
   create_table "certificate_products", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "cart_id", null: false
     t.uuid "certificate_id", null: false
-    t.uuid "product_id", null: false
     t.uuid "checkout_session_id"
-    t.string "status", default: "pending", null: false
-    t.integer "quantity", default: 1, null: false
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.uuid "product_id", null: false
+    t.integer "quantity", default: 1, null: false
+    t.string "status", default: "pending", null: false
     t.string "stripe_price_id", null: false
+    t.datetime "updated_at", null: false
     t.index ["cart_id"], name: "index_certificate_products_on_cart_id"
     t.index ["certificate_id"], name: "index_certificate_products_on_certificate_id"
     t.index ["checkout_session_id"], name: "index_certificate_products_on_checkout_session_id"
@@ -75,17 +75,17 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_20_090200) do
   end
 
   create_table "certificates", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "user_id", null: false
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.jsonb "data", default: {}, null: false
     t.string "template"
+    t.datetime "updated_at", null: false
+    t.uuid "user_id", null: false
     t.index ["user_id"], name: "index_certificates_on_user_id"
   end
 
   create_table "checkout_session_certificates", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "checkout_session_id", null: false
     t.uuid "certificate_id", null: false
+    t.uuid "checkout_session_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["certificate_id"], name: "index_checkout_session_certificates_on_certificate_id"
@@ -93,22 +93,26 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_20_090200) do
   end
 
   create_table "checkout_sessions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.jsonb "raw"
-    t.jsonb "items", default: [], array: true
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "stripe_session_id"
-    t.string "status", default: "open", null: false
     t.uuid "cart_id"
+    t.datetime "created_at", null: false
+    t.jsonb "items", default: [], array: true
+    t.jsonb "raw"
+    t.string "shipping_currency"
+    t.jsonb "shipping_details", default: {}, null: false
+    t.integer "shipping_total_cents"
+    t.string "status", default: "open", null: false
+    t.string "stripe_session_id"
+    t.datetime "updated_at", null: false
     t.index ["cart_id"], name: "index_checkout_sessions_on_cart_id"
+    t.index ["shipping_total_cents"], name: "index_checkout_sessions_on_shipping_total_cents"
     t.index ["stripe_session_id"], name: "index_checkout_sessions_on_stripe_session_id", unique: true
   end
 
   create_table "prices", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "product_id", null: false
-    t.string "stripe_price_id", null: false
-    t.jsonb "stripe_price_cache", default: {}, null: false
     t.datetime "created_at", null: false
+    t.uuid "product_id", null: false
+    t.jsonb "stripe_price_cache", default: {}, null: false
+    t.string "stripe_price_id", null: false
     t.datetime "updated_at", null: false
     t.index ["product_id"], name: "index_prices_on_product_id"
     t.index ["stripe_price_id"], name: "index_prices_on_stripe_price_id", unique: true
@@ -116,33 +120,49 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_20_090200) do
 
   create_table "products", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "stripe_product_id"
     t.jsonb "stripe_product_cache", default: {}, null: false
+    t.string "stripe_product_id"
+    t.datetime "updated_at", null: false
     t.index ["stripe_product_cache"], name: "index_products_on_stripe_product_cache", using: :gin
     t.index ["stripe_product_id"], name: "index_products_on_stripe_product_id", unique: true
   end
 
   create_table "sessions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "user_id", null: false
-    t.string "ip_address"
-    t.string "user_agent"
     t.datetime "created_at", null: false
+    t.string "ip_address"
     t.datetime "updated_at", null: false
+    t.string "user_agent"
+    t.uuid "user_id", null: false
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
+  create_table "shipping_rates", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.string "billing_basis", null: false
+    t.datetime "created_at", null: false
+    t.boolean "default_rate", default: false, null: false
+    t.string "product_format", null: false
+    t.jsonb "stripe_shipping_rate_cache", default: {}, null: false
+    t.string "stripe_shipping_rate_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_shipping_rates_on_active"
+    t.index ["billing_basis"], name: "index_shipping_rates_on_billing_basis"
+    t.index ["default_rate"], name: "index_shipping_rates_on_default_rate"
+    t.index ["product_format"], name: "index_shipping_rates_on_product_format"
+    t.index ["stripe_shipping_rate_id"], name: "index_shipping_rates_on_stripe_shipping_rate_id", unique: true
+  end
+
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.boolean "admin", default: false, null: false
+    t.datetime "affiliate_approved_at"
+    t.uuid "affiliate_approved_by_id"
+    t.string "affiliate_status", default: "none", null: false
+    t.datetime "created_at", null: false
     t.string "email_address", null: false
     t.string "password_digest"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.boolean "admin", default: false, null: false
-    t.string "affiliate_status", default: "none", null: false
-    t.uuid "referred_by_id"
     t.datetime "referred_at"
-    t.uuid "affiliate_approved_by_id"
-    t.datetime "affiliate_approved_at"
+    t.uuid "referred_by_id"
+    t.datetime "updated_at", null: false
     t.index ["affiliate_approved_by_id"], name: "index_users_on_affiliate_approved_by_id"
     t.index ["affiliate_status"], name: "index_users_on_affiliate_status"
     t.index ["email_address"], name: "index_users_on_email_address", unique: true

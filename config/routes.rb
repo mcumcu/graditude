@@ -14,6 +14,8 @@ Rails.application.routes.draw do
   get "certificates/:id/preview" => "certificates#preview", as: :preview_certificate
 
   namespace :admin do
+    resources :shipping_rates, only: [ :index, :new, :create, :edit, :update, :destroy ]
+
     namespace :catalog do
       resources :products, only: [ :index, :new, :create, :edit, :update, :destroy ] do
         post :preview, on: :collection

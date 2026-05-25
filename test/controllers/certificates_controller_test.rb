@@ -94,13 +94,13 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
       id: "prod_test",
       name: "Boulder Graduation Certificate",
       description: "A presentation-ready certificate",
-      metadata: { "certificate_templates" => "boulder,westtown" },
+      metadata: { "certificate_templates" => "boulder,westtown", "format" => "framed" },
       default_price: "price_test_default",
       to_hash: {
         "id" => "prod_test",
         "name" => "Boulder Graduation Certificate",
         "description" => "A presentation-ready certificate",
-        "metadata" => { "certificate_templates" => "boulder,westtown" },
+        "metadata" => { "certificate_templates" => "boulder,westtown", "format" => "framed" },
         "default_price" => "price_test_default"
       }
     )
@@ -131,13 +131,13 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
       id: "prod_test",
       name: "Boulder Graduation Certificate",
       description: "A presentation-ready certificate",
-      metadata: { "certificate_templates" => "boulder,westtown" },
+      metadata: { "certificate_templates" => "boulder,westtown", "format" => "framed" },
       default_price: "price_test_default",
       to_hash: {
         "id" => "prod_test",
         "name" => "Boulder Graduation Certificate",
         "description" => "A presentation-ready certificate",
-        "metadata" => { "certificate_templates" => "boulder,westtown" },
+        "metadata" => { "certificate_templates" => "boulder,westtown", "format" => "framed" },
         "default_price" => "price_test_default"
       }
     )
@@ -189,13 +189,13 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
       id: "prod_test",
       name: "Boulder Graduation Certificate",
       description: "A presentation-ready certificate",
-      metadata: { "certificate_templates" => "boulder,westtown" },
+      metadata: { "certificate_templates" => "boulder,westtown", "format" => "framed" },
       default_price: "price_test_default",
       to_hash: {
         "id" => "prod_test",
         "name" => "Boulder Graduation Certificate",
         "description" => "A presentation-ready certificate",
-        "metadata" => { "certificate_templates" => "boulder,westtown" },
+        "metadata" => { "certificate_templates" => "boulder,westtown", "format" => "framed" },
         "default_price" => "price_test_default"
       }
     )
@@ -218,14 +218,14 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
       "id" => "prod_one",
       "name" => "Boulder Standard",
       "description" => "A solid certificate product",
-      "metadata" => { "certificate_templates" => "boulder" },
+      "metadata" => { "certificate_templates" => "boulder", "format" => "framed" },
       "default_price" => "price_one"
     })
     product_two.update_column(:stripe_product_cache, {
       "id" => "prod_two",
       "name" => "Boulder Premium",
       "description" => "A premium certificate product",
-      "metadata" => { "certificate_templates" => "boulder" },
+      "metadata" => { "certificate_templates" => "boulder", "format" => "framed" },
       "default_price" => "price_two"
     })
 

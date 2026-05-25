@@ -18,6 +18,10 @@ class CheckoutSession < ApplicationRecord
     raw.presence || {}
   end
 
+  def shipping_details_hash
+    shipping_details.presence || {}
+  end
+
   def append_raw(payload)
     update!(raw: raw_hash.deep_merge(payload))
   end
@@ -39,7 +43,13 @@ class CheckoutSession < ApplicationRecord
                    "open"
     end
 
-    update!(status: new_status, raw: raw_hash.deep_merge(stripe_session: stripe_session.to_hash))
+    shipping_payload = build_shipping_details_payload(stripe_session)
+
+    update!(
+      status: new_status,
+      raw: raw_hash.deep_merge(stripe_session: stripe_session.to_hash),
+      shipping_details: shipping_details_hash.deep_merge(shipping_payload)
+    )
     complete_order! if new_status == "complete"
   end
 
@@ -61,5 +71,18 @@ class CheckoutSession < ApplicationRecord
 
   def expire_idempotency_key
     "checkout_session_expiration:#{id}"
+  end
+
+  private
+
+  def build_shipping_details_payload(stripe_session)
+    details = stripe_session.respond_to?(:shipping_details) ? stripe_session.shipping_details : stripe_session.to_hash["shipping_details"]
+    return {} if details.blank?
+
+    details = details.to_hash if details.respond_to?(:to_hash)
+    details = details.to_h if details.respond_to?(:to_h)
+    details = details.transform_keys(&:to_s) if details.respond_to?(:transform_keys)
+
+    { "stripe_shipping_details" => details }
   end
 end

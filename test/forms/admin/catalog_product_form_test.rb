@@ -8,6 +8,7 @@ class AdminCatalogProductFormTest < ActiveSupport::TestCase
         "id" => "prod_form",
         "name" => "Certificate",
         "description" => "Description",
+        "metadata" => { "format" => "framed" },
         "marketing_features" => [
           { "name" => "Premium print", "description" => "Crisp" }
         ],

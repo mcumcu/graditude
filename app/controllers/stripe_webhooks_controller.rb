@@ -80,12 +80,14 @@ class StripeWebhooksController < ApplicationController
     new_status = status_for(event.type)
     return unless new_status.present?
 
+    shipping_payload = shipping_details_payload(session)
     checkout_session.update(
       status: new_status,
       raw: checkout_session.raw.to_h.deep_merge(
         "stripe_event" => event.to_hash,
         "stripe_session" => session.to_hash
-      )
+      ),
+      shipping_details: (checkout_session.shipping_details.presence || {}).deep_merge(shipping_payload)
     )
 
     checkout_session.complete_order! if new_status == "complete"
@@ -104,5 +106,16 @@ class StripeWebhooksController < ApplicationController
     else
       nil
     end
+  end
+
+  def shipping_details_payload(session)
+    details = session.respond_to?(:shipping_details) ? session.shipping_details : session.to_hash["shipping_details"]
+    return {} if details.blank?
+
+    details = details.to_hash if details.respond_to?(:to_hash)
+    details = details.to_h if details.respond_to?(:to_h)
+    details = details.transform_keys(&:to_s) if details.respond_to?(:transform_keys)
+
+    { "stripe_shipping_details" => details }
   end
 end

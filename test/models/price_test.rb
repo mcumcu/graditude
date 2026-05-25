@@ -3,7 +3,10 @@ require "ostruct"
 
 class PriceTest < ActiveSupport::TestCase
   test "stripe_price_data caches stripe price payload in stripe_price_cache and Rails cache" do
-    product = Product.create!(stripe_product_id: "prod_test_price")
+    product = Product.create!(
+      stripe_product_id: "prod_test_price",
+      stripe_product_cache: { "metadata" => { "format" => "framed" } }
+    )
     price = product.prices.create!(stripe_price_id: "price_test_cache")
     stripe_price = OpenStruct.new(
       id: "price_test_cache",
@@ -33,7 +36,10 @@ class PriceTest < ActiveSupport::TestCase
   end
 
   test "stripe_price_data reloads and refreshes persisted cache" do
-    product = Product.create!(stripe_product_id: "prod_test_price_reload")
+    product = Product.create!(
+      stripe_product_id: "prod_test_price_reload",
+      stripe_product_cache: { "metadata" => { "format" => "framed" } }
+    )
     price = product.prices.create!(stripe_price_id: "price_test_reload", stripe_price_cache: { "unit_amount" => 3500, "currency" => "usd" })
     stripe_price = OpenStruct.new(
       id: "price_test_reload",
@@ -58,7 +64,10 @@ class PriceTest < ActiveSupport::TestCase
   end
 
   test "clear_stripe_price_cache! removes both Rails cache and persisted stripe_price_cache" do
-    product = Product.create!(stripe_product_id: "prod_test_price_clear")
+    product = Product.create!(
+      stripe_product_id: "prod_test_price_clear",
+      stripe_product_cache: { "metadata" => { "format" => "framed" } }
+    )
     price = product.prices.create!(stripe_price_id: "price_test_clear", stripe_price_cache: { "unit_amount" => 5000, "currency" => "usd" })
     Rails.cache.write(price.send(:stripe_price_cache_key), price.stripe_price_cache)
 

@@ -11,13 +11,13 @@ class CartItemsControllerTest < ActionDispatch::IntegrationTest
     stripe_product = OpenStruct.new(
       name: "Graduation Gift",
       description: "Ceremony edition",
-      metadata: {},
+      metadata: { "format" => "framed" },
       default_price: "price_test_default",
       to_hash: {
         "id" => "prod_test",
         "name" => "Graduation Gift",
         "description" => "Ceremony edition",
-        "metadata" => {},
+        "metadata" => { "format" => "framed" },
         "default_price" => "price_test_default"
       }
     )
@@ -58,13 +58,13 @@ class CartItemsControllerTest < ActionDispatch::IntegrationTest
     stripe_product = OpenStruct.new(
       name: "Graduation Gift",
       description: "Ceremony edition",
-      metadata: {},
+      metadata: { "format" => "framed" },
       default_price: "price_test_default",
       to_hash: {
         "id" => "prod_test",
         "name" => "Graduation Gift",
         "description" => "Ceremony edition",
-        "metadata" => {},
+        "metadata" => { "format" => "framed" },
         "default_price" => "price_test_default"
       }
     )
