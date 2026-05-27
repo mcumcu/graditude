@@ -1,0 +1,16 @@
+<main class="mx-auto w-full max-w-6xl px-4 py-10">
+  <%= render "admin/shared/nav" %>
+  <%= render "shared/flash_messages" %>
+
+  <div class="mt-8 flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-primary">Order #<%= @order.number %></h1>
+      <p class="mt-1 text-content-muted">Inspect Stripe payloads, shipping details, and available fulfillment actions for this order.</p>
+    </div>
+    <%= link_to "Back to orders", admin_orders_path, class: "text-sm font-semibold text-primary/70 hover:text-primary" %>
+  </div>
+
+  <%= turbo_stream_from ::Orders::Broadcasts::STREAM %>
+
+  <%= render "detail", order: @order %>
+</main>

@@ -501,6 +501,27 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to certificates_url
   end
 
+  test "should redirect to remaining certificate show when one certificate remains" do
+    remaining_certificate = create_additional_certificate_for(users(:one), honoree_name: "Honoree Remaining")
+
+    assert_difference("Certificate.count", -1) do
+      delete certificate_url(@certificate)
+    end
+
+    assert_redirected_to certificate_url(remaining_certificate)
+  end
+
+  test "should redirect to index when multiple certificates remain" do
+    create_additional_certificate_for(users(:one), honoree_name: "Honoree Extra One")
+    create_additional_certificate_for(users(:one), honoree_name: "Honoree Extra Two")
+
+    assert_difference("Certificate.count", -1) do
+      delete certificate_url(@certificate)
+    end
+
+    assert_redirected_to certificates_url
+  end
+
   test "should destroy certificate with json response" do
     delete certificate_url(@certificate, format: :json)
 

@@ -138,3 +138,24 @@ fly console -a graditude-polished-fog-4608
 inv = AffiliateInvitation.create!(email_address: "info@thegraditude.com")
 AffiliateInvitationMailer.invite(inv).deliver_later
 ```
+
+## Shipping rates (Fly)
+
+Run a one-off Fly console and seed standard shipping rates from the app directory:
+
+```bash
+flyctl ssh console -a graditude-polished-fog-4608 --command "cd /app && bundle exec rails shipping:seed_standard_rates"
+```
+
+If you want an interactive console first, use:
+
+```bash
+flyctl ssh console -a graditude-polished-fog-4608
+```
+
+Then run:
+
+```bash
+cd /app && bundle exec rails shipping:seed_standard_rates
+```
+

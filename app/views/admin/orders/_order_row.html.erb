@@ -1,0 +1,49 @@
+<% currency = order.currency.to_s.downcase == "usd" ? "$" : "#{order.currency.to_s.upcase} " %>
+<% total_label = number_to_currency(order.total_cents.to_f / 100.0, unit: currency, precision: 2) %>
+<% item_count = order.checkout_items.sum { |item| item[:quantity].to_i } %>
+<% status_classes = {
+  "order_placed" => "border-primary/25 text-primary bg-primary/5",
+  "processing" => "border-warning/25 text-warning bg-warning/10",
+  "shipping" => "border-primary/25 text-primary bg-primary/5",
+  "received" => "border-success/25 text-success bg-success/10",
+  "canceled" => "border-error/25 text-error bg-error/10"
+} %>
+
+<tr id="<%= dom_id(order, :admin_order) %>"
+  class="cursor-pointer align-top transition hover:bg-primary/5 focus-within:bg-primary/5"
+  role="link"
+  tabindex="0"
+  data-controller="row-link"
+  data-row-link-url-value="<%= admin_order_path(order) %>"
+  data-action="click->row-link#visit keydown->row-link#key">
+  <td class="px-6 py-4">
+    <div class="flex flex-col gap-3">
+      <span class="inline-flex w-fit rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide <%= status_classes.fetch(order.status, status_classes["order_placed"]) %>">
+        <%= order.status_label %>
+      </span>
+      <div class="text-xs text-content-muted">Updated <%= time_ago_in_words(order.updated_at) %> ago</div>
+    </div>
+  </td>
+  <td class="px-6 py-4">
+    <div class="font-semibold text-lg text-primary">#<%= order.number %></div>
+    <div class="mt-1 text-sm text-content-muted"><%= order.user.email_address %></div>
+    <div class="mt-2 text-sm text-content-muted"><%= pluralize(item_count, "item") %></div>
+    <div class="mt-2 text-xs text-content-muted"><%= order.checkout_session.stripe_session_id %></div>
+  </td>
+  <td class="px-6 py-4 text-sm text-content-muted">
+    <% if order.shipping_address_lines.any? %>
+      <div class="space-y-1">
+        <% order.shipping_address_lines.each do |line| %>
+          <div><%= line %></div>
+        <% end %>
+      </div>
+    <% else %>
+      <div>Shipping details pending from Stripe.</div>
+    <% end %>
+  </td>
+  <td class="px-6 py-4">
+    <div class="font-semibold text-primary"><%= total_label %></div>
+    <div class="mt-1 text-xs text-content-muted">Placed <%= order.created_at.strftime("%b %-d, %Y") %></div>
+    <div class="mt-2 text-xs font-semibold text-primary/70">View details</div>
+  </td>
+</tr>
