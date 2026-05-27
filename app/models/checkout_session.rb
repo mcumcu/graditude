@@ -62,9 +62,10 @@ class CheckoutSession < ApplicationRecord
   def ensure_order!
     return order if order.present?
     return unless complete?
+    return unless cart&.user.present?
 
     order_attributes = {
-      user: cart&.user,
+      user: cart.user,
       status: :order_placed,
       raw: order_snapshot_payload,
       shipping_address: order_shipping_address_payload
