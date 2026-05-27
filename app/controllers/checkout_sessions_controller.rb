@@ -118,6 +118,14 @@ class CheckoutSessionsController < ApplicationController
     end
 
     @checkout_status = checkout_session.status
+    if checkout_session.complete?
+      order = checkout_session.ensure_order!
+      if order.present?
+        redirect_to order_path(order)
+        return
+      end
+    end
+
     return unless checkout_session.failed? || checkout_session.canceled? || checkout_session.expired?
 
     redirect_to checkout_cancel_path(session_id: @session_id, outcome: checkout_session.status)

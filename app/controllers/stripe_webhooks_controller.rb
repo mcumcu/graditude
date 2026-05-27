@@ -27,6 +27,8 @@ class StripeWebhooksController < ApplicationController
       handle_price_event(event.data.object)
     when "price.deleted"
       handle_deleted_price_event(event.data.object)
+    when "payment_intent.canceled", "charge.refunded", "charge.dispute.created", "charge.dispute.closed"
+      handle_order_event(event)
     else
       handle_checkout_event(event)
     end
@@ -93,6 +95,17 @@ class StripeWebhooksController < ApplicationController
     checkout_session.complete_order! if new_status == "complete"
   end
 
+  def handle_order_event(event)
+    order = order_for_stripe_object(event.data.object, event_type: event.type)
+    return unless order
+
+    order.append_raw(
+      "stripe_events" => {
+        event.type => event.to_hash
+      }
+    )
+  end
+
   def status_for(event_type)
     case event_type
     when "checkout.session.completed"
@@ -117,5 +130,57 @@ class StripeWebhooksController < ApplicationController
     details = details.transform_keys(&:to_s) if details.respond_to?(:transform_keys)
 
     { "stripe_shipping_details" => details }
+  end
+
+  def order_for_stripe_object(stripe_object, event_type:)
+    object_hash = stripe_object_hash(stripe_object)
+
+    checkout_session_id = object_hash.dig("metadata", "checkout_session_id")
+    if checkout_session_id.present?
+      order = Order.find_by(checkout_session_id: checkout_session_id)
+      return order if order
+    end
+
+    payment_intent_id = payment_intent_id_for(object_hash, event_type: event_type)
+    if payment_intent_id.present?
+      order = Order.includes(:checkout_session).detect do |candidate|
+        candidate.raw_hash.dig("stripe_session", "payment_intent") == payment_intent_id ||
+          candidate.checkout_session.raw_hash.dig("stripe_session", "payment_intent") == payment_intent_id
+      end
+      return order if order
+    end
+
+    charge_id = charge_id_for(object_hash, event_type: event_type)
+    return if charge_id.blank?
+
+    Order.includes(:checkout_session).detect do |candidate|
+      candidate.raw_hash.dig("stripe_session", "charge") == charge_id ||
+        candidate.checkout_session.raw_hash.dig("stripe_session", "charge") == charge_id
+    end
+  end
+
+  def stripe_object_hash(stripe_object)
+    object_hash = stripe_object.respond_to?(:to_hash) ? stripe_object.to_hash : stripe_object.to_h
+    object_hash.transform_keys(&:to_s)
+  end
+
+  def payment_intent_id_for(object_hash, event_type:)
+    return object_hash["id"] if event_type.start_with?("payment_intent.")
+
+    value = object_hash["payment_intent"]
+    return value if value.is_a?(String)
+    return value["id"] if value.is_a?(Hash)
+
+    nil
+  end
+
+  def charge_id_for(object_hash, event_type:)
+    return object_hash["id"] if event_type.start_with?("charge.")
+
+    value = object_hash["charge"]
+    return value if value.is_a?(String)
+    return value["id"] if value.is_a?(Hash)
+
+    nil
   end
 end

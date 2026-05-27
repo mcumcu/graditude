@@ -14,7 +14,8 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "checkout session completed webhook updates checkout session status" do
-    checkout_session = CheckoutSession.create!(status: :open, items: [ { price_id: "price_test", quantity: 1 } ], raw: {}, stripe_session_id: "cs_test")
+    cart = Cart.create!(user: users(:one), status: "completed")
+    checkout_session = CheckoutSession.create!(cart: cart, status: :open, items: [ { price_id: "price_test", quantity: 1 } ], raw: {}, stripe_session_id: "cs_test")
     event = OpenStruct.new(
       type: "checkout.session.completed",
       data: OpenStruct.new(object: OpenStruct.new(id: "cs_test", to_hash: { "id" => "cs_test" })),
@@ -32,6 +33,7 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_equal "complete", checkout_session.reload.status
+    assert_equal "order_placed", checkout_session.reload.order&.status
   ensure
     Stripe::Webhook.define_singleton_method(:construct_event, original_construct_event)
   end
@@ -105,7 +107,8 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "async payment succeeded webhook updates checkout session status" do
-    checkout_session = CheckoutSession.create!(status: :open, items: [ { price_id: "price_test", quantity: 1 } ], raw: {}, stripe_session_id: "cs_test_async")
+    cart = Cart.create!(user: users(:one), status: "completed")
+    checkout_session = CheckoutSession.create!(cart: cart, status: :open, items: [ { price_id: "price_test", quantity: 1 } ], raw: {}, stripe_session_id: "cs_test_async")
     event = OpenStruct.new(
       type: "checkout.session.async_payment_succeeded",
       data: OpenStruct.new(object: OpenStruct.new(id: "cs_test_async", to_hash: { "id" => "cs_test_async" })),
@@ -123,6 +126,71 @@ class StripeWebhooksControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_equal "complete", checkout_session.reload.status
+    assert_equal "order_placed", checkout_session.reload.order&.status
+  ensure
+    Stripe::Webhook.define_singleton_method(:construct_event, original_construct_event)
+  end
+
+  test "charge refunded webhook captures stripe payload on related order" do
+    cart = Cart.create!(user: users(:one), status: "completed")
+    checkout_session = CheckoutSession.create!(
+      cart: cart,
+      status: :complete,
+      items: [ { price_id: "price_test", quantity: 1 } ],
+      raw: { "stripe_session" => { "payment_intent" => "pi_refunded_test" } },
+      stripe_session_id: "cs_refunded"
+    )
+    order = checkout_session.ensure_order!
+    event = OpenStruct.new(
+      type: "charge.refunded",
+      data: OpenStruct.new(object: OpenStruct.new(id: "ch_refunded_test", payment_intent: "pi_refunded_test", to_hash: { "id" => "ch_refunded_test", "payment_intent" => "pi_refunded_test" })),
+      to_hash: { "type" => "charge.refunded" }
+    )
+
+    original_construct_event = Stripe::Webhook.method(:construct_event)
+    Stripe::Webhook.define_singleton_method(:construct_event) do |_payload, _sig_header, _secret|
+      event
+    end
+
+    without_catalog_broadcasts do
+      post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+    end
+
+    assert_response :success
+    assert_equal "charge.refunded", order.reload.raw.dig("stripe_events", "charge.refunded", "type")
+    assert_equal "order_placed", order.status
+  ensure
+    Stripe::Webhook.define_singleton_method(:construct_event, original_construct_event)
+  end
+
+  test "payment intent canceled webhook captures stripe payload on related order" do
+    cart = Cart.create!(user: users(:one), status: "completed")
+    checkout_session = CheckoutSession.create!(
+      cart: cart,
+      status: :complete,
+      items: [ { price_id: "price_test", quantity: 1 } ],
+      raw: { "stripe_session" => { "payment_intent" => "pi_canceled_test" } },
+      stripe_session_id: "cs_canceled"
+    )
+    order = checkout_session.ensure_order!
+    event = OpenStruct.new(
+      type: "payment_intent.canceled",
+      data: OpenStruct.new(object: OpenStruct.new(id: "pi_canceled_test", to_hash: { "id" => "pi_canceled_test", "object" => "payment_intent" })),
+      to_hash: { "type" => "payment_intent.canceled" }
+    )
+
+    original_construct_event = Stripe::Webhook.method(:construct_event)
+    Stripe::Webhook.define_singleton_method(:construct_event) do |_payload, _sig_header, _secret|
+      event
+    end
+
+    without_catalog_broadcasts do
+      post "/stripe/webhook", headers: { "HTTP_STRIPE_SIGNATURE" => "tst" }, params: "{}"
+    end
+
+    assert_response :success
+    assert_equal "payment_intent.canceled", order.reload.raw.dig("stripe_events", "payment_intent.canceled", "type")
+    assert_equal "order_placed", order.status
   ensure
     Stripe::Webhook.define_singleton_method(:construct_event, original_construct_event)
   end
