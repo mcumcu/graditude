@@ -1,11 +1,15 @@
 module CertificatesHelper
   def formatted_stripe_price(product)
-    price = product&.stripe_price
-    return unless price
+    data = product&.catalog_data
+    return unless data
+
+    amount = data[:default_price_amount_cents]
+    currency = data[:default_price_currency]
+    return if amount.blank? || currency.blank?
 
     number_to_currency(
-      price.fetch("unit_amount", 0).to_i / 100.0,
-      unit: currency_symbol(price.fetch("currency", "")),
+      amount.to_i / 100.0,
+      unit: currency_symbol(currency),
       precision: 2
     )
   end
@@ -21,14 +25,14 @@ module CertificatesHelper
   end
 
   def price_label_for(products)
-    priced_products = Array(products).select { |product| product.stripe_price_amount_cents.present? }
+    priced_products = Array(products).select { |product| product.catalog_data[:default_price_amount_cents].present? }
     return "Pricing available at checkout" if priced_products.empty?
 
-    cheapest = priced_products.min_by(&:stripe_price_amount_cents)
+    cheapest = priced_products.min_by { |product| product.catalog_data[:default_price_amount_cents].to_i }
     formatted = formatted_stripe_price(cheapest)
     return "Pricing available at checkout" unless formatted.present?
 
-    multiple_prices = priced_products.map(&:stripe_price_amount_cents).uniq.length > 1
+    multiple_prices = priced_products.map { |product| product.catalog_data[:default_price_amount_cents].to_i }.uniq.length > 1
     multiple_prices ? "From #{formatted}" : formatted
   end
 
@@ -43,18 +47,7 @@ module CertificatesHelper
   def product_variant_format(product)
     return if product.nil?
 
-    metadata = product.stripe_metadata.to_h.transform_keys { |key| key.to_s.downcase }
-    value = metadata["format"] || metadata["framed"] || metadata["frame"]
-    normalized = value.to_s.downcase
-
-    return "framed" if %w[framed frame true yes 1].include?(normalized)
-    return "unframed" if %w[unframed false no 0].include?(normalized)
-
-    name = [ product.title, product.description ].compact.join(" ").downcase
-    return "unframed" if name.include?("unframed") || name.include?("no frame")
-    return "framed" if name.include?("framed") || name.include?("frame")
-
-    nil
+    product.variant_format
   end
 
   def products_for_template(template)
@@ -78,8 +71,9 @@ module CertificatesHelper
 
   def certificate_purchased?(certificate)
     return false unless Current.user
+    return false unless certificate
 
-    certificate.certificate_products.where(status: "purchased").exists?
+    certificate.purchased?
   end
 
   def product_in_cart?(product_id, certificate:)

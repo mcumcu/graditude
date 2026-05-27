@@ -4,14 +4,19 @@ class CertificatesController < ApplicationController
   rescue_from ActionController::ParameterMissing, with: :missing_certificate_params
 
   before_action :set_certificate, only: %i[ show edit update destroy preview ]
+  before_action :ensure_certificate_editable, only: %i[ edit update ]
   before_action :set_preferred_format, only: %i[ show new create edit ]
   before_action :options_for_nouns, only: %i[ index edit new create show ]
 
   # GET /certificates or /certificates.json
   def index
-    @certificates = Certificate.where(user: Current.user)
+    base_scope = Certificate.where(user: Current.user).includes(:certificate_products)
+    @purchasable_certificates = base_scope.purchasable.to_a
+    @purchased_certificates = base_scope.purchased.to_a
 
-    redirect_to certificate_path(@certificates.first) if @certificates.count == 1
+    return unless @purchasable_certificates.length == 1 && @purchased_certificates.empty?
+
+    redirect_to certificate_path(@purchasable_certificates.first)
   end
 
   # GET /certificates/1 or /certificates/1.json
@@ -131,5 +136,17 @@ class CertificatesController < ApplicationController
 
     def set_preferred_format
       @preferred_format = params[:preferred_format].presence
+    end
+
+    def ensure_certificate_editable
+      return unless @certificate&.purchased?
+
+      message = "Purchased certificates cannot be edited."
+      respond_to do |format|
+        format.html { redirect_to certificate_path(@certificate), alert: message }
+        format.json { render json: { error: message }, status: :unprocessable_entity }
+      end
+
+      nil
     end
 end

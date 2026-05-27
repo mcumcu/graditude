@@ -5,7 +5,7 @@
   <% cart_items_count = local_assigns.fetch(:cart_items_count, 0) %>
   <% multi_select = local_assigns.fetch(:multi_select, false) %>
   <% bind_frame_load = local_assigns.fetch(:bind_frame_load, false) %>
-  <% action_value = "turbo:submit-end->format-selector#update" %>
+  <% action_value = "turbo:submit-end->format-selector#submitEnd" %>
   <% action_value = "#{action_value} turbo:frame-load->format-selector#update" if bind_frame_load %>
 
   <%= form_with url: form_url,

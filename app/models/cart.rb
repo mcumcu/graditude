@@ -31,8 +31,8 @@ class Cart < ApplicationRecord
         certificate_id: item.certificate_id,
         price_id: item.stripe_price_id,
         quantity: item.quantity,
-        product_title: item.product.stripe_name,
-        product_description: item.product.stripe_description,
+        product_title: item.product.display_name,
+        product_description: item.product.display_description,
         currency: item.currency,
         unit_amount: item.unit_amount_cents,
         certificate_template: item.certificate.template

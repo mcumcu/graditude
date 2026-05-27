@@ -62,4 +62,49 @@ class CertificateTest < ActiveSupport::TestCase
 
     assert certificate.valid?
   end
+
+  test "purchased? returns true when certificate has a purchased item" do
+    user = users(:one)
+    certificate = certificates(:one)
+    cart = Cart.create!(user: user, status: "completed")
+    product = Product.create!(stripe_product_id: "prod_purchased")
+
+    CertificateProduct.create!(
+      cart: cart,
+      certificate: certificate,
+      product: product,
+      stripe_price_id: "price_purchased",
+      quantity: 1,
+      status: "purchased"
+    )
+
+    assert certificate.purchased?
+  end
+
+  test "purchasable excludes certificates with purchased items" do
+    user = users(:one)
+    purchased_certificate = certificates(:one)
+    purchasable_certificate = Certificate.create!(
+      user: user,
+      graduate_name: "Grad",
+      honoree_name: "Honoree",
+      degree: "Degree",
+      presented_on: "2026-05-16"
+    )
+    cart = Cart.create!(user: user, status: "completed")
+    product = Product.create!(stripe_product_id: "prod_scope")
+
+    CertificateProduct.create!(
+      cart: cart,
+      certificate: purchased_certificate,
+      product: product,
+      stripe_price_id: "price_scope",
+      quantity: 1,
+      status: "purchased"
+    )
+
+    purchasable = Certificate.purchasable.where(user: user)
+    assert_not_includes purchasable, purchased_certificate
+    assert_includes purchasable, purchasable_certificate
+  end
 end

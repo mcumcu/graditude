@@ -1,0 +1,101 @@
+<% shipping_rate = local_assigns.fetch(:shipping_rate, @form.shipping_rate) %>
+
+<%= form_with model: @form, url: form_url, method: form_method, scope: :shipping_rate, class: "mt-8" do |form| %>
+  <% if @form.errors.any? %>
+    <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      <%= @form.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <div class="grid grid-cols-1 gap-10">
+    <div class="space-y-10">
+      <section class="space-y-4">
+        <h2 class="text-lg font-semibold text-primary">Rate details</h2>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="<%= field_row_classes %>">
+            <%= form.label :display_name, "Carrier & service", class: form_label_classes %>
+            <%= form.text_field :display_name, class: form_input_classes(@form, :display_name), placeholder: "USPS Ground Advantage" %>
+          </div>
+          <div class="<%= field_row_classes %>">
+            <%= form.label :product_format, "Product format", class: form_label_classes %>
+            <%= form.select :product_format, [["Framed", "framed"], ["Print only (unframed)", "unframed"]], {}, class: form_input_classes(@form, :product_format) %>
+          </div>
+        </div>
+        <div class="<%= field_row_classes %>">
+          <%= form.label :billing_basis, "Billing basis", class: form_label_classes %>
+          <%= form.select :billing_basis, [["Per item", "per_item"], ["Per order", "per_order"]], {}, class: form_input_classes(@form, :billing_basis) %>
+          <p class="text-xs text-content-muted">Per item multiplies by quantity. Per order charges once if any item matches.</p>
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <h2 class="text-lg font-semibold text-primary">Pricing</h2>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="<%= field_row_classes %>">
+            <%= form.label :amount, "Rate amount (in dollars)", class: form_label_classes %>
+            <%= form.text_field :amount, class: form_input_classes(@form, :amount), placeholder: "18.50" %>
+          </div>
+          <div class="<%= field_row_classes %>">
+            <%= form.label :currency, "Currency", class: form_label_classes %>
+            <%= form.text_field :currency, class: form_input_classes(@form, :currency), placeholder: "usd" %>
+          </div>
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <h2 class="text-lg font-semibold text-primary">Delivery window</h2>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="<%= field_row_classes %>">
+            <%= form.label :delivery_min_days, "Minimum business days", class: form_label_classes %>
+            <%= form.number_field :delivery_min_days, class: form_input_classes(@form, :delivery_min_days), min: 1, step: 1 %>
+          </div>
+          <div class="<%= field_row_classes %>">
+            <%= form.label :delivery_max_days, "Maximum business days", class: form_label_classes %>
+            <%= form.number_field :delivery_max_days, class: form_input_classes(@form, :delivery_max_days), min: 1, step: 1 %>
+          </div>
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <h2 class="text-lg font-semibold text-primary">Status</h2>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="flex items-center gap-3 rounded-xl border border-primary/10 bg-background-secondary px-4 py-3">
+            <%= form.check_box :active, class: "h-4 w-4 rounded border-primary/30 text-primary" %>
+            <div>
+              <%= form.label :active, "Active", class: "text-sm font-semibold text-primary" %>
+              <p class="text-xs text-content-muted">Inactive rates stay in Stripe but will not be used for checkout.</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 rounded-xl border border-primary/10 bg-background-secondary px-4 py-3">
+            <%= form.check_box :default_rate, class: "h-4 w-4 rounded border-primary/30 text-primary" %>
+            <div>
+              <%= form.label :default_rate, "Default for format", class: "text-sm font-semibold text-primary" %>
+              <p class="text-xs text-content-muted">Used for automatic shipping when multiple rates exist.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <% if shipping_rate&.persisted? %>
+        <div class="<%= field_row_classes %> border rounded-lg border-red-200 bg-red-50 px-6 py-5">
+          <h2 class="text-base font-semibold text-red-600">Archive shipping rate</h2>
+          <p class="mt-1 text-sm text-red-600">Archive this rate in Stripe. It will no longer be used for checkout.</p>
+          <div class="mt-4">
+            <%= link_to "Archive rate",
+              admin_shipping_rate_path(shipping_rate),
+              data: { turbo_method: :delete, turbo_confirm: "Archive this shipping rate in Stripe?" },
+              class: "inline-flex items-center rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-500",
+              role: "button" %>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="flex flex-wrap gap-3 justify-between">
+        <div class="flex flex-wrap gap-3">
+          <%= form.submit "Save shipping rate", class: "inline-flex items-center rounded-full bg-primary px-6 py-2 text-sm font-semibold text-white hover:bg-primary/90 min-w-64" %>
+        </div>
+        <%= link_to "Back", admin_shipping_rates_path, class: "inline-flex items-center rounded-full border border-primary/20 px-6 py-2 text-sm font-semibold text-primary" %>
+      </div>
+    </div>
+  </div>
+<% end %>

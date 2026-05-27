@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   get "checkout" => "checkout_sessions#new", as: :new_checkout
   post "checkout" => "checkout_sessions#create"
+  get "checkout/preview" => "checkout_sessions#preview_image", as: :checkout_preview
   get "checkout_sessions/:id" => "checkout_sessions#show", as: :checkout_session
   post "stripe/webhook" => "stripe_webhooks#receive"
   get "checkout/success" => "checkout_sessions#success", as: :checkout_success
@@ -12,6 +13,17 @@ Rails.application.routes.draw do
 
   resources :certificates
   get "certificates/:id/preview" => "certificates#preview", as: :preview_certificate
+
+  namespace :admin do
+    resources :shipping_rates, only: [ :index, :new, :create, :edit, :update, :destroy ]
+
+    namespace :catalog do
+      resources :products, only: [ :index, :new, :create, :edit, :update, :destroy ] do
+        post :preview, on: :collection
+        post :preview, on: :member
+      end
+    end
+  end
 
   get "documents/index" => "documents#index"
   get "/up" => "health#up"

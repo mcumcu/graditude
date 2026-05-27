@@ -1,0 +1,38 @@
+<% data = product.catalog_data(with_defaults: false) %>
+
+<tr id="<%= dom_id(product, :admin_catalog) %>"
+  class="cursor-pointer transition hover:bg-primary/5 focus-within:bg-primary/5"
+  role="link"
+  tabindex="0"
+  data-controller="row-link"
+  data-row-link-url-value="<%= edit_admin_catalog_product_path(product) %>"
+  data-action="click->row-link#visit keydown->row-link#key">
+  <td class="px-6 py-4 align-center">
+    <% status_label = data[:active] == false ? "Inactive" : "Active" %>
+
+    <span class="inline-flex text-xs uppercase rounded-full border <%= data[:active] == false ? "border-content-muted" : "border-success" %> px-3 py-1 font-semibold <%= data[:active] == false ? "text-content-muted" : "text-success" %>"><%= status_label %></span>
+  </td>
+
+  <td class="px-6 py-4 align-top">
+    <div class="font-semibold text-lg"><%= product.display_name %></div>
+
+    <div class="mt-1 text-content-muted"><%= product.display_short_description %></div>
+  </td>
+
+  <td class="px-6 py-4 align-top text-content-muted">
+    <% templates = product.certificate_template_names %>
+
+    <% if templates.any? %>
+      <% templates.each do |template| %>
+        <div class="monospace"><%= template %></div>
+      <% end %>
+    <% else %>
+      <span class="text-content-muted">—</span>
+    <% end %>
+  </td>
+
+  <td class="px-6 py-4 align-bottom font-semibold">
+    <%= formatted_stripe_price(product) || "—" %>
+  </td>
+
+</tr>

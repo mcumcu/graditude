@@ -2,6 +2,7 @@
 <% detail_line = [certificate.degree.presence, certificate.presented_on.presence].compact.join(" - ") %>
 <% template_label = certificate.template.to_s.capitalize %>
 <% subtitle = detail_line.presence || "Template: #{template_label}" %>
+<% purchased = certificate.purchased? %>
 
 <div class="group relative">
   <div class="relative">
@@ -22,7 +23,17 @@
         <%= title %>
       <% end %>
     </h3>
-    <p class="text-sm font-semibold text-primary"><%= template_label %></p>
+    <div class="flex items-center gap-2">
+      <p class="text-sm font-semibold text-primary"><%= template_label %></p>
+      <% if purchased %>
+        <span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" class="h-3 w-3">
+            <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          Purchased
+        </span>
+      <% end %>
+    </div>
   </div>
   <p class="mt-1 text-sm text-content-muted"><%= subtitle %></p>
 </div>

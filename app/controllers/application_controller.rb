@@ -6,6 +6,15 @@ class ApplicationController < ActionController::Base
   before_action :set_current_affiliate
 
   private
+    def require_admin
+      return if Current.user&.admin?
+
+      respond_to do |format|
+        format.html { redirect_to root_path, alert: "You are not authorized to access that page." }
+        format.json { render json: { error: "not authorized" }, status: :forbidden }
+      end
+    end
+
     def set_current_affiliate
       token = params[:ref].presence || session[:affiliate_referral_token]
       return if token.blank?

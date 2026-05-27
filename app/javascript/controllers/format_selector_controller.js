@@ -123,6 +123,23 @@ export default class extends Controller {
     return dataSource.helperZero || "Select one or more formats to add to your cart."
   }
 
+  submitEnd(event) {
+    this.update()
+
+    if (!event?.detail?.success) {
+      return
+    }
+
+    if (this.hasCartUrlValue) {
+      if (window.Turbo?.visit) {
+        window.Turbo.visit(this.cartUrlValue)
+        return
+      }
+
+      window.location.assign(this.cartUrlValue)
+    }
+  }
+
   submitOrNavigate(event) {
     const inputs = this.inputTargets.filter((input) => !input.disabled)
     const totalCards = this.element.querySelectorAll("[data-product-card]").length

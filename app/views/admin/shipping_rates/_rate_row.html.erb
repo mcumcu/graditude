@@ -1,0 +1,38 @@
+<% amount_cents = shipping_rate.stripe_amount_cents %>
+<% currency = shipping_rate.stripe_currency || "usd" %>
+<% unit = currency.to_s.downcase == "usd" ? "$" : "#{currency.to_s.upcase} " %>
+<% amount_label = amount_cents ? number_to_currency(amount_cents.to_f / 100.0, unit: unit, precision: 2) : "-" %>
+<% delivery_label = shipping_rate.delivery_window_label || "Delivery window not set" %>
+<% status_label = shipping_rate.active? ? "Active" : "Inactive" %>
+<% format_label = shipping_rate.product_format.to_s.titleize %>
+<% billing_label = shipping_rate.billing_basis.to_s.tr("_", " ").titleize %>
+
+<tr id="<%= dom_id(shipping_rate, :admin_shipping_rate) %>"
+  class="cursor-pointer transition hover:bg-primary/5 focus-within:bg-primary/5"
+  role="link"
+  tabindex="0"
+  data-controller="row-link"
+  data-row-link-url-value="<%= edit_admin_shipping_rate_path(shipping_rate) %>"
+  data-action="click->row-link#visit keydown->row-link#key">
+  <td class="px-6 py-4 align-center">
+    <% if shipping_rate.default_rate? %>
+      <span class="inline-flex text-xs uppercase rounded-full bg-success text-background-secondary px-3 py-1 font-semibold">DEFAULT</span>
+    <% end %>
+
+    <span class="inline-flex text-xs uppercase rounded-full border <%= shipping_rate.active? ? "border-success text-success" : "border-content-muted text-content-muted" %> px-3 py-1 font-semibold">
+      <%= status_label %>
+    </span>
+  </td>
+  <td class="px-6 py-4 align-top">
+    <div class="font-semibold text-lg"><%= shipping_rate.stripe_display_name || "Shipping rate" %></div>
+    <div class="mt-1 text-content-muted"><%= delivery_label %></div>
+    <div class="mt-1 text-xs text-content-muted"><%= shipping_rate.stripe_shipping_rate_id %></div>
+  </td>
+  <td class="px-6 py-4 align-top text-content-muted">
+    <div class="monospace"><%= format_label %></div>
+    <div class="monospace"><%= billing_label %></div>
+  </td>
+  <td class="px-6 py-4 align-bottom font-semibold">
+    <%= amount_label %>
+  </td>
+</tr>

@@ -6,6 +6,19 @@ class CartItemsController < ApplicationController
       .reject(&:blank?)
     certificate = Current.user.certificates.find(params.require(:certificate_id))
 
+    if certificate.purchased?
+      message = "This certificate has already been purchased."
+      respond_to do |format|
+        format.turbo_stream do
+          flash.now[:alert] = message
+          render turbo_stream: turbo_stream.replace("flash-messages", partial: "shared/flash_messages"), status: :unprocessable_entity
+        end
+        format.html { redirect_to certificate_path(certificate), alert: message }
+        format.json { render json: { error: message }, status: :unprocessable_entity }
+      end
+      return
+    end
+
     if product_ids.empty?
       respond_to do |format|
         format.turbo_stream do
@@ -85,16 +98,8 @@ class CartItemsController < ApplicationController
     if cart_items.any?
       created_items = cart_items
       respond_to do |format|
-        format.turbo_stream do
-          flash.now[:notice] = "Added to cart."
-          cart_items_relation = current_cart.certificate_products.where(certificate_id: certificate.id)
-          @products = selected_products
-          @input_name = params[:input_name].presence || "product_id"
-          @preferred_format = params[:preferred_format]
-          @cart_product_ids = cart_items_relation.pluck(:product_id)
-          @cart_items_by_product_id = cart_items_relation.pluck(:product_id, :id).to_h
-        end
-        format.html { redirect_to certificates_path, notice: "Added to cart." }
+        format.turbo_stream { head :ok }
+        format.html { redirect_to cart_path }
         format.json { render json: created_items.as_json(only: %i[id quantity status], methods: %i[total_cents]), status: :created }
       end
     end
@@ -106,6 +111,12 @@ class CartItemsController < ApplicationController
     certificate = cart_item.certificate
     cart_item.destroy!
     @cart = current_cart
+
+    if params[:source] == "cart" && @cart.certificate_products.none?
+      redirect_to cart_empty_redirect_path(certificate), notice: "Removed from cart.", status: :see_other
+      return
+    end
+
     broadcast_cart_state if params[:source] == "cart"
 
     respond_to do |format|
@@ -120,15 +131,7 @@ class CartItemsController < ApplicationController
       end
       format.html do
         if params[:source] == "cart"
-          redirect_path = if @cart.certificate_products.exists?
-            cart_path
-          elsif Current.user.certificates.exists?
-            certificates_path
-          else
-            product_path
-          end
-
-          redirect_to redirect_path, notice: "Removed from cart."
+          redirect_to cart_path, notice: "Removed from cart."
         else
           redirect_to cart_path, notice: "Removed from cart."
         end
@@ -152,5 +155,15 @@ class CartItemsController < ApplicationController
       partial: "shared/cart_state",
       locals: { cart_state_token: current_cart.state_token }
     )
+  end
+
+  def cart_empty_redirect_path(preferred_certificate = nil)
+    if preferred_certificate&.persisted? && preferred_certificate.user_id == Current.user&.id
+      certificate_path(preferred_certificate)
+    elsif Current.user.certificates.exists?
+      certificate_path(Current.user.certificates.order(updated_at: :desc).first)
+    else
+      product_path
+    end
   end
 end

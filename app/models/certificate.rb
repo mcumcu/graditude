@@ -14,8 +14,6 @@ class Certificate < ApplicationRecord
 
   belongs_to :user
   has_many :certificate_products, dependent: :destroy
-  has_many :checkout_session_certificates, dependent: :destroy
-  has_many :checkout_sessions, through: :checkout_session_certificates
 
   validates :template, inclusion: { in: TEMPLATE_VALUES }, allow_nil: true
   validates :graduate_name, :honoree_name, :degree, :presented_on, presence: true
@@ -38,9 +36,20 @@ class Certificate < ApplicationRecord
     :signature_path
   )
 
+  scope :purchased, -> { joins(:certificate_products).where(certificate_products: { status: "purchased" }).distinct }
+  scope :purchasable, -> { where.not(id: CertificateProduct.where(status: "purchased").select(:certificate_id)) }
+
   def template_data_fields
     TEMPLATE_MINIMUM_REQUIRED_DATA_FIELDS.fetch(self.template.to_s, DEFAULT_MINIMUM_REQUIRED_DATA_FIELDS) +
       TEMPLATE_OPTIONAL_DATA_FIELDS.fetch((self.template.presence || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder")).to_s, [])
+  end
+
+  def purchased?
+    if certificate_products.loaded?
+      certificate_products.any? { |item| item.status == "purchased" }
+    else
+      certificate_products.where(status: "purchased").exists?
+    end
   end
 
   private

@@ -37,7 +37,7 @@ module Printable
   end
 
   # Legacy method: render PNG from the certificate template
-  def rerender_png_path(data: false)
+  def rerender_png_path(data: false, resize_to: "1024")
     template_name = @certificate&.template.presence || default_certificate_template
     params = @certificate&.data || default_params
     doc = make_certificate_document(template_name, params)
@@ -45,12 +45,12 @@ module Printable
     pdf_path = temp_pdf_path(@certificate&.id || "_blank").to_s
     doc.render_file(pdf_path)
 
-    png_path = temp_png_path(@certificate&.id || "_blank").to_s
-    render_certificate_png(pdf_path, png_path, data: data)
+    png_path = temp_png_path(png_variant_name(@certificate&.id || "_blank", resize_to: resize_to)).to_s
+    render_certificate_png(pdf_path, png_path, data: data, resize_to: resize_to)
   end
 
-  def rerender_png_data_url
-    rerender_png_path(data: true)
+  def rerender_png_data_url(resize_to: "1024")
+    rerender_png_path(data: true, resize_to: resize_to)
   end
 
   def make_certificate_document(template_name, params = {})
@@ -74,7 +74,7 @@ module Printable
   # Uses the existing PDF rendering pipeline with default blank params.
   # @param template_name [String, nil] the template name to render
   # @return [String] path to the generated PNG file
-  def blank_certificate_png_path(template_name = nil)
+  def blank_certificate_png_path(template_name = nil, resize_to: "1024")
     template_name = template_name.presence || default_certificate_template
     params = default_params
     doc = make_certificate_document(template_name, params)
@@ -83,7 +83,14 @@ module Printable
     pdf_path = temp_pdf_path(blank_template_name).to_s
     doc.render_file(pdf_path)
 
-    png_path = temp_png_path(blank_template_name).to_s
-    render_certificate_png(pdf_path, png_path)
+    png_path = temp_png_path(png_variant_name(blank_template_name, resize_to: resize_to)).to_s
+    render_certificate_png(pdf_path, png_path, resize_to: resize_to)
+  end
+
+  def png_variant_name(base_name, resize_to:)
+    normalized_resize = resize_to.to_s.presence || "1024"
+    return base_name.to_s if normalized_resize == "1024"
+
+    "#{base_name}-#{normalized_resize.gsub(/[^0-9A-Za-z]+/, "-")}"
   end
 end

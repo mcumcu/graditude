@@ -1,6 +1,7 @@
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
+require "ostruct"
 
 module ActiveSupport
   class TestCase
@@ -66,6 +67,70 @@ class ActionDispatch::IntegrationTest
     Stripe::Price.define_singleton_method(:retrieve, original_price_retrieve) if stripe_price
   end
 
+  def start_stubbed_stripe_products_for_webhooks
+    @stripe_product_retrieve_original = Stripe::Product.method(:retrieve)
+    @stripe_price_retrieve_original = Stripe::Price.method(:retrieve)
+
+    Stripe::Product.define_singleton_method(:retrieve) do |product_id|
+      product = Product.find_by(stripe_product_id: product_id)
+      cache = product&.stripe_product_cache || {}
+      metadata = cache.fetch("metadata", {})
+      metadata = {} unless metadata.is_a?(Hash)
+      metadata["format"] ||= "framed"
+
+      default_price = cache["default_price"] || "price_stub"
+      name = cache["name"] || "Webhook Product"
+      description = cache["description"] || "Webhook description"
+
+      OpenStruct.new(
+        id: product_id,
+        name: name,
+        description: description,
+        metadata: metadata,
+        default_price: default_price,
+        to_hash: {
+          "id" => product_id,
+          "name" => name,
+          "description" => description,
+          "metadata" => metadata,
+          "default_price" => default_price
+        }
+      )
+    end
+
+    Stripe::Price.define_singleton_method(:retrieve) do |price_id|
+      OpenStruct.new(
+        id: price_id,
+        unit_amount: 2500,
+        currency: "usd",
+        to_hash: {
+          "id" => price_id,
+          "unit_amount" => 2500,
+          "currency" => "usd"
+        }
+      )
+    end
+  end
+
+  def stop_stubbed_stripe_products_for_webhooks
+    if defined?(@stripe_product_retrieve_original) && @stripe_product_retrieve_original
+      Stripe::Product.define_singleton_method(:retrieve, @stripe_product_retrieve_original)
+    end
+    if defined?(@stripe_price_retrieve_original) && @stripe_price_retrieve_original
+      Stripe::Price.define_singleton_method(:retrieve, @stripe_price_retrieve_original)
+    end
+
+    @stripe_product_retrieve_original = nil
+    @stripe_price_retrieve_original = nil
+  end
+
+  def with_stubbed_stripe_products_for_webhooks
+    start_stubbed_stripe_products_for_webhooks
+    yield
+  ensure
+    stop_stubbed_stripe_products_for_webhooks
+  end
+
   def sign_out
     delete session_url
     follow_redirect! if response.redirect?
@@ -73,25 +138,5 @@ class ActionDispatch::IntegrationTest
     # If the route is unavailable in a broken auth path, fall back to direct cookie cleanup.
   ensure
     cookies.delete(:session_id)
-  end
-end
-
-if Rails.env.test?
-  require "base64"
-
-  CertificatesController.class_eval do
-    unless method_defined?(:original_preview)
-      alias_method :original_preview, :preview
-    end
-
-    def preview
-      if request.format.png?
-        send_data Base64.decode64(
-          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
-        ), type: "image/png", disposition: "inline"
-      else
-        original_preview
-      end
-    end
   end
 end

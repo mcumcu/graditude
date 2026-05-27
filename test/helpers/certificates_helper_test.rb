@@ -8,13 +8,13 @@ class CertificatesHelperTest < ActionView::TestCase
   end
 
   test "formatted_stripe_price formats price when present" do
-    product = Struct.new(:stripe_price).new({ "unit_amount" => 2500, "currency" => "usd" })
+    product = Struct.new(:catalog_data).new({ default_price_amount_cents: 2500, default_price_currency: "usd" })
 
     assert_equal "$25.00", formatted_stripe_price(product)
   end
 
   test "formatted_stripe_price returns nil when price missing" do
-    product = Struct.new(:stripe_price).new(nil)
+    product = Struct.new(:catalog_data).new({ default_price_amount_cents: nil, default_price_currency: nil })
 
     assert_nil formatted_stripe_price(product)
   end
@@ -27,40 +27,40 @@ class CertificatesHelperTest < ActionView::TestCase
   end
 
   test "price_label_for falls back when no priced products" do
-    product = Struct.new(:stripe_price_amount_cents, :stripe_price).new(nil, nil)
+    product = Struct.new(:catalog_data).new({ default_price_amount_cents: nil })
 
     assert_equal "Pricing available at checkout", price_label_for([ product ])
   end
 
   test "price_label_for returns single price when uniform" do
-    product = Struct.new(:stripe_price_amount_cents, :stripe_price).new(2500, { "unit_amount" => 2500, "currency" => "usd" })
+    product = Struct.new(:catalog_data).new({ default_price_amount_cents: 2500, default_price_currency: "usd" })
 
     assert_equal "$25.00", price_label_for([ product ])
   end
 
   test "price_label_for returns from price when multiple" do
-    product_low = Struct.new(:stripe_price_amount_cents, :stripe_price).new(2500, { "unit_amount" => 2500, "currency" => "usd" })
-    product_high = Struct.new(:stripe_price_amount_cents, :stripe_price).new(3000, { "unit_amount" => 3000, "currency" => "usd" })
+    product_low = Struct.new(:catalog_data).new({ default_price_amount_cents: 2500, default_price_currency: "usd" })
+    product_high = Struct.new(:catalog_data).new({ default_price_amount_cents: 3000, default_price_currency: "usd" })
 
     assert_equal "From $25.00", price_label_for([ product_high, product_low ])
   end
 
   test "product_variant_format respects metadata" do
-    product = Struct.new(:stripe_metadata, :title, :description).new({ "format" => "framed" }, nil, nil)
+    product = Struct.new(:variant_format).new("framed")
 
     assert_equal "framed", product_variant_format(product)
     assert_equal "Framed", product_variant_label(product)
   end
 
   test "product_variant_format uses title when metadata missing" do
-    product = Struct.new(:stripe_metadata, :title, :description).new({}, "Unframed certificate", nil)
+    product = Struct.new(:variant_format).new("unframed")
 
     assert_equal "unframed", product_variant_format(product)
     assert_equal "Unframed", product_variant_label(product)
   end
 
   test "product_variant_label falls back when unknown" do
-    product = Struct.new(:stripe_metadata, :title, :description).new({}, "Gift", "Special")
+    product = Struct.new(:variant_format).new(nil)
 
     assert_equal "Certificate", product_variant_label(product)
   end
@@ -70,21 +70,21 @@ class CertificatesHelperTest < ActionView::TestCase
       stripe_product_id: "prod_alpha",
       stripe_product_cache: {
         "name" => "Alpha",
-        "metadata" => { "certificate_templates" => "boulder" }
+        "metadata" => { "certificate_templates" => "boulder", "format" => "framed" }
       }
     )
     product_beta = Product.create!(
       stripe_product_id: "prod_beta",
       stripe_product_cache: {
         "name" => "beta",
-        "metadata" => { "certificate_templates" => "boulder" }
+        "metadata" => { "certificate_templates" => "boulder", "format" => "framed" }
       }
     )
     Product.create!(
       stripe_product_id: "prod_other",
       stripe_product_cache: {
         "name" => "Gamma",
-        "metadata" => { "certificate_templates" => "westtown" }
+        "metadata" => { "certificate_templates" => "westtown", "format" => "framed" }
       }
     )
 
@@ -101,7 +101,7 @@ class CertificatesHelperTest < ActionView::TestCase
       stripe_product_id: "prod_default",
       stripe_product_cache: {
         "name" => "Default",
-        "metadata" => { "certificate_templates" => "boulder" }
+        "metadata" => { "certificate_templates" => "boulder", "format" => "framed" }
       }
     )
 

@@ -1,0 +1,27 @@
+<% image_html = capture do %>
+  <%= image_tag "#{template_name}.png", alt: "Graditude certificate preview", class: "aspect-square w-full rounded-xl object-contain" %>
+<% end %>
+
+<% options_html = format_options_form(
+  form_url: "#",
+  form_method: :get,
+  requires_selection: false,
+  products: [product],
+  input_name: :product_id,
+  preferred_format: product.variant_format,
+  cart_product_ids: [],
+  cart_items_by_product_id: {},
+  cart_items_count: 0,
+  multi_select: true
+) do %>
+  <div class="rounded-xl border border-primary/10 bg-background-secondary p-5 text-success border border-success mt-4">
+    This is a live preview of the product page. Save changes to publish updates.
+  </div>
+<% end %>
+
+<%= render "shared/product_page",
+  template_name: template_name,
+  products: [product],
+  primary_product: product,
+  image_html: image_html,
+  options_html: options_html %>

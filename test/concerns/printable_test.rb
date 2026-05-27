@@ -58,9 +58,11 @@ class PrintableTest < ActiveSupport::TestCase
       fake_doc
     end
 
-    dummy.define_singleton_method(:render_certificate_png) do |pdf_path, png_path|
+    dummy.define_singleton_method(:render_certificate_png) do |pdf_path, png_path, data: false, resize_to: "1024"|
       captured[:pdf_path] = pdf_path
       captured[:png_path] = png_path
+      captured[:data] = data
+      captured[:resize_to] = resize_to
       png_path
     end
 
@@ -70,9 +72,45 @@ class PrintableTest < ActiveSupport::TestCase
     assert_equal "penn", captured[:template]
     assert_equal dummy.temp_pdf_path("penn").to_s, captured[:pdf_path]
     assert_equal captured[:png_path], result
+    assert_equal false, captured[:data]
+    assert_equal "1024", captured[:resize_to]
     assert_equal "PDF", File.read(captured[:pdf_path])
   ensure
     File.delete(dummy.temp_pdf_path("penn")) if dummy&.temp_pdf_path("penn")&.exist?
+  end
+
+  test "blank_certificate_png_path uses a size-specific PNG filename for low-res previews" do
+    dummy = PrintableDummy.new
+    captured = {}
+
+    fake_doc = Object.new
+    fake_doc.define_singleton_method(:render_file) do |path|
+      File.write(path, "PDF")
+    end
+
+    dummy.define_singleton_method(:make_certificate_document) do |template_name, params = {}|
+      captured[:template] = template_name
+      captured[:params] = params
+      fake_doc
+    end
+
+    dummy.define_singleton_method(:render_certificate_png) do |pdf_path, png_path, data: false, resize_to: "1024"|
+      captured[:pdf_path] = pdf_path
+      captured[:png_path] = png_path
+      captured[:data] = data
+      captured[:resize_to] = resize_to
+      png_path
+    end
+
+    result = dummy.blank_certificate_png_path("boulder", resize_to: "384")
+
+    assert_equal dummy.default_params, captured[:params]
+    assert_equal "boulder", captured[:template]
+    assert_equal false, captured[:data]
+    assert_equal "384", captured[:resize_to]
+    assert_equal dummy.temp_png_path("boulder-384").to_s, result
+  ensure
+    File.delete(dummy.temp_pdf_path("boulder")) if dummy&.temp_pdf_path("boulder")&.exist?
   end
 
   test "render_certificate_png uses a unique tempfile for data URL generation" do
@@ -116,9 +154,11 @@ class PrintableTest < ActiveSupport::TestCase
       fake_doc
     end
 
-    dummy.define_singleton_method(:render_certificate_png) do |pdf_path, png_path|
+    dummy.define_singleton_method(:render_certificate_png) do |pdf_path, png_path, data: false, resize_to: "1024"|
       captured[:pdf_path] = pdf_path
       captured[:png_path] = png_path
+      captured[:data] = data
+      captured[:resize_to] = resize_to
       png_path
     end
 
@@ -127,6 +167,8 @@ class PrintableTest < ActiveSupport::TestCase
     assert_equal dummy.default_params, captured[:params]
     assert_equal dummy.default_certificate_template, captured[:template]
     assert_equal dummy.temp_png_path("boulder").to_s, result
+    assert_equal false, captured[:data]
+    assert_equal "1024", captured[:resize_to]
   ensure
     File.delete(dummy.temp_pdf_path("boulder")) if dummy&.temp_pdf_path("boulder")&.exist?
   end
