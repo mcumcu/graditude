@@ -37,6 +37,71 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     assert_select "h3", text: "Honoree Two", count: 0
   end
 
+  test "index shows purchased badge for purchased certificate" do
+    user = users(:one)
+    cart = Cart.create!(user: user, status: "completed")
+    product = Product.create!(stripe_product_id: "prod_badge")
+
+    CertificateProduct.create!(
+      cart: cart,
+      certificate: @certificate,
+      product: product,
+      stripe_price_id: "price_badge",
+      quantity: 1,
+      status: "purchased"
+    )
+
+    get certificates_url
+
+    assert_response :success
+    assert_select "span", text: "Purchased", count: 1
+  end
+
+  test "index shows purchased list and create new CTA when no purchasable certificates exist" do
+    user = users(:one)
+    cart = Cart.create!(user: user, status: "completed")
+    product = Product.create!(stripe_product_id: "prod_purchased_only")
+
+    CertificateProduct.create!(
+      cart: cart,
+      certificate: @certificate,
+      product: product,
+      stripe_price_id: "price_purchased_only",
+      quantity: 1,
+      status: "purchased"
+    )
+
+    get certificates_url
+
+    assert_response :success
+    assert_select "h2", text: "Purchased certificates", count: 1
+    assert_select "a[href='#{new_certificate_path(close_path: certificates_path)}']", text: "Create a new certificate", count: 1
+  end
+
+  test "index shows purchasable and purchased certificates together" do
+    user = users(:one)
+    cart = Cart.create!(user: user, status: "completed")
+    product = Product.create!(stripe_product_id: "prod_mixed")
+
+    CertificateProduct.create!(
+      cart: cart,
+      certificate: @certificate,
+      product: product,
+      stripe_price_id: "price_mixed",
+      quantity: 1,
+      status: "purchased"
+    )
+
+    create_additional_certificate_for(user, honoree_name: "Honoree Extra")
+
+    get certificates_url
+
+    assert_response :success
+    assert_select "h2", text: "Purchased certificates", count: 1
+    assert_select "h3", text: "Honoree One"
+    assert_select "h3", text: "Honoree Extra"
+  end
+
   test "should get new" do
     get new_certificate_url
     assert_response :success
@@ -111,6 +176,48 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :success
+    assert_select "[data-preview-src-value='#{preview_certificate_path(@certificate)}']", count: 1
+    assert_select "img[data-controller='preview']", 0
+    assert_no_match %r{#{Regexp.escape(preview_certificate_path(@certificate, format: :png))}}, response.body
+  end
+
+  test "should hide purchase options when certificate is purchased" do
+    user = users(:one)
+    cart = Cart.create!(user: user, status: "completed")
+    product = Product.create!(stripe_product_id: "prod_purchased")
+
+    CertificateProduct.create!(
+      cart: cart,
+      certificate: @certificate,
+      product: product,
+      stripe_price_id: "price_purchased",
+      quantity: 1,
+      status: "purchased"
+    )
+
+    stripe_product = OpenStruct.new(
+      id: "prod_purchased",
+      name: "Boulder Graduation Certificate",
+      description: "A presentation-ready certificate",
+      metadata: { "certificate_templates" => "boulder,westtown", "format" => "framed" },
+      default_price: "price_test_default",
+      to_hash: {
+        "id" => "prod_purchased",
+        "name" => "Boulder Graduation Certificate",
+        "description" => "A presentation-ready certificate",
+        "metadata" => { "certificate_templates" => "boulder,westtown", "format" => "framed" },
+        "default_price" => "price_test_default"
+      }
+    )
+    stripe_price = OpenStruct.new(unit_amount: 2500, currency: "usd")
+
+    stub_stripe_product_and_price_retrieve(stripe_product, stripe_price) do
+      get certificate_url(@certificate)
+    end
+
+    assert_response :success
+    assert_select "input[name='product_id']", 0
+    assert_select "div[data-purchased-message]", text: "This certificate has already been purchased and is no longer available to add to cart.", count: 1
   end
 
   test "should not show delete button when certificate is in cart" do
@@ -272,12 +379,55 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     assert_select "form[action=\"/certificates/#{@certificate.id}\"]"
   end
 
+  test "should not allow edit when certificate is purchased" do
+    user = users(:one)
+    cart = Cart.create!(user: user, status: "completed")
+    product = Product.create!(stripe_product_id: "prod_edit_blocked")
+
+    CertificateProduct.create!(
+      cart: cart,
+      certificate: @certificate,
+      product: product,
+      stripe_price_id: "price_edit_blocked",
+      quantity: 1,
+      status: "purchased"
+    )
+
+    get edit_certificate_url(@certificate)
+
+    assert_redirected_to certificate_url(@certificate)
+    assert_equal "Purchased certificates cannot be edited.", flash[:alert]
+  end
+
   test "should update certificate" do
     patch certificate_url(@certificate), params: { certificate: { graduate_name: "Updated Grad" } }
     assert_redirected_to certificate_url(@certificate)
 
     @certificate.reload
     assert_equal "Updated Grad", @certificate.graduate_name
+  end
+
+  test "should not update certificate when it is purchased" do
+    user = users(:one)
+    cart = Cart.create!(user: user, status: "completed")
+    product = Product.create!(stripe_product_id: "prod_update_blocked")
+
+    CertificateProduct.create!(
+      cart: cart,
+      certificate: @certificate,
+      product: product,
+      stripe_price_id: "price_update_blocked",
+      quantity: 1,
+      status: "purchased"
+    )
+
+    patch certificate_url(@certificate), params: { certificate: { graduate_name: "Blocked Update" } }
+
+    assert_redirected_to certificate_url(@certificate)
+    assert_equal "Purchased certificates cannot be edited.", flash[:alert]
+
+    @certificate.reload
+    assert_not_equal "Blocked Update", @certificate.graduate_name
   end
 
   test "should not set notice when certificate update has no changes" do
@@ -291,6 +441,14 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     get preview_certificate_url(@certificate)
 
     assert_response :success
+    assert_match %r{\Aurl\('data:image/png;base64,[A-Za-z0-9+/]+=*'\)\z}, @response.body
+  end
+
+  test "should not expose preview as raw png when png format is requested" do
+    get preview_certificate_url(@certificate, format: :png)
+
+    assert_response :success
+    assert_equal "text/plain", response.media_type
     assert_match %r{\Aurl\('data:image/png;base64,[A-Za-z0-9+/]+=*'\)\z}, @response.body
   end
 

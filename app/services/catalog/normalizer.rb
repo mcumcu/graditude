@@ -114,16 +114,21 @@ module Catalog
       return nil unless infer
 
       text = [ heading, description ].compact.join(" ").downcase
-      return "unframed" if text.include?("unframed") || text.include?("no frame")
+      return "unframed" if text.include?("unframed") || text.include?("no frame") || text.include?("print only") || text.include?("print-only")
       return "framed" if text.include?("framed") || text.include?("frame")
+      return "unframed" if text.include?("printed") || text.include?("print")
 
       nil
     end
 
     def normalize_variant_value(value)
       normalized = value.to_s.downcase.strip
-      return "framed" if %w[framed frame true yes 1].include?(normalized)
-      return "unframed" if %w[unframed false no 0].include?(normalized)
+      normalized = normalized.tr("_", " ").tr("-", " ").squeeze(" ")
+      framed_values = [ "framed", "frame", "true", "yes", "1" ]
+      unframed_values = [ "unframed", "un framed", "print", "printed", "print only", "false", "no", "0" ]
+
+      return "framed" if framed_values.include?(normalized)
+      return "unframed" if unframed_values.include?(normalized)
 
       nil
     end

@@ -1,4 +1,6 @@
 require "active_support/core_ext/integer/time"
+require "json"
+require "net/http"
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -54,7 +56,44 @@ Rails.application.configure do
   #   port: 1025,
   # }
 
-  app_url = ENV["APP_URL"].presence
+  resolves_to_local_port = lambda do |address, port|
+    normalized = address.to_s.strip
+    next false if normalized.blank?
+
+    return normalized.to_i == port if normalized.match?(/\A\d+\z/)
+
+    normalized = normalized.sub(%r{\A[a-z]+://}i, "")
+    host, remainder = normalized.split(":", 2)
+    next false if host.blank? || remainder.blank?
+
+    candidate_port = remainder.split("/").first.to_i
+    [ "localhost", "127.0.0.1", "0.0.0.0" ].include?(host) && candidate_port == port
+  end
+
+  discover_ngrok_app_url = lambda do |port|
+    uri = URI.parse("http://127.0.0.1:4040/api/tunnels")
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.open_timeout = 0.25
+    http.read_timeout = 0.5
+
+    response = http.get(uri.request_uri)
+    next unless response.is_a?(Net::HTTPSuccess)
+
+    payload = JSON.parse(response.body)
+    tunnels = Array(payload["tunnels"])
+    tunnel = tunnels.find do |candidate|
+      public_url = candidate["public_url"].to_s
+      next false unless public_url.match?(%r{\Ahttps://}i)
+
+      resolves_to_local_port.call(candidate.dig("config", "addr"), port)
+    end
+
+    tunnel&.fetch("public_url", nil)
+  rescue StandardError
+    nil
+  end
+
+  app_url = ENV["APP_URL"].presence || discover_ngrok_app_url.call(3000)
 
   if app_url
     app_url = "https://#{app_url}" unless app_url.include?("://")

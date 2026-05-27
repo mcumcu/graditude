@@ -1,13 +1,26 @@
-<% content_for :title, "Certificates #{pluralize(@certificates.count, "Certificate")}" %>
+<% purchasable_certificates = @purchasable_certificates || [] %>
+<% purchased_certificates = @purchased_certificates || [] %>
+<% total_count = purchasable_certificates.size + purchased_certificates.size %>
+<% content_for :title, "Certificates #{pluralize(total_count, "Certificate")}" %>
 
 <section class="bg-background">
   <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
     <div class="flex items-center justify-between space-x-4">
       <div>
         <h1 class="text-lg font-medium text-primary">My certificates</h1>
-        <p class="mt-1 text-sm text-content-muted">Select a certificate to review, edit, or add to cart.</p>
+        <% if purchasable_certificates.any? && purchased_certificates.any? %>
+          <p class="mt-1 text-sm text-content-muted">Here are your active certificates and past purchases.</p>
+        <% elsif purchasable_certificates.any? %>
+          <p class="mt-1 text-sm text-content-muted">Select a certificate to review, edit, or add to cart.</p>
+        <% elsif purchased_certificates.any? %>
+          <p class="mt-1 text-sm text-content-muted">These certificates have already been purchased. Create a new one to start another gift.</p>
+        <% else %>
+          <p class="mt-1 text-sm text-content-muted">Create your first certificate to begin.</p>
+        <% end %>
       </div>
-      <%= link_to "Create new", product_path, class: "text-sm font-medium text-primary hover:text-primary/80" %>
+      <%= link_to "Create new",
+        new_certificate_path(close_path: request.fullpath),
+        class: "text-sm font-medium text-primary hover:text-primary/80" %>
     </div>
 
     <% if notice.present? %>
@@ -16,15 +29,45 @@
       </div>
     <% end %>
 
-    <% if @certificates.any? %>
-      <div id="certificates" class="mt-8 grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 sm:gap-y-10 lg:grid-cols-4">
-        <%= render partial: "card", collection: @certificates, as: :certificate %>
-      </div>
+    <% if total_count.positive? %>
+      <% if purchasable_certificates.any? %>
+        <div id="purchasable-certificates" class="mt-8 grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 sm:gap-y-10 lg:grid-cols-4">
+          <%= render partial: "card", collection: purchasable_certificates, as: :certificate %>
+        </div>
+      <% end %>
+
+      <% if purchased_certificates.any? %>
+        <div class="mt-10 rounded-2xl border border-success/20 bg-success/10 p-6">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-center gap-3">
+              <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-success/20 text-success">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" class="h-5 w-5">
+                  <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </span>
+              <div>
+                <h2 class="text-base font-semibold text-primary">Purchased certificates</h2>
+                <p class="text-sm text-content-muted">These have already been purchased.</p>
+              </div>
+            </div>
+            <% if purchasable_certificates.empty? %>
+              <%= link_to "Create a new certificate",
+                new_certificate_path(close_path: request.fullpath),
+                class: "inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-semibold text-background shadow-sm transition hover:bg-primary/80" %>
+            <% end %>
+          </div>
+        </div>
+        <div id="purchased-certificates" class="mt-8 grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 sm:gap-y-10 lg:grid-cols-4">
+          <%= render partial: "card", collection: purchased_certificates, as: :certificate %>
+        </div>
+      <% end %>
     <% else %>
       <div class="mt-10 rounded-2xl border border-primary/10 bg-background-secondary p-8 text-center">
         <p class="text-base text-content">No certificates found.</p>
         <p class="mt-2 text-sm text-content-muted">Create your first certificate to begin.</p>
-        <%= link_to "Start a certificate", product_path, class: "mt-6 inline-flex items-center justify-center rounded-full bg-primary px-6 py-2 text-sm font-semibold text-background shadow-sm transition hover:bg-primary/80" %>
+        <%= link_to "Start a certificate",
+          new_certificate_path(close_path: request.fullpath),
+          class: "mt-6 inline-flex items-center justify-center rounded-full bg-primary px-6 py-2 text-sm font-semibold text-background shadow-sm transition hover:bg-primary/80" %>
       </div>
     <% end %>
   </div>

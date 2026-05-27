@@ -6,11 +6,17 @@ export default class extends Controller {
   async startCheckout(event) {
     event.preventDefault()
 
+    const shippingSelection = this.collectShippingSelections()
+    if (!shippingSelection.valid) {
+      this.showError("Select a shipping option to continue.")
+      return
+    }
+
     this.buttonTarget.disabled = true
     this.showFeedback("Starting secure checkout...")
 
     try {
-      const body = await this.createCheckoutSession()
+      const body = await this.createCheckoutSession(shippingSelection.values)
       const sessionId = body.sessionId || body.id
       if (!sessionId) {
         throw new Error("Missing Stripe checkout session ID.")
@@ -32,7 +38,7 @@ export default class extends Controller {
     }
   }
 
-  async createCheckoutSession() {
+  async createCheckoutSession(shippingRateIds = {}) {
     const token = document.querySelector('meta[name="csrf-token"]')?.content
     if (!token) {
       throw new Error("Unable to locate CSRF token. Refresh the page and try again.")
@@ -42,8 +48,10 @@ export default class extends Controller {
       method: "POST",
       headers: {
         Accept: "application/json",
+        "Content-Type": "application/json",
         "X-CSRF-Token": token
-      }
+      },
+      body: JSON.stringify({ shipping_rate_ids: shippingRateIds })
     })
 
     const body = await this.parseResponse(response)
@@ -62,6 +70,25 @@ export default class extends Controller {
       const text = await response.text().catch(() => "")
       throw new Error(text || error.message || "Unable to parse server response.")
     }
+  }
+
+  collectShippingSelections() {
+    const groups = Array.from(document.querySelectorAll("[data-shipping-format]"))
+    if (groups.length === 0) {
+      return { valid: true, values: {} }
+    }
+
+    const values = {}
+    for (const group of groups) {
+      const format = group.dataset.shippingFormat
+      const input = group.querySelector(`input[name="shipping_rate_ids[${format}]"]:checked`)
+      if (!input) {
+        return { valid: false, values: {} }
+      }
+      values[format] = input.value
+    }
+
+    return { valid: true, values }
   }
 
   showFeedback(message, type = "success") {

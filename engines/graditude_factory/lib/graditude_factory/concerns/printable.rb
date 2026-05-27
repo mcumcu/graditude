@@ -41,24 +41,25 @@ module GraditudeFactory
       # @param png_path [String] Path where PNG should be saved
       # @param data [Boolean] When true, return an HTML data URL instead of a file path
       # @return [String, nil] Path to the generated PNG or data URL string
-      def render_certificate_png(pdf_path, png_path, data: false)
+      def render_certificate_png(pdf_path, png_path, data: false, resize_to: "1024")
         png = PDFToImage.open(pdf_path).first
 
         return nil unless png
 
         FileUtils.mkdir_p(File.dirname(png_path))
+        geometry = resize_to.presence || "1024"
 
         if data
           return Tempfile.create([ "preview", ".png" ], File.dirname(png_path)) do |tempfile|
             tempfile.binmode
-            png.resize("1024").save(tempfile.path)
+            png.resize(geometry).save(tempfile.path)
             tempfile.rewind
             encoded = Base64.strict_encode64(tempfile.read)
             "url('data:image/png;base64,#{encoded}')"
           end
         end
 
-        png.resize("1024").save(png_path)
+        png.resize(geometry).save(png_path)
         png_path
       end
 

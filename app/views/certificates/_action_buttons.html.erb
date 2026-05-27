@@ -3,13 +3,20 @@
 
   <% in_cart = certificate_in_cart?(certificate) %>
   <% purchased = certificate_purchased?(certificate) %>
+  <% edit_disabled = purchased %>
   <% delete_disabled = in_cart || purchased %>
   <% button_class = "w-full text-center rounded-full px-3 py-2 inline-block font-medium text-content/50 border border-content/30 cursor-pointer" %>
 
   <div class="flex flex-col gap-4 py-4 md:flex-row md:items-center md:gap-4 md:py-0" data-visibility-target="hideable">
     <% if show_edit %>
       <div class="w-full md:flex-1">
-        <button command="show-modal" commandfor="certificate-form" class="<%= button_class %>">
+        <button
+          command="show-modal"
+          commandfor="certificate-form"
+          class="<%= [button_class, (edit_disabled ? "opacity-50 cursor-not-allowed" : nil)].compact.join(" ") %>"
+          <%= "disabled" if edit_disabled %>
+          title="<%= edit_disabled ? "Purchased certificates cannot be edited." : nil %>"
+          aria-disabled="<%= edit_disabled %>">
           Edit
         </button>
       </div>

@@ -4,7 +4,7 @@
 <% primary_product = if preferred_format.present?
   @products.find { |product| product_variant_format(product) == preferred_format }
 end || @products.first %>
-<% certificates = Current.user ? Current.user.certificates.limit(2).to_a : [] %>
+<% certificates = @purchasable_certificates || (Current.user ? Current.user.certificates.purchasable.limit(2).to_a : []) %>
 <% certificate_count = certificates.length %>
 <% single_certificate = certificate_count == 1 ? certificates.first : nil %>
 <% requires_selection = certificate_count == 1 %>
@@ -19,7 +19,7 @@ end || @products.first %>
               elsif certificate_count > 1
                 certificates_path
               else
-                new_certificate_path
+                new_certificate_path(close_path: request.fullpath)
               end %>
 <% form_method = certificate_count == 1 ? :post : :get %>
 <% input_name = certificate_count == 1 ? :product_id : :preferred_format %>

@@ -140,23 +140,3 @@ class ActionDispatch::IntegrationTest
     cookies.delete(:session_id)
   end
 end
-
-if Rails.env.test?
-  require "base64"
-
-  CertificatesController.class_eval do
-    unless method_defined?(:original_preview)
-      alias_method :original_preview, :preview
-    end
-
-    def preview
-      if request.format.png?
-        send_data Base64.decode64(
-          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
-        ), type: "image/png", disposition: "inline"
-      else
-        original_preview
-      end
-    end
-  end
-end

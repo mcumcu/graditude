@@ -71,8 +71,9 @@ module CertificatesHelper
 
   def certificate_purchased?(certificate)
     return false unless Current.user
+    return false unless certificate
 
-    certificate.certificate_products.where(status: "purchased").exists?
+    certificate.purchased?
   end
 
   def product_in_cart?(product_id, certificate:)

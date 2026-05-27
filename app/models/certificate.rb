@@ -36,9 +36,20 @@ class Certificate < ApplicationRecord
     :signature_path
   )
 
+  scope :purchased, -> { joins(:certificate_products).where(certificate_products: { status: "purchased" }).distinct }
+  scope :purchasable, -> { where.not(id: CertificateProduct.where(status: "purchased").select(:certificate_id)) }
+
   def template_data_fields
     TEMPLATE_MINIMUM_REQUIRED_DATA_FIELDS.fetch(self.template.to_s, DEFAULT_MINIMUM_REQUIRED_DATA_FIELDS) +
       TEMPLATE_OPTIONAL_DATA_FIELDS.fetch((self.template.presence || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder")).to_s, [])
+  end
+
+  def purchased?
+    if certificate_products.loaded?
+      certificate_products.any? { |item| item.status == "purchased" }
+    else
+      certificate_products.where(status: "purchased").exists?
+    end
   end
 
   private

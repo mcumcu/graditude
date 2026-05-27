@@ -9,6 +9,10 @@ class RoutesTest < ActionDispatch::IntegrationTest
     assert_routing "/certificates/1/preview", controller: "certificates", action: "preview", id: "1"
   end
 
+  test "routes checkout preview image" do
+    assert_routing "/checkout/preview", controller: "checkout_sessions", action: "preview_image"
+  end
+
   test "routes root" do
     assert_routing "/", controller: "landing", action: "index"
   end

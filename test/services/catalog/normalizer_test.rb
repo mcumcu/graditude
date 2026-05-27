@@ -44,8 +44,22 @@ class CatalogNormalizerTest < ActiveSupport::TestCase
     )
 
     assert_equal "unframed", Catalog::Normalizer.variant_format(
+      metadata: { "format" => "print" },
+      heading: "",
+      description: "",
+      infer: true
+    )
+
+    assert_equal "unframed", Catalog::Normalizer.variant_format(
       metadata: {},
       heading: "Unframed certificate",
+      description: nil,
+      infer: true
+    )
+
+    assert_equal "unframed", Catalog::Normalizer.variant_format(
+      metadata: {},
+      heading: "Printed certificate of gratitude",
       description: nil,
       infer: true
     )

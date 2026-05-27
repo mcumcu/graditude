@@ -65,6 +65,13 @@ class CheckoutSession < ApplicationRecord
     )
 
     update!(status: :expired, raw: raw_hash.deep_merge(stripe_session_expired: stripe_session.to_hash))
+  rescue Stripe::InvalidRequestError => error
+    if expire_conflict_error?(error)
+      append_raw(expiration_error: error.message)
+      reconcile_status_from_stripe!
+    else
+      raise
+    end
   end
 
   def expire_idempotency_key
@@ -72,6 +79,14 @@ class CheckoutSession < ApplicationRecord
   end
 
   private
+
+  def expire_conflict_error?(error)
+    message = error.message.to_s
+    return false unless message.include?("Only Checkout Sessions with a status in")
+
+    status = message.match(/status of `(?<status>\w+)`/)&.[](:status)
+    status.present? && status != "open"
+  end
 
   def build_shipping_details_payload(stripe_session)
     details = stripe_session.respond_to?(:shipping_details) ? stripe_session.shipping_details : stripe_session.to_hash["shipping_details"]
