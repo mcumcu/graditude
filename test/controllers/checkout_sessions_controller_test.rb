@@ -130,6 +130,52 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "create returns 422 when shipping currency does not match product currency" do
+    user = users(:one)
+    sign_in user
+
+    product = Product.create!(stripe_product_id: "prod_test")
+    cart = Cart.open_for(user)
+    cart.certificate_products.create!(product: product, certificate: certificates(:one), stripe_price_id: "price_test", quantity: 1)
+
+    ShippingRate.where(product_format: "framed").delete_all
+    ShippingRate.create!(
+      stripe_shipping_rate_id: "shr_framed_cad",
+      stripe_shipping_rate_cache: {
+        "id" => "shr_framed_cad",
+        "display_name" => "USPS Ground Advantage",
+        "fixed_amount" => { "amount" => 1850, "currency" => "cad" }
+      },
+      product_format: "framed",
+      billing_basis: "per_item",
+      active: true,
+      default_rate: true
+    )
+
+    stripe_product = OpenStruct.new(
+      id: "prod_test",
+      name: "Graduation Gift",
+      description: "Ceremony edition",
+      metadata: { "format" => "framed" },
+      default_price: "price_test_default",
+      to_hash: {
+        "id" => "prod_test",
+        "name" => "Graduation Gift",
+        "description" => "Ceremony edition",
+        "metadata" => { "format" => "framed" },
+        "default_price" => "price_test_default"
+      }
+    )
+    stripe_price = OpenStruct.new(unit_amount: 3000, currency: "usd")
+
+    stub_stripe_product_and_price_retrieve(stripe_product, stripe_price) do
+      post checkout_url
+    end
+
+    assert_response :unprocessable_entity
+    assert_equal "Checkout line items must all use the same currency. Found: usd, cad.", JSON.parse(response.body)["error"]
+  end
+
   test "create prefers configured public app host over localhost request host" do
     host! "localhost:3000"
 
@@ -424,15 +470,6 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
     stripe_price = OpenStruct.new(unit_amount: 3000, currency: "usd")
 
     stub_stripe_product_and_price_retrieve(stripe_product, stripe_price) do
-      expire_called = false
-      expired_id = nil
-      original_expire = Stripe::Checkout::Session.method(:expire)
-      Stripe::Checkout::Session.define_singleton_method(:expire) do |id, params = {}, opts = {}|
-        expired_id = id
-        expire_called = true
-        OpenStruct.new(id: id, status: "expired", to_hash: { "id" => id, "status" => "expired" })
-      end
-
       fake_session_resource = Object.new
       fake_session_resource.define_singleton_method(:create) do |_attrs|
         OpenStruct.new(id: "cs_test", client_secret: "cs_test_secret", url: "https://checkout.test/session/cs_test")
@@ -447,17 +484,14 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
       end
 
       begin
-        post checkout_url
+        assert_enqueued_with(job: CheckoutSessionExpirationJob, args: [ previous_session.id ]) do
+          post checkout_url
+        end
       ensure
         Stripe::StripeClient.singleton_class.send(:define_method, :new, original_new)
-        Stripe::Checkout::Session.define_singleton_method(:expire, original_expire)
       end
 
       assert_response :success
-      assert_equal true, expire_called
-      assert_equal "cs_prior_test", expired_id
-      assert_equal "expired", previous_session.reload.status
-      assert_equal 0, enqueued_jobs.count { |job| job[:job] == CheckoutSessionExpirationJob && job[:args] == [ previous_session.id ] }
       assert_equal "cs_test", JSON.parse(response.body)["sessionId"]
     end
   end

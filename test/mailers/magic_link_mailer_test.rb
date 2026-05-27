@@ -15,14 +15,14 @@ class MagicLinkMailerTest < ActionMailer::TestCase
     user = users(:one)
     original_url_options = Rails.application.config.action_mailer.default_url_options
     Rails.application.config.action_mailer.default_url_options = {
-      host: "9796-108-16-205-147.ngrok-free.app",
+      host: "thegraditude.com",
       protocol: "https"
     }
 
     mail = MagicLinkMailer.sign_in(user)
 
-    assert_includes mail.text_part.body.decoded, "https://9796-108-16-205-147.ngrok-free.app/session/authenticate/"
-    assert_includes mail.html_part.body.decoded, "https://9796-108-16-205-147.ngrok-free.app/session/authenticate/"
+    assert_includes mail.text_part.body.decoded, "https://thegraditude.com/session/authenticate/"
+    assert_includes mail.html_part.body.decoded, "https://thegraditude.com/session/authenticate/"
   ensure
     Rails.application.config.action_mailer.default_url_options = original_url_options
   end

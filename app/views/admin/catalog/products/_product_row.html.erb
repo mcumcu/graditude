@@ -22,9 +22,12 @@
   <td class="px-6 py-4 align-top text-content-muted">
     <% templates = product.certificate_template_names %>
 
-    <%#= templates.any? ? templates.join(", ") : "—" %>
-    <% templates.each do |template| %>
-      <div class="monospace"><%= template %></div>
+    <% if templates.any? %>
+      <% templates.each do |template| %>
+        <div class="monospace"><%= template %></div>
+      <% end %>
+    <% else %>
+      <span class="text-content-muted">—</span>
     <% end %>
   </td>
 

@@ -7,6 +7,8 @@ class CheckoutSessionsController < ApplicationController
     @cart = current_cart
   end
 
+  class CheckoutCurrencyMismatchError < StandardError; end
+
   def create
     cart = current_cart
     items = cart.checkout_items
@@ -30,7 +32,7 @@ class CheckoutSessionsController < ApplicationController
       shipping: shipping_details
     }
 
-    expire_existing_checkout_sessions(cart)
+    enqueue_expiration_for_existing_checkout_sessions(cart)
     checkout_session = CheckoutSession.create!(
       status: :open,
       cart: cart,
@@ -43,6 +45,8 @@ class CheckoutSessionsController < ApplicationController
     cart.certificate_products.update_all(checkout_session_id: checkout_session.id)
 
     line_items = items.map { |item| build_checkout_line_item(item, checkout_session: checkout_session) } + shipping_line_items
+    validate_checkout_currency!(line_items)
+
     session_params = {
       payment_method_types: checkout_payment_method_types,
       customer_email: Current.user.email_address,
@@ -75,7 +79,7 @@ class CheckoutSessionsController < ApplicationController
     CheckoutSessionReconciliationJob.set(wait: 1.minute).perform_later(checkout_session.id)
 
     render json: { sessionId: session.id, url: session.url }
-  rescue Shipping::Calculator::MissingRateError, Shipping::Calculator::MissingFormatError, Shipping::Calculator::CurrencyMismatchError => error
+  rescue Shipping::Calculator::MissingRateError, Shipping::Calculator::MissingFormatError, Shipping::Calculator::CurrencyMismatchError, CheckoutCurrencyMismatchError => error
     render json: { error: error.message }, status: :unprocessable_entity
   rescue Stripe::StripeError => error
     checkout_session&.update(status: :failed, raw: raw_payload.deep_merge(error: error.message))
@@ -200,6 +204,13 @@ class CheckoutSessionsController < ApplicationController
     rate
   end
 
+  def validate_checkout_currency!(line_items)
+    currencies = line_items.map { |item| item.dig(:price_data, :currency) }.compact.uniq
+    return if currencies.size <= 1
+
+    raise CheckoutCurrencyMismatchError, "Checkout line items must all use the same currency. Found: #{currencies.join(', ')}."
+  end
+
   def build_checkout_line_item(item, checkout_session:)
     if item[:price_id].present?
       stripe_price = Price.find_or_create_by!(stripe_price_id: item[:price_id]).stripe_price_data
@@ -287,9 +298,9 @@ class CheckoutSessionsController < ApplicationController
     nil
   end
 
-  def expire_existing_checkout_sessions(cart)
+  def enqueue_expiration_for_existing_checkout_sessions(cart)
     cart.checkout_sessions.open.where.not(stripe_session_id: nil).find_each do |checkout_session|
-      checkout_session.expire_in_stripe!
+      CheckoutSessionExpirationJob.perform_later(checkout_session.id)
     end
   end
 
