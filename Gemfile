@@ -72,4 +72,3 @@ gem "stripe"
 gem "tailwindcss-ruby", "~> 4.2"
 gem "tailwindcss-rails", "~> 4.4"
 gem "postmark-rails"
-
