@@ -635,15 +635,80 @@ class CheckoutSessionsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to checkout_cancel_path
   end
 
-  test "success page renders for complete checkout session" do
-    CheckoutSession.create!(status: :complete, items: [ { price_id: "price_test", quantity: 1 } ], raw: {}, stripe_session_id: "cs_test_123")
+  test "success redirects to the order page for complete checkout session" do
+    user = users(:one)
+    sign_in_as(user)
+    cart = Cart.create!(user: user, status: "completed")
+    checkout_session = CheckoutSession.create!(
+      cart: cart,
+      status: :complete,
+      items: [ {
+        product_title: "Graditude certificate",
+        product_description: "A celebratory printed certificate.",
+        quantity: 1,
+        unit_amount: 7200,
+        currency: "usd",
+        certificate_template: "boulder"
+      } ],
+      raw: {},
+      stripe_session_id: "cs_test_123",
+      shipping_total_cents: 500,
+      shipping_currency: "usd"
+    )
 
     get checkout_success_url, params: { session_id: "cs_test_123" }
 
+    assert_redirected_to order_path(checkout_session.reload.order)
+
+    follow_redirect!
+
     assert_response :success
-    assert_select "h1", "Payment complete"
-    assert_select "strong", "cs_test_123"
-    assert_select "a[href='mailto:support@thegraditude.com']"
+    assert_select "h1", /Order ##{checkout_session.reload.order.number}/
+    assert_match "cs_test_123", response.body
+  end
+
+  test "success creates an order and redirects to it when stripe reports completion for an open checkout session" do
+    user = users(:one)
+    sign_in_as(user)
+    cart = Cart.create!(user: user, status: "open")
+    checkout_session = CheckoutSession.create!(
+      cart: cart,
+      status: :open,
+      items: [ {
+        product_title: "Graditude certificate",
+        product_description: "A celebratory printed certificate.",
+        quantity: 1,
+        unit_amount: 7200,
+        currency: "usd",
+        certificate_template: "boulder"
+      } ],
+      raw: {},
+      stripe_session_id: "cs_open_complete",
+      shipping_total_cents: 500,
+      shipping_currency: "usd"
+    )
+
+    stripe_session = OpenStruct.new(
+      id: "cs_open_complete",
+      status: "complete",
+      payment_status: "paid",
+      to_hash: {
+        "id" => "cs_open_complete",
+        "status" => "complete",
+        "payment_status" => "paid"
+      }
+    )
+    original_retrieve = Stripe::Checkout::Session.method(:retrieve)
+    Stripe::Checkout::Session.define_singleton_method(:retrieve) do |_id|
+      stripe_session
+    end
+
+    begin
+      get checkout_success_url, params: { session_id: "cs_open_complete" }
+      assert_redirected_to order_path(checkout_session.reload.order)
+    ensure
+      Stripe::Checkout::Session.define_singleton_method(:retrieve, original_retrieve)
+    end
   end
 
   test "success redirects to cancel for failed checkout session" do

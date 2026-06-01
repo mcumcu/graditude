@@ -3,6 +3,7 @@ class User < ApplicationRecord
   has_many :sessions, dependent: :destroy
   has_many :carts, dependent: :destroy
   has_one :open_cart, -> { where(status: :open) }, class_name: "Cart"
+  has_many :orders, dependent: :destroy
   has_many :certificates, dependent: :destroy
   has_many :affiliate_invitations_sent, class_name: "AffiliateInvitation", foreign_key: :invited_by_id, dependent: :nullify
   has_one :affiliate_invitation, class_name: "AffiliateInvitation", foreign_key: :accepted_by_id, dependent: :nullify

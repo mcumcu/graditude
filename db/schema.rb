@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_25_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_27_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -99,6 +99,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_25_000002) do
     t.index ["stripe_session_id"], name: "index_checkout_sessions_on_stripe_session_id", unique: true
   end
 
+  create_table "orders", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "checkout_session_id", null: false
+    t.datetime "created_at", null: false
+    t.jsonb "raw", default: {}, null: false
+    t.jsonb "shipping_address", default: {}, null: false
+    t.string "status", default: "order_placed", null: false
+    t.datetime "updated_at", null: false
+    t.uuid "user_id", null: false
+    t.index ["checkout_session_id"], name: "index_orders_on_checkout_session_id", unique: true
+    t.index ["status"], name: "index_orders_on_status"
+    t.index ["user_id"], name: "index_orders_on_user_id"
+  end
+
   create_table "prices", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.uuid "product_id", null: false
@@ -172,6 +185,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_25_000002) do
   add_foreign_key "certificate_products", "products"
   add_foreign_key "certificates", "users"
   add_foreign_key "checkout_sessions", "carts"
+  add_foreign_key "orders", "checkout_sessions"
+  add_foreign_key "orders", "users"
   add_foreign_key "prices", "products"
   add_foreign_key "sessions", "users"
   add_foreign_key "users", "users", column: "affiliate_approved_by_id"

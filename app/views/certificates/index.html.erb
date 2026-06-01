@@ -3,7 +3,7 @@
 <% total_count = purchasable_certificates.size + purchased_certificates.size %>
 <% content_for :title, "Certificates #{pluralize(total_count, "Certificate")}" %>
 
-<section class="bg-background">
+<section>
   <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
     <div class="flex items-center justify-between space-x-4">
       <div>
@@ -57,7 +57,7 @@
             <% end %>
           </div>
         </div>
-        <div id="purchased-certificates" class="mt-8 grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 sm:gap-y-10 lg:grid-cols-4">
+        <div id="purchased-certificates" class="mt-8 grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 sm:gap-y-10">
           <%= render partial: "card", collection: purchased_certificates, as: :certificate %>
         </div>
       <% end %>

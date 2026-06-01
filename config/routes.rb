@@ -10,11 +10,16 @@ Rails.application.routes.draw do
 
   resource :cart, only: [ :show ]
   resources :cart_items, only: [ :create, :destroy ]
+  resources :orders, only: [ :index, :show ]
 
   resources :certificates
   get "certificates/:id/preview" => "certificates#preview", as: :preview_certificate
 
   namespace :admin do
+    resources :orders, only: [ :index, :show ] do
+      patch :transition, on: :member
+    end
+
     resources :shipping_rates, only: [ :index, :new, :create, :edit, :update, :destroy ]
 
     namespace :catalog do

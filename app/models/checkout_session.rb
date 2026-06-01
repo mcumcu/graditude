@@ -1,6 +1,9 @@
 class CheckoutSession < ApplicationRecord
   belongs_to :cart, optional: true
+  has_one :order, dependent: :destroy
   has_many :certificate_products, dependent: :nullify
+
+  after_update_commit :broadcast_order_update_if_needed
 
   enum :status, {
     open: "open",
@@ -53,6 +56,38 @@ class CheckoutSession < ApplicationRecord
 
   def complete_order!
     cart&.complete_order!(self)
+    ensure_order!
+  end
+
+  def ensure_order!
+    return order if order.present?
+    return unless complete?
+    return unless cart&.user.present?
+
+    order_attributes = {
+      user: cart.user,
+      status: :order_placed,
+      raw: order_snapshot_payload,
+      shipping_address: order_shipping_address_payload
+    }
+
+    Order.find_or_create_by!(checkout_session: self) do |record|
+      record.assign_attributes(order_attributes)
+    end.tap do |record|
+      merged_raw = record.raw_hash.deep_merge(order_snapshot_payload)
+      updates = {}
+      updates[:user] = cart&.user if record.user_id != cart&.user_id
+      updates[:raw] = merged_raw if record.raw_hash != merged_raw
+
+      shipping_address = order_shipping_address_payload
+      if shipping_address.present? && record.shipping_address_hash != shipping_address
+        updates[:shipping_address] = shipping_address
+      end
+
+      next if updates.empty?
+
+      record.update!(updates)
+    end
   end
 
   def expire_in_stripe!
@@ -79,6 +114,70 @@ class CheckoutSession < ApplicationRecord
   end
 
   private
+
+  def broadcast_order_update_if_needed
+    return unless order.present?
+    return if (saved_changes.keys & %w[status raw shipping_details items shipping_total_cents shipping_currency stripe_session_id]).empty?
+
+    sync_order_shipping_address!
+    Orders::Broadcasts.order_updated(order.reload)
+  end
+
+  def order_snapshot_payload
+    payload = {
+      "checkout_session" => {
+        "id" => id,
+        "status" => status,
+        "stripe_session_id" => stripe_session_id
+      }
+    }
+
+    payload["stripe_session"] = raw_hash["stripe_session"] if raw_hash["stripe_session"].present?
+    payload
+  end
+
+  def order_shipping_address_payload
+    shipping_details = normalized_address_details(
+      shipping_details_hash["stripe_shipping_details"] ||
+      shipping_details_hash[:stripe_shipping_details] ||
+      raw_hash.dig("stripe_session", "shipping_details")
+    )
+    return shipping_details.merge("source" => "stripe_shipping_details") if shipping_details.present?
+
+    customer_details = normalized_address_details(raw_hash.dig("stripe_session", "customer_details"))
+    return customer_details.merge("source" => "stripe_customer_details") if customer_details.present?
+
+    {}
+  end
+
+  def sync_order_shipping_address!
+    shipping_address = order_shipping_address_payload
+    return if shipping_address.blank?
+    return if order.shipping_address_hash == shipping_address
+
+    order.update_columns(shipping_address: shipping_address, updated_at: Time.current)
+  end
+
+  def normalized_address_details(details)
+    return {} if details.blank?
+
+    details = details.to_hash if details.respond_to?(:to_hash)
+    details = details.to_h if details.respond_to?(:to_h)
+    details = details.transform_keys(&:to_s) if details.respond_to?(:transform_keys)
+
+    address = details["address"]
+    address = address.to_hash if address.respond_to?(:to_hash)
+    address = address.to_h if address.respond_to?(:to_h)
+    address = address.transform_keys(&:to_s) if address.respond_to?(:transform_keys)
+
+    payload = {
+      "name" => details["name"],
+      "phone" => details["phone"],
+      "address" => address.presence
+    }.compact
+
+    payload.compact_blank
+  end
 
   def expire_conflict_error?(error)
     message = error.message.to_s

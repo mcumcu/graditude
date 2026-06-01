@@ -10,17 +10,19 @@ class CertificatesController < ApplicationController
 
   # GET /certificates or /certificates.json
   def index
-    base_scope = Certificate.where(user: Current.user).includes(:certificate_products)
-    @purchasable_certificates = base_scope.purchasable.to_a
-    @purchased_certificates = base_scope.purchased.to_a
-
-    return unless @purchasable_certificates.length == 1 && @purchased_certificates.empty?
+    load_certificate_collections
+    return unless single_purchasable_certificate?
 
     redirect_to certificate_path(@purchasable_certificates.first)
   end
 
   # GET /certificates/1 or /certificates/1.json
   def show
+    if @certificate.purchased?
+      order = @certificate.purchased_order
+      return redirect_to order_path(order) if order.present?
+    end
+
     @products = Product.for_certificate_template(@certificate.template)
     cart_items = Current.user.open_cart&.certificate_products&.where(certificate_id: @certificate.id)
     @cart_product_ids = cart_items&.pluck(:product_id) || []
@@ -82,8 +84,11 @@ class CertificatesController < ApplicationController
   # DELETE /certificates/1 or /certificates/1.json
   def destroy
     if @certificate.destroy
+      load_certificate_collections
+      redirect_target = single_purchasable_certificate? ? certificate_path(@purchasable_certificates.first) : certificates_path
+
       respond_to do |format|
-        format.html { redirect_to certificates_path, notice: "Certificate for #{@certificate.honoree_name} was deleted", status: :see_other }
+        format.html { redirect_to redirect_target, notice: "Certificate for #{@certificate.honoree_name} was deleted", status: :see_other }
         format.json { head :no_content }
       end
     else
@@ -136,6 +141,16 @@ class CertificatesController < ApplicationController
 
     def set_preferred_format
       @preferred_format = params[:preferred_format].presence
+    end
+
+    def load_certificate_collections
+      base_scope = Certificate.where(user: Current.user).includes(:certificate_products)
+      @purchasable_certificates = base_scope.purchasable.to_a
+      @purchased_certificates = base_scope.purchased.to_a
+    end
+
+    def single_purchasable_certificate?
+      @purchasable_certificates.length == 1 && @purchased_certificates.empty?
     end
 
     def ensure_certificate_editable
