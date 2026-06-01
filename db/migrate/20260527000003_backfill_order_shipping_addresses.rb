@@ -52,7 +52,6 @@ class BackfillOrderShippingAddresses < ActiveRecord::Migration[8.1]
       "address" => address.presence
     }.compact
 
-    payload.except("address") if payload["address"].blank?
     payload.compact_blank
   end
 
