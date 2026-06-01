@@ -143,20 +143,26 @@ class StripeWebhooksController < ApplicationController
 
     payment_intent_id = payment_intent_id_for(object_hash, event_type: event_type)
     if payment_intent_id.present?
-      order = Order.includes(:checkout_session).detect do |candidate|
-        candidate.raw_hash.dig("stripe_session", "payment_intent") == payment_intent_id ||
-          candidate.checkout_session.raw_hash.dig("stripe_session", "payment_intent") == payment_intent_id
-      end
+      order = order_for_stripe_session_field("payment_intent", payment_intent_id)
       return order if order
     end
 
     charge_id = charge_id_for(object_hash, event_type: event_type)
     return if charge_id.blank?
 
-    Order.includes(:checkout_session).detect do |candidate|
-      candidate.raw_hash.dig("stripe_session", "charge") == charge_id ||
-        candidate.checkout_session.raw_hash.dig("stripe_session", "charge") == charge_id
-    end
+    order_for_stripe_session_field("charge", charge_id)
+  end
+
+  def order_for_stripe_session_field(field, value)
+    Order
+      .left_outer_joins(:checkout_session)
+      .where(
+        "orders.raw -> 'stripe_session' ->> ? = :value OR checkout_sessions.raw -> 'stripe_session' ->> ? = :value",
+        field,
+        field,
+        value: value
+      )
+      .first
   end
 
   def stripe_object_hash(stripe_object)
