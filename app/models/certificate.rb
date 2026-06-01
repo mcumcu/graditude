@@ -52,6 +52,13 @@ class Certificate < ApplicationRecord
     end
   end
 
+  def purchased_order
+    certificate_products.includes(checkout_session: :order).where(status: "purchased").find_each do |certificate_product|
+      return certificate_product.checkout_session.order if certificate_product.checkout_session&.order.present?
+    end
+    nil
+  end
+
   private
 
   def set_default_template

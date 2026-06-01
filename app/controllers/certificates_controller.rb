@@ -18,6 +18,11 @@ class CertificatesController < ApplicationController
 
   # GET /certificates/1 or /certificates/1.json
   def show
+    if @certificate.purchased?
+      order = @certificate.purchased_order
+      return redirect_to order_path(order) if order.present?
+    end
+
     @products = Product.for_certificate_template(@certificate.template)
     cart_items = Current.user.open_cart&.certificate_products&.where(certificate_id: @certificate.id)
     @cart_product_ids = cart_items&.pluck(:product_id) || []

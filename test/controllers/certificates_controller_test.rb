@@ -181,6 +181,42 @@ class CertificatesControllerTest < ActionDispatch::IntegrationTest
     assert_no_match %r{#{Regexp.escape(preview_certificate_path(@certificate, format: :png))}}, response.body
   end
 
+  test "should redirect purchased certificate show to its order" do
+    user = users(:one)
+    cart = Cart.create!(user: user, status: "completed")
+    checkout_session = CheckoutSession.create!(
+      cart: cart,
+      status: :complete,
+      items: [ {
+        product_title: "Graditude certificate",
+        product_description: "A celebratory printed certificate.",
+        quantity: 1,
+        unit_amount: 7200,
+        currency: "usd",
+        certificate_template: "boulder"
+      } ],
+      raw: {},
+      stripe_session_id: "cs_cert_show",
+      shipping_total_cents: 500,
+      shipping_currency: "usd"
+    )
+    order = Order.create!(user: user, checkout_session: checkout_session, status: :order_placed, raw: {})
+
+    CertificateProduct.create!(
+      cart: cart,
+      certificate: @certificate,
+      product: Product.create!(stripe_product_id: "prod_cert_order"),
+      stripe_price_id: "price_cert_order",
+      quantity: 1,
+      status: "purchased",
+      checkout_session: checkout_session
+    )
+
+    get certificate_url(@certificate)
+
+    assert_redirected_to order_path(order)
+  end
+
   test "should hide purchase options when certificate is purchased" do
     user = users(:one)
     cart = Cart.create!(user: user, status: "completed")
