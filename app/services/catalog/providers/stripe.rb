@@ -40,12 +40,15 @@ module Catalog
         Normalizer.hashify(product)
       end
 
-      def create_price!(product_id:, amount_cents:, currency:)
+      def create_price!(product_id:, amount_cents:, currency:, metadata: {}, nickname: nil, active: true)
         payload = {
           product: product_id,
           unit_amount: amount_cents,
-          currency: currency
-        }
+          currency: currency,
+          metadata: stringify_metadata(metadata),
+          nickname: nickname,
+          active: active
+        }.compact
 
         price = @client.v1.prices.create(payload)
         Normalizer.hashify(price)

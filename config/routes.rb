@@ -27,6 +27,15 @@ Rails.application.routes.draw do
         post :preview, on: :collection
         post :preview, on: :member
       end
+
+      resources :prodigi_pipelines, only: [ :index ] do
+        collection do
+          post :import_catalog
+          post :materialize_stripe
+          post :reconcile_stripe
+          post :retry_failed
+        end
+      end
     end
   end
 

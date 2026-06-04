@@ -1,0 +1,37 @@
+<main class="mx-auto w-full max-w-6xl px-4 py-10">
+  <%= render "admin/shared/nav" %>
+  <%= render "shared/flash_messages" %>
+
+  <div class="mt-8 flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-primary">Prodigi Pipeline</h1>
+      <p class="mt-1 text-content-muted">Import spreadsheet rows, materialize Stripe objects, and review pipeline status.</p>
+    </div>
+  </div>
+
+  <div class="mt-8 grid gap-4 sm:grid-cols-3">
+    <div class="rounded-2xl border border-primary/10 bg-background-secondary p-6">
+      <p class="text-sm text-content-muted">Catalog rows</p>
+      <p class="mt-2 text-3xl font-semibold"><%= @item_count %></p>
+    </div>
+    <div class="rounded-2xl border border-primary/10 bg-background-secondary p-6">
+      <p class="text-sm text-content-muted">Stripe mappings</p>
+      <p class="mt-2 text-3xl font-semibold"><%= @mapping_count %></p>
+    </div>
+    <div class="rounded-2xl border border-primary/10 bg-background-secondary p-6">
+      <p class="text-sm text-content-muted">Last run</p>
+      <p class="mt-2 text-lg font-semibold"><%= @last_run&.phase&.titleize || "None" %></p>
+      <p class="text-sm text-content-muted"><%= @last_run&.created_at&.strftime("%F %T") || "n/a" %></p>
+    </div>
+  </div>
+
+  <div class="mt-8 rounded-2xl border border-primary/10 bg-background-secondary p-6">
+    <h2 class="text-lg font-semibold text-primary">Pipeline actions</h2>
+    <div class="mt-4 grid gap-4 sm:grid-cols-2">
+      <%= button_to "Import Prodigi catalog", import_catalog_admin_catalog_prodigi_pipelines_path, method: :post, class: "inline-flex items-center justify-center rounded-full bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary/90" %>
+      <%= button_to "Materialize Stripe", materialize_stripe_admin_catalog_prodigi_pipelines_path, method: :post, class: "inline-flex items-center justify-center rounded-full bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary/90" %>
+      <%= button_to "Reconcile missing Stripe mappings", reconcile_stripe_admin_catalog_prodigi_pipelines_path, method: :post, class: "inline-flex items-center justify-center rounded-full bg-background px-4 py-3 text-sm font-semibold text-primary border border-primary/10 hover:bg-primary/10" %>
+      <%= button_to "Retry failed materialization", retry_failed_admin_catalog_prodigi_pipelines_path, method: :post, class: "inline-flex items-center justify-center rounded-full bg-background px-4 py-3 text-sm font-semibold text-primary border border-primary/10 hover:bg-primary/10" %>
+    </div>
+  </div>
+</main>
