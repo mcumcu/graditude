@@ -53,9 +53,11 @@ module CertificatesHelper
     when "beige" then "#e5d3b8"
     when "brown" then "#7c4c29"
     when "grey", "gray" then "#9ca3af"
+    when "dark grey", "dark gray" then "#4b5563"
     when "blue" then "#2563eb"
     when "green" then "#16a34a"
     when "red" then "#dc2626"
+    when "gold" then "#fbbf24"
     else "#d1d5db"
     end
   end

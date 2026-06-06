@@ -18,6 +18,12 @@ module Printable
     default_certificate_params
   end
 
+  def format_amount(amount_in_cents)
+    return nil if amount_in_cents.nil? || amount_in_cents == 0
+
+    format("%.2f", amount_in_cents.to_f / 100.0).gsub(".", ",")
+  end
+
   # Legacy method: generates Penn certificate
   def make_penn_document(params = {})
     pdf = generate_certificate_pdf(GraditudeFactory::Certificates::PennTemplate, params)
