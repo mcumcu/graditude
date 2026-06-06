@@ -24,6 +24,8 @@ Rails.application.routes.draw do
 
     namespace :catalog do
       resources :products, only: [ :index, :new, :create, :edit, :update, :destroy ] do
+        patch :deactivate, on: :member
+        patch :reactivate, on: :member
         post :preview, on: :collection
         post :preview, on: :member
       end

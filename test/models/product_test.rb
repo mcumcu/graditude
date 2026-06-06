@@ -132,6 +132,7 @@ class ProductTest < ActiveSupport::TestCase
   test "for_certificate_template filters by template and returns products sorted by price descending" do
     product_a = Product.create!(
       stripe_product_id: "prod_a",
+      deactivated: false,
       stripe_product_cache: {
         "id" => "prod_a",
         "name" => "Zed Certificate",
@@ -143,6 +144,7 @@ class ProductTest < ActiveSupport::TestCase
 
     product_b = Product.create!(
       stripe_product_id: "prod_b",
+      deactivated: false,
       stripe_product_cache: {
         "id" => "prod_b",
         "name" => "Alpha Certificate",
@@ -154,6 +156,7 @@ class ProductTest < ActiveSupport::TestCase
 
     Product.create!(
       stripe_product_id: "prod_c",
+      deactivated: false,
       stripe_product_cache: {
         "id" => "prod_c",
         "name" => "Westtown Certificate",
@@ -182,6 +185,60 @@ class ProductTest < ActiveSupport::TestCase
     assert_equal [ product_a, product_b ], results
   ensure
     Stripe::Price.define_singleton_method(:retrieve, original_price_retrieve.to_proc)
+  end
+
+  test "for_certificate_template excludes locally deactivated products" do
+    active_product = Product.create!(
+      stripe_product_id: "prod_active",
+      deactivated: false,
+      stripe_product_cache: {
+        "id" => "prod_active",
+        "name" => "Active Certificate",
+        "description" => "Active description",
+        "metadata" => { "certificate_templates" => "boulder", "format" => "framed" },
+        "default_price" => "price_active"
+      }
+    )
+
+    deactivated_product = Product.create!(
+      stripe_product_id: "prod_deactivated",
+      deactivated: true,
+      stripe_product_cache: {
+        "id" => "prod_deactivated",
+        "name" => "Deactivated Certificate",
+        "description" => "Deactivated description",
+        "metadata" => { "certificate_templates" => "boulder", "format" => "framed" },
+        "default_price" => "price_deactivated"
+      }
+    )
+
+    original_price_retrieve = Stripe::Price.method(:retrieve)
+    Stripe::Price.define_singleton_method(:retrieve) do |price_id|
+      case price_id
+      when "price_active"
+        OpenStruct.new(unit_amount: 5000)
+      when "price_deactivated"
+        OpenStruct.new(unit_amount: 7000)
+      else
+        raise "Unexpected price_id: #{price_id}"
+      end
+    end
+
+    results = Product.for_certificate_template("boulder")
+
+    assert_equal [ active_product ], results
+  ensure
+    Stripe::Price.define_singleton_method(:retrieve, original_price_retrieve.to_proc)
+  end
+
+  test "deactivate! and reactivate! flip the local deactivated flag" do
+    product = Product.create!(stripe_product_id: "prod_toggle", deactivated: false)
+
+    product.deactivate!
+    assert product.reload.deactivated?
+
+    product.reactivate!
+    assert_not product.reload.deactivated?
   end
 
   test "clear_stripe_product_cache! removes both Rails cache and persisted stripe_product_cache" do

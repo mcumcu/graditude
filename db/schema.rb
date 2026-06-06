@@ -202,6 +202,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_05_000300) do
 
   create_table "products", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.boolean "deactivated", default: true, null: false
     t.jsonb "stripe_product_cache", default: {}, null: false
     t.string "stripe_product_id"
     t.datetime "updated_at", null: false

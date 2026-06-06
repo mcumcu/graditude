@@ -140,4 +140,44 @@ class Admin::Catalog::ProductsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to admin_catalog_products_path
     assert_equal false, product.reload.stripe_product_cache["active"]
   end
+
+  test "admin can deactivate a catalog product" do
+    sign_in @admin
+
+    product = Product.create!(
+      stripe_product_id: "prod_deactivate",
+      deactivated: false,
+      stripe_product_cache: {
+        "id" => "prod_deactivate",
+        "name" => "Deactivate Me",
+        "metadata" => { "format" => "framed" },
+        "default_price" => "price_deactivate"
+      }
+    )
+
+    patch deactivate_admin_catalog_product_url(product)
+
+    assert_redirected_to admin_catalog_products_path
+    assert product.reload.deactivated?
+  end
+
+  test "admin can reactivate a catalog product" do
+    sign_in @admin
+
+    product = Product.create!(
+      stripe_product_id: "prod_reactivate",
+      deactivated: true,
+      stripe_product_cache: {
+        "id" => "prod_reactivate",
+        "name" => "Reactivate Me",
+        "metadata" => { "format" => "framed" },
+        "default_price" => "price_reactivate"
+      }
+    )
+
+    patch reactivate_admin_catalog_product_url(product)
+
+    assert_redirected_to admin_catalog_products_path
+    assert_not product.reload.deactivated?
+  end
 end

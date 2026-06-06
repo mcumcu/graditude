@@ -57,6 +57,49 @@ class ProdigiCatalogItem < ApplicationRecord
     components.join(" - ")
   end
 
+  def frame_label
+    frame.presence || "Unframed"
+  end
+
+  def color_label
+    color.presence || "Standard"
+  end
+
+  def product_description
+    prodigi_product_details["product_description"].presence || raw_row_data["product_description"].presence || "Premium printed gratitude certificates fulfilled through Prodigi."
+  end
+
+  def shipping_summary
+    return nil unless shipping_price_cents.present? && shipping_currency.present?
+
+    {
+      price_cents: shipping_price_cents,
+      currency: shipping_currency,
+      delivery_window: shipping_delivery_window_label.presence,
+      tracked_shipping: tracked_shipping_label.presence
+    }
+  end
+
+  def tracked_shipping_label
+    return nil if tracked_shipping.nil?
+
+    tracked_shipping ? "Tracked shipping included" : "Untracked shipping"
+  end
+
+  def available_for_cart?
+    stripe_price_id.present? && associated_product.present? && associated_product.active?
+  end
+
+  def stripe_price_id
+    prodigi_stripe_mapping&.stripe_price_id
+  end
+
+  def associated_product
+    return unless prodigi_stripe_mapping&.stripe_product_id.present?
+
+    Product.find_by(stripe_product_id: prodigi_stripe_mapping.stripe_product_id)
+  end
+
   def self.resolve_product_family(raw_data)
     category = raw_data.to_h.fetch("category", nil).to_s.downcase
     product_type = raw_data.to_h.fetch("product_type", nil).to_s.downcase

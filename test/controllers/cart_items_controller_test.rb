@@ -4,7 +4,7 @@ class CartItemsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:one)
     sign_in @user
-    @product = Product.create!(stripe_product_id: "prod_test")
+    @product = Product.create!(stripe_product_id: "prod_test", deactivated: false)
   end
 
   test "create adds item to cart when Stripe name and default_price exist" do
@@ -33,6 +33,17 @@ class CartItemsControllerTest < ActionDispatch::IntegrationTest
 
   test "create redirects with alert when no Stripe product default price exists for product" do
     @product.update!(stripe_product_id: nil)
+
+    assert_no_difference("CertificateProduct.count") do
+      post cart_items_url, params: { product_id: @product.id, certificate_id: certificates(:one).id }
+    end
+
+    assert_redirected_to cart_path
+    assert_equal "This product is not currently available for purchase.", flash[:alert]
+  end
+
+  test "create rejects locally deactivated products" do
+    @product.update!(deactivated: true)
 
     assert_no_difference("CertificateProduct.count") do
       post cart_items_url, params: { product_id: @product.id, certificate_id: certificates(:one).id }

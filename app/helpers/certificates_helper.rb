@@ -14,6 +14,27 @@ module CertificatesHelper
     )
   end
 
+  def price_label_for(products)
+    priced_products = Array(products).filter_map do |product|
+      data = product&.catalog_data
+      next unless data
+
+      amount = data[:default_price_amount_cents]
+      currency = data[:default_price_currency]
+      next if amount.blank? || currency.blank?
+
+      { amount: amount.to_i, currency: currency.to_s.upcase, product: product }
+    end
+
+    return "Pricing available at checkout" if priced_products.empty?
+
+    unique_prices = priced_products.map { |entry| [ entry[:amount], entry[:currency] ] }.uniq
+    return formatted_stripe_price(priced_products.first[:product]) if unique_prices.size == 1
+
+    lowest_product = priced_products.min_by { |entry| entry[:amount] }[:product]
+    "From #{formatted_stripe_price(lowest_product)}"
+  end
+
   def currency_symbol(currency)
     case currency.to_s.upcase
     when "USD" then "$"
@@ -24,16 +45,31 @@ module CertificatesHelper
     end
   end
 
-  def price_label_for(products)
-    priced_products = Array(products).select { |product| product.catalog_data[:default_price_amount_cents].present? }
-    return "Pricing available at checkout" if priced_products.empty?
+  def prodigi_color_swatch(color_label)
+    case color_label.to_s.downcase
+    when "black" then "#111827"
+    when "white" then "#f8fafc"
+    when "natural" then "#f3e9d2"
+    when "beige" then "#e5d3b8"
+    when "brown" then "#7c4c29"
+    when "grey", "gray" then "#9ca3af"
+    when "blue" then "#2563eb"
+    when "green" then "#16a34a"
+    when "red" then "#dc2626"
+    else "#d1d5db"
+    end
+  end
 
-    cheapest = priced_products.min_by { |product| product.catalog_data[:default_price_amount_cents].to_i }
-    formatted = formatted_stripe_price(cheapest)
-    return "Pricing available at checkout" unless formatted.present?
+  def formatted_prodigi_price(amount_cents, currency)
+    currency ||= "USD"
 
-    multiple_prices = priced_products.map { |product| product.catalog_data[:default_price_amount_cents].to_i }.uniq.length > 1
-    multiple_prices ? "From #{formatted}" : formatted
+    return "Pricing available" if amount_cents.blank? || currency.blank?
+
+    number_to_currency(
+      amount_cents.to_i / 100.0,
+      unit: currency_symbol(currency),
+      precision: 2
+    )
   end
 
   def product_variant_label(product)

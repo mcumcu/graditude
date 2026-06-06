@@ -1,7 +1,7 @@
 module Admin
   module Catalog
     class ProductsController < BaseController
-      before_action :set_product, only: %i[edit update destroy]
+      before_action :set_product, only: %i[edit update destroy deactivate reactivate]
 
       def index
         @products = Product.where.not(stripe_product_id: nil).order(created_at: :desc)
@@ -57,6 +57,20 @@ module Admin
         else
           redirect_to edit_admin_catalog_product_path(@product), alert: @form.errors.full_messages.to_sentence
         end
+      end
+
+      def deactivate
+        @product.deactivate!
+        redirect_to admin_catalog_products_path, notice: "Product deactivated."
+      rescue ActiveRecord::RecordInvalid => error
+        redirect_to admin_catalog_products_path, alert: error.message
+      end
+
+      def reactivate
+        @product.reactivate!
+        redirect_to admin_catalog_products_path, notice: "Product reactivated."
+      rescue ActiveRecord::RecordInvalid => error
+        redirect_to admin_catalog_products_path, alert: error.message
       end
 
       private

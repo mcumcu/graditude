@@ -1,0 +1,83 @@
+<% variant = local_assigns.fetch(:variant) %>
+<% sku_group = local_assigns.fetch(:sku_group) %>
+<% form_id = local_assigns[:form_id] %>
+<% cart_product_ids = local_assigns.fetch(:cart_product_ids, []) %>
+<% cart_items_by_product_id = local_assigns.fetch(:cart_items_by_product_id, {}) %>
+<% cart_items_count = local_assigns.fetch(:cart_items_count, 0) %>
+<% index = local_assigns.fetch(:index, 0) %>
+<% selected_price = formatted_prodigi_price(variant.min_price_cents, variant.currency) %>
+<% frame_id = "prodigi-frame-#{sku_group.sku.parameterize}-#{index}" %>
+
+<div class="rounded-3xl border border-primary/10 bg-background p-4" data-controller="prodigi-color-group">
+  <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-[0.3em] text-content-muted"><%= variant.label %></p>
+      <p class="mt-2 text-lg font-semibold text-primary"><%= selected_price %></p>
+    </div>
+    <div class="text-sm text-content-muted">
+      <% if variant.shipping_summary.present? %>
+        <p><%= variant.shipping_summary %></p>
+      <% end %>
+      <% if variant.delivery_window.present? %>
+        <p><%= variant.delivery_window %></p>
+      <% end %>
+      <% if variant.tracked_shipping.present? %>
+        <p><%= variant.tracked_shipping %></p>
+      <% end %>
+    </div>
+  </div>
+
+  <% color_groups = variant.items.group_by { |item| item.color_label } %>
+
+  <div class="space-y-4">
+    <div class="flex flex-wrap items-center gap-2">
+        <button type="button" class="group inline-flex items-center gap-2 rounded-full border border-primary/10 bg-background-secondary px-3 py-1 text-sm font-medium text-content-muted transition hover:border-primary/30 hover:text-primary" data-action="click->prodigi-color-group#clearSelection" data-prodigi-color-group-color-value="" data-prodigi-color-group-target="colorButton">
+          <span class="inline-flex h-3.5 w-3.5 rounded-full border border-primary/10 bg-background"></span>
+          <span>All colors</span>
+        </button>
+
+        <% color_groups.keys.each do |color_label| %>
+          <button type="button" class="group inline-flex items-center gap-2 rounded-full border border-primary/10 bg-background-secondary px-3 py-1 text-sm font-medium text-content-muted transition hover:border-primary/30 hover:text-primary" data-action="click->prodigi-color-group#selectColor" data-prodigi-color-group-color-value="<%= color_label %>" data-prodigi-color-group-target="colorButton">
+            <span class="inline-flex h-3.5 w-3.5 rounded-full border border-primary/10" style="background-color: <%= prodigi_color_swatch(color_label) %>;"></span>
+            <span><%= color_label %></span>
+          </button>
+        <% end %>
+      </div>
+    <div class="rounded-3xl border border-primary/10 bg-background-secondary p-4 text-sm text-content-muted transition-all duration-200" data-prodigi-color-group-target="hint">
+      Choose a color to view shipping options for this SKU.
+    </div>
+
+    <div class="space-y-4" data-prodigi-color-group-target="cards">
+      <% color_groups.each do |color_label, items| %>
+        <div data-prodigi-color-group-target="colorCard" data-color-label="<%= color_label %>" class="hidden rounded-3xl border border-primary/10 bg-background-secondary p-4">
+          <div class="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <p class="text-sm font-semibold text-primary"><%= color_label %></p>
+              <p class="mt-1 text-sm text-content-muted"><%= items.first.size_label %></p>
+            </div>
+            <p class="text-sm text-content-muted"><%= items.map(&:shipping_method).uniq.reject(&:blank?).join(" • ") %></p>
+          </div>
+
+          <div class="space-y-3">
+            <% items.sort_by { |item| [item.shipping_price_cents.to_i, item.shipping_method.to_s] }.each do |item| %>
+              <label for="prodigi_catalog_item_id_#{item.id}" class="grid grid-cols-[1fr_auto] gap-4 rounded-2xl border border-primary/10 bg-background p-3 transition hover:border-primary/30 <%= item.available_for_cart? ? "cursor-pointer" : "opacity-60" %>">
+                <div>
+                  <p class="text-sm font-semibold text-primary"><%= item.shipping_method.presence || "Shipping option" %></p>
+                  <p class="mt-1 text-sm text-content-muted"><%= item.shipping_delivery_window_label.presence || "Delivery option" %> • <%= formatted_prodigi_price(item.shipping_price_cents, item.shipping_currency) %></p>
+                </div>
+                <div class="text-right">
+                  <% if item.available_for_cart? %>
+                    <%= radio_button_tag "prodigi_catalog_item_id", item.id, false, id: "prodigi_catalog_item_id_#{item.id}", form: form_id, class: "peer sr-only", data: { action: "change->variant-picker#updateSelection", variant_picker_target: "option", variant_picker_product_id_value: item.associated_product&.id, variant_picker_price_id_value: item.stripe_price_id } %>
+                    <span class="inline-flex items-center rounded-full border border-primary/10 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary peer-checked:border-primary peer-checked:bg-primary/10">Select</span>
+                  <% else %>
+                    <span class="inline-flex items-center rounded-full border border-content-muted px-3 py-1 text-xs font-semibold text-content-muted">Unavailable</span>
+                  <% end %>
+                </div>
+              </label>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

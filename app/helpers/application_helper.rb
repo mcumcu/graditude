@@ -93,7 +93,7 @@ module ApplicationHelper
       "min-w-16 font-semibold dark:text-white pt-1.5 hover:cursor-pointer bg-left-bottom bg-gradient-to-r from-indigo-500 to-indigo-500 bg-[length:0%_2px] bg-no-repeat hover:bg-[length:100%_2px] transition-all duration-500 ease-out"
     end
   end
-  def format_options_form(form_url:, form_method:, requires_selection:, products:, input_name:, preferred_format:, cart_product_ids:, cart_items_by_product_id: nil, cart_items_count: nil, multi_select: false, certificate_id: nil, quantity: nil, &block)
+  def format_options_form(form_url:, form_method:, requires_selection:, products:, variant_groups: nil, input_name:, preferred_format:, cart_product_ids:, cart_items_by_product_id: nil, cart_items_count: nil, multi_select: false, certificate_id: nil, quantity: nil, &block)
     footer_html = block_given? ? capture(&block) : ""
     products = Array(products)
     cart_product_ids = Array(cart_product_ids)
@@ -104,6 +104,7 @@ module ApplicationHelper
       form_method: form_method,
       requires_selection: requires_selection,
       products: products,
+      variant_groups: variant_groups,
       input_name: input_name,
       preferred_format: preferred_format,
       cart_product_ids: cart_product_ids,

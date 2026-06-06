@@ -2,7 +2,11 @@ class Product < ApplicationRecord
   has_many :certificate_products, dependent: :restrict_with_error
   has_many :prices, dependent: :destroy
 
+  validates :deactivated, inclusion: { in: [ true, false ] }
   validates :stripe_product_id, uniqueness: true, allow_blank: true
+
+  scope :active, -> { where(deactivated: false) }
+  scope :deactivated, -> { where(deactivated: true) }
 
   STRIPE_PRODUCT_CACHE_EXPIRES_IN = 1.hour
   DEFAULT_HEADING = "Graditude Certificate"
@@ -170,11 +174,23 @@ class Product < ApplicationRecord
     prices.find_or_create_by!(stripe_price_id: stripe_price_id)
   end
 
+  def deactivate!
+    update!(deactivated: true)
+  end
+
+  def reactivate!
+    update!(deactivated: false)
+  end
+
+  def active?
+    !deactivated?
+  end
+
   def self.for_certificate_template(template)
     template_name = template.to_s.presence || ENV.fetch("DEFAULT_CERTIFICATE_TEMPLATE", "boulder")
-    where.not(stripe_product_id: nil).to_a
-         .select { |product| product.certificate_template_names.map(&:downcase).include?(template_name.downcase) }
-         .sort_by { |product| -product.stripe_price_amount_cents.to_i }
+    active.where.not(stripe_product_id: nil).to_a
+          .select { |product| product.certificate_template_names.map(&:downcase).include?(template_name.downcase) }
+          .sort_by { |product| -product.stripe_price_amount_cents.to_i }
   end
 
   def update_cached_stripe_product!(stripe_product_hash)

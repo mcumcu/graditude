@@ -1,9 +1,6 @@
 class CartItemsController < ApplicationController
   def create
     cart = current_cart
-    product_ids = Array(params[:product_ids] || params[:product_id])
-      .map { |value| value.to_s.strip }
-      .reject(&:blank?)
     certificate = Current.user.certificates.find(params.require(:certificate_id))
 
     if certificate.purchased?
@@ -19,43 +16,11 @@ class CartItemsController < ApplicationController
       return
     end
 
-    if product_ids.empty?
-      respond_to do |format|
-        format.turbo_stream do
-          flash.now[:alert] = "Select at least one product to add to your cart."
-          render turbo_stream: turbo_stream.replace("flash-messages", partial: "shared/flash_messages"), status: :unprocessable_entity
-        end
-        format.html { redirect_to cart_path, alert: "Select at least one product to add to your cart." }
-        format.json { render json: { errors: [ "Select at least one product to add to your cart." ] }, status: :unprocessable_entity }
-      end
-      return
-    end
-
-    products = Product.where(id: product_ids).index_by(&:id)
-
-    if products.size != product_ids.size
-      respond_to do |format|
-        format.turbo_stream do
-          flash.now[:alert] = "One or more selected products could not be found."
-          render turbo_stream: turbo_stream.replace("flash-messages", partial: "shared/flash_messages"), status: :unprocessable_entity
-        end
-        format.html { redirect_to cart_path, alert: "One or more selected products could not be found." }
-        format.json { render json: { errors: [ "One or more selected products could not be found." ] }, status: :unprocessable_entity }
-      end
-      return
-    end
-
-    selected_products = product_ids.map { |id| products[id] }
+    prodigi_item = ProdigiCatalogItem.find_by(id: params[:prodigi_catalog_item_id]) if params[:prodigi_catalog_item_id].present?
     product_prices = {}
 
-    selected_products.each do |product|
-      stripe_price_id = begin
-        product.stripe_price_id
-      rescue Stripe::StripeError
-        nil
-      end
-
-      if stripe_price_id.blank?
+    if prodigi_item.present?
+      unless prodigi_item.available_for_cart?
         respond_to do |format|
           format.turbo_stream do
             flash.now[:alert] = "This product is not currently available for purchase."
@@ -67,7 +32,84 @@ class CartItemsController < ApplicationController
         return
       end
 
-      product_prices[product] = stripe_price_id
+      product = prodigi_item.associated_product
+      unless product.present?
+        respond_to do |format|
+          format.turbo_stream do
+            flash.now[:alert] = "This product is not currently available for purchase."
+            render turbo_stream: turbo_stream.replace("flash-messages", partial: "shared/flash_messages"), status: :unprocessable_entity
+          end
+          format.html { redirect_to cart_path, alert: "This product is not currently available for purchase." }
+          format.json { render json: { error: "No active price is available for this product." }, status: :unprocessable_entity }
+        end
+        return
+      end
+
+      product_prices[product] = prodigi_item.stripe_price_id
+    else
+      product_ids = Array(params[:product_ids] || params[:product_id])
+        .map { |value| value.to_s.strip }
+        .reject(&:blank?)
+
+      if product_ids.empty?
+        respond_to do |format|
+          format.turbo_stream do
+            flash.now[:alert] = "Select at least one product to add to your cart."
+            render turbo_stream: turbo_stream.replace("flash-messages", partial: "shared/flash_messages"), status: :unprocessable_entity
+          end
+          format.html { redirect_to cart_path, alert: "Select one or more products to add to the cart." }
+          format.json { render json: { errors: [ "Select one or more products to add to the cart." ] }, status: :unprocessable_entity }
+        end
+        return
+      end
+
+      products = Product.where(id: product_ids).index_by(&:id)
+      if products.size != product_ids.size
+        respond_to do |format|
+          format.turbo_stream do
+            flash.now[:alert] = "One or more selected products could not be found."
+            render turbo_stream: turbo_stream.replace("flash-messages", partial: "shared/flash_messages"), status: :unprocessable_entity
+          end
+          format.html { redirect_to cart_path, alert: "One or more selected products could not be found." }
+          format.json { render json: { errors: [ "One or more selected products could not be found." ] }, status: :unprocessable_entity }
+        end
+        return
+      end
+
+      selected_products = product_ids.map { |id| products[id] }
+      if selected_products.any? { |product| product&.deactivated? }
+        respond_to do |format|
+          format.turbo_stream do
+            flash.now[:alert] = "This product is not currently available for purchase."
+            render turbo_stream: turbo_stream.replace("flash-messages", partial: "shared/flash_messages"), status: :unprocessable_entity
+          end
+          format.html { redirect_to cart_path, alert: "This product is not currently available for purchase." }
+          format.json { render json: { error: "No active price is available for this product." }, status: :unprocessable_entity }
+        end
+        return
+      end
+
+      selected_products.each do |product|
+        stripe_price_id = begin
+          product.stripe_price_id
+        rescue Stripe::StripeError
+          nil
+        end
+
+        if stripe_price_id.blank?
+          respond_to do |format|
+            format.turbo_stream do
+              flash.now[:alert] = "This product is not currently available for purchase."
+              render turbo_stream: turbo_stream.replace("flash-messages", partial: "shared/flash_messages"), status: :unprocessable_entity
+            end
+            format.html { redirect_to cart_path, alert: "This product is not currently available for purchase." }
+            format.json { render json: { error: "No active price is available for this product." }, status: :unprocessable_entity }
+          end
+          return
+        end
+
+        product_prices[product] = stripe_price_id
+      end
     end
 
     cart_items = []

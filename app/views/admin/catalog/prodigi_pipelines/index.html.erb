@@ -30,8 +30,11 @@
     <div class="mt-4 grid gap-4 sm:grid-cols-2">
       <%= button_to "Import Prodigi catalog", import_catalog_admin_catalog_prodigi_pipelines_path, method: :post, class: "inline-flex items-center justify-center rounded-full bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary/90" %>
       <%= button_to "Materialize Stripe", materialize_stripe_admin_catalog_prodigi_pipelines_path, method: :post, class: "inline-flex items-center justify-center rounded-full bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary/90" %>
+      <%= button_to "Import catalog dry run", import_catalog_admin_catalog_prodigi_pipelines_path, params: { dry_run: true }, method: :post, class: "inline-flex items-center justify-center rounded-full bg-background px-4 py-3 text-sm font-semibold text-primary border border-primary/10 hover:bg-primary/10" %>
+      <%= button_to "Materialize Stripe dry run", materialize_stripe_admin_catalog_prodigi_pipelines_path, params: { dry_run: true }, method: :post, class: "inline-flex items-center justify-center rounded-full bg-background px-4 py-3 text-sm font-semibold text-primary border border-primary/10 hover:bg-primary/10" %>
       <%= button_to "Reconcile missing Stripe mappings", reconcile_stripe_admin_catalog_prodigi_pipelines_path, method: :post, class: "inline-flex items-center justify-center rounded-full bg-background px-4 py-3 text-sm font-semibold text-primary border border-primary/10 hover:bg-primary/10" %>
       <%= button_to "Retry failed materialization", retry_failed_admin_catalog_prodigi_pipelines_path, method: :post, class: "inline-flex items-center justify-center rounded-full bg-background px-4 py-3 text-sm font-semibold text-primary border border-primary/10 hover:bg-primary/10" %>
     </div>
+    <p class="mt-4 text-sm text-content-muted">Dry-run actions parse and validate the pipeline without persisting catalog records or creating Stripe objects.</p>
   </div>
 </main>

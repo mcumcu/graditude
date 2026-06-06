@@ -24,6 +24,7 @@ class CertificatesController < ApplicationController
     end
 
     @products = Product.for_certificate_template(@certificate.template)
+    @variant_groups = Prodigi::CatalogDisplay.new(scope: ProdigiCatalogItem.all).sku_groups if ProdigiCatalogItem.exists?
     cart_items = Current.user.open_cart&.certificate_products&.where(certificate_id: @certificate.id)
     @cart_product_ids = cart_items&.pluck(:product_id) || []
     @cart_items_by_product_id = cart_items&.pluck(:product_id, :id)&.to_h || {}

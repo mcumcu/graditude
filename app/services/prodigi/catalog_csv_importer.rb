@@ -37,39 +37,52 @@ module Prodigi
       "tracked_shipping" => "tracked_shipping"
     }.freeze
 
-    def initialize(path: DEFAULT_PATH)
+    def initialize(path: DEFAULT_PATH, dry_run: false)
       @path = Pathname(path)
+      @dry_run = dry_run
     end
 
     def call!
-      Prodigi::PipelineRunTracker.track(phase: "import_catalog") do |run|
-        result = {
-          path: @path.to_s,
-          processed: 0,
-          created: 0,
-          updated: 0,
-          skipped: 0
-        }
+      result = {
+        path: @path.to_s,
+        processed: 0,
+        created: 0,
+        updated: 0,
+        skipped: 0
+      }
 
-        CSV.foreach(@path, headers: true) do |row|
-          attrs = build_attributes(row.to_h)
-          if attrs[:sku].blank? || attrs[:destination_country].blank?
-            result[:skipped] += 1
-            next
-          end
+      if @dry_run
+        ActiveRecord::Base.transaction do
+          process_rows(result)
+          raise ActiveRecord::Rollback
+        end
+      else
+        Prodigi::PipelineRunTracker.track(phase: "import_catalog") do
+          process_rows(result)
+          result
+        end
+      end
 
-          result[:processed] += 1
-          record = ProdigiCatalogItem.find_or_initialize_by(row_key: attrs[:row_key])
-          was_new_record = record.new_record?
-          record.assign_attributes(attrs)
-          if record.save
-            result[was_new_record ? :created : :updated] += 1
-          else
-            result[:skipped] += 1
-          end
+      result
+    end
+
+    def process_rows(result)
+      CSV.foreach(@path, headers: true) do |row|
+        attrs = build_attributes(row.to_h)
+        if attrs[:sku].blank? || attrs[:destination_country].blank?
+          result[:skipped] += 1
+          next
         end
 
-        result
+        result[:processed] += 1
+        record = ProdigiCatalogItem.find_or_initialize_by(row_key: attrs[:row_key])
+        was_new_record = record.new_record?
+        record.assign_attributes(attrs)
+        if record.save
+          result[was_new_record ? :created : :updated] += 1
+        else
+          result[:skipped] += 1
+        end
       end
     end
 

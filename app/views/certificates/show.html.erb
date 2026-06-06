@@ -25,6 +25,7 @@ end || @products.first %>
     form_method: :post,
     requires_selection: true,
     products: @products,
+    variant_groups: @variant_groups,
     input_name: :product_id,
     preferred_format: preferred_format,
     cart_product_ids: @cart_product_ids,
