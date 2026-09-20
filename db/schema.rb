@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_25_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_20_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -77,9 +77,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_25_000002) do
   create_table "certificates", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.jsonb "data", default: {}, null: false
+    t.string "preview_image_base64"
     t.string "template"
     t.datetime "updated_at", null: false
     t.uuid "user_id", null: false
+    t.index ["updated_at", "preview_image_base64"], name: "index_certificates_on_updated_at_and_preview_image_base64"
     t.index ["user_id"], name: "index_certificates_on_user_id"
   end
 
@@ -99,6 +101,35 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_25_000002) do
     t.index ["stripe_session_id"], name: "index_checkout_sessions_on_stripe_session_id", unique: true
   end
 
+  create_table "orders", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "checkout_session_id", null: false
+    t.datetime "created_at", null: false
+    t.jsonb "prodigi_issues", default: [], null: false
+    t.datetime "prodigi_last_callback_at"
+    t.string "prodigi_last_callback_event_id"
+    t.text "prodigi_last_error"
+    t.boolean "prodigi_managed", default: false, null: false
+    t.string "prodigi_order_id"
+    t.jsonb "prodigi_request_payload", default: {}, null: false
+    t.jsonb "prodigi_response_payload", default: {}, null: false
+    t.jsonb "prodigi_shipments", default: [], null: false
+    t.string "prodigi_stage"
+    t.jsonb "prodigi_status_details", default: {}, null: false
+    t.datetime "prodigi_submitted_at"
+    t.jsonb "raw", default: {}, null: false
+    t.jsonb "shipping_address", default: {}, null: false
+    t.string "status", default: "order_placed", null: false
+    t.datetime "updated_at", null: false
+    t.uuid "user_id", null: false
+    t.index ["checkout_session_id"], name: "index_orders_on_checkout_session_id", unique: true
+    t.index ["prodigi_last_callback_event_id"], name: "index_orders_on_prodigi_last_callback_event_id"
+    t.index ["prodigi_managed"], name: "index_orders_on_prodigi_managed"
+    t.index ["prodigi_order_id"], name: "index_orders_on_prodigi_order_id", unique: true
+    t.index ["prodigi_stage"], name: "index_orders_on_prodigi_stage"
+    t.index ["status"], name: "index_orders_on_status"
+    t.index ["user_id"], name: "index_orders_on_user_id"
+  end
+
   create_table "prices", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.uuid "product_id", null: false
@@ -109,8 +140,71 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_25_000002) do
     t.index ["stripe_price_id"], name: "index_prices_on_stripe_price_id", unique: true
   end
 
+  create_table "prodigi_catalog_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "color"
+    t.datetime "created_at", null: false
+    t.string "destination_country", null: false
+    t.string "frame"
+    t.integer "maximum_shipping_days"
+    t.integer "minimum_shipping_days"
+    t.string "paper_type"
+    t.integer "plus_one_shipping_price_cents"
+    t.jsonb "prodigi_product_details", default: {}, null: false
+    t.string "product_currency"
+    t.string "product_family"
+    t.integer "product_price_amount_cents"
+    t.jsonb "raw_row_data", default: {}, null: false
+    t.string "row_key", null: false
+    t.string "shipping_currency"
+    t.string "shipping_method"
+    t.integer "shipping_price_cents"
+    t.decimal "size_cm", precision: 10, scale: 4
+    t.string "size_inches"
+    t.string "sku", null: false
+    t.boolean "tracked_shipping"
+    t.datetime "updated_at", null: false
+    t.string "variant_fingerprint", null: false
+    t.index ["destination_country"], name: "index_prodigi_catalog_items_on_destination_country"
+    t.index ["product_family"], name: "index_prodigi_catalog_items_on_product_family"
+    t.index ["row_key"], name: "index_prodigi_catalog_items_on_row_key", unique: true
+    t.index ["sku"], name: "index_prodigi_catalog_items_on_sku"
+  end
+
+  create_table "prodigi_pipeline_runs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "created_count", default: 0, null: false
+    t.jsonb "error_details", default: {}, null: false
+    t.integer "failed_count", default: 0, null: false
+    t.datetime "finished_at"
+    t.string "phase", null: false
+    t.integer "record_count", default: 0, null: false
+    t.datetime "started_at"
+    t.string "status", null: false
+    t.jsonb "summary", default: {}, null: false
+    t.datetime "updated_at", null: false
+    t.integer "updated_count", default: 0, null: false
+    t.index ["phase"], name: "index_prodigi_pipeline_runs_on_phase"
+    t.index ["status"], name: "index_prodigi_pipeline_runs_on_status"
+  end
+
+  create_table "prodigi_stripe_mappings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "last_synced_at"
+    t.jsonb "metadata", default: {}, null: false
+    t.uuid "prodigi_catalog_item_id", null: false
+    t.string "stripe_price_id"
+    t.string "stripe_product_id"
+    t.string "stripe_shipping_rate_id"
+    t.datetime "updated_at", null: false
+    t.string "variant_key"
+    t.index ["prodigi_catalog_item_id"], name: "index_prodigi_stripe_mappings_on_prodigi_catalog_item_id", unique: true
+    t.index ["stripe_price_id"], name: "index_prodigi_stripe_mappings_on_stripe_price_id", unique: true
+    t.index ["stripe_shipping_rate_id"], name: "index_prodigi_stripe_mappings_on_stripe_shipping_rate_id"
+  end
+
   create_table "products", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.boolean "deactivated", default: true, null: false
     t.jsonb "stripe_product_cache", default: {}, null: false
     t.string "stripe_product_id"
     t.datetime "updated_at", null: false
@@ -147,7 +241,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_25_000002) do
     t.boolean "admin", default: false, null: false
     t.datetime "affiliate_approved_at"
     t.uuid "affiliate_approved_by_id"
-    t.string "affiliate_status", default: "none", null: false
+    t.string "affiliate_status", default: "inactive", null: false
     t.datetime "created_at", null: false
     t.string "email_address", null: false
     t.string "password_digest"
@@ -172,7 +266,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_25_000002) do
   add_foreign_key "certificate_products", "products"
   add_foreign_key "certificates", "users"
   add_foreign_key "checkout_sessions", "carts"
+  add_foreign_key "orders", "checkout_sessions"
+  add_foreign_key "orders", "users"
   add_foreign_key "prices", "products"
+  add_foreign_key "prodigi_stripe_mappings", "prodigi_catalog_items"
   add_foreign_key "sessions", "users"
   add_foreign_key "users", "users", column: "affiliate_approved_by_id"
   add_foreign_key "users", "users", column: "referred_by_id"

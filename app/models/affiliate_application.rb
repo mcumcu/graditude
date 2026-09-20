@@ -16,6 +16,8 @@ class AffiliateApplication < ApplicationRecord
   before_validation :set_submitted_at, on: :create
 
   def approve!(reviewer: nil)
+    return false unless submitted?
+
     transaction do
       update!(status: "approved", reviewed_at: Time.current, reviewed_by: reviewer)
       user.approve_affiliate!(reviewer: reviewer)
@@ -23,6 +25,8 @@ class AffiliateApplication < ApplicationRecord
   end
 
   def reject!(reviewer: nil)
+    return false unless submitted?
+
     transaction do
       update!(status: "rejected", reviewed_at: Time.current, reviewed_by: reviewer)
       user.reject_affiliate!(reviewer: reviewer)
