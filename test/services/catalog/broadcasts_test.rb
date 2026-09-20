@@ -13,7 +13,7 @@ class Catalog::BroadcastsTest < ActionDispatch::IntegrationTest
   test "product_created should broadcast Turbo Stream prepend" do
     broadcasts = Catalog::Broadcasts.new
     broadcasts.product_created(@product)
-    
+
     assert_equal "product.created", broadcasts.action
     assert_equal "products", broadcasts.target
     assert_equal @product.id.to_s, broadcasts.id
@@ -26,7 +26,7 @@ class Catalog::BroadcastsTest < ActionDispatch::IntegrationTest
     product = Product.create!(name: "Original Product", sku: "SKU-001")
     broadcasts = Catalog::Broadcasts.new
     broadcasts.product_updated(product)
-    
+
     assert_equal "product.updated", broadcasts.action
     assert_equal "products", broadcasts.target
     assert_equal product.id.to_s, broadcasts.id
@@ -40,7 +40,7 @@ class Catalog::BroadcastsTest < ActionDispatch::IntegrationTest
     product = Product.create!(name: "Test Product", sku: "SKU-001")
     broadcasts = Catalog::Broadcasts.new
     broadcasts.product_removed(product)
-    
+
     assert_equal "product.removed", broadcasts.action
     assert_equal "products", broadcasts.target
     assert_equal product.id.to_s, broadcasts.id
@@ -52,7 +52,7 @@ class Catalog::BroadcastsTest < ActionDispatch::IntegrationTest
     product = Product.create!(name: "Test Product", sku: "SKU-001")
     broadcasts = Catalog::Broadcasts.new
     dom_id = broadcasts.row_dom_id(product)
-    
+
     assert_equal "product_#{product.id}", dom_id
     product.destroy
   end
@@ -61,7 +61,7 @@ class Catalog::BroadcastsTest < ActionDispatch::IntegrationTest
     custom_channel = "custom_channel"
     broadcasts = Catalog::Broadcasts.new(channel: custom_channel)
     broadcasts.product_created(@product)
-    
+
     assert_equal custom_channel, broadcasts.channel
   end
 
@@ -70,7 +70,7 @@ class Catalog::BroadcastsTest < ActionDispatch::IntegrationTest
     custom_channel = "custom_channel"
     broadcasts = Catalog::Broadcasts.new(channel: custom_channel)
     broadcasts.product_updated(product)
-    
+
     assert_equal custom_channel, broadcasts.channel
     product.destroy
   end
@@ -80,7 +80,7 @@ class Catalog::BroadcastsTest < ActionDispatch::IntegrationTest
     custom_channel = "custom_channel"
     broadcasts = Catalog::Broadcasts.new(channel: custom_channel)
     broadcasts.product_removed(product)
-    
+
     assert_equal custom_channel, broadcasts.channel
     product.destroy
   end
